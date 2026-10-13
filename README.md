@@ -141,7 +141,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_progress_bar` / `scene_add_button` / `scene_add_image` / `scene_list_interface` | 屏幕上的进度条（跟着玩家变量走；可以是横条、竖条、圆环，可以直接显示当前值的数字，颜色可改）、交互按钮（按数字键触发，玩家模板上的图收事件）和图片（平台自带的图，或一块纯色的底板：不靠文字也能把话说清楚）；控件可以一开始隐藏，由节点图开关 |
 | `scene_add_unit_status` / `scene_list_unit_statuses` | 单位状态：描边、透视、加生命上限；图里加减 |
 | `scene_add_environment` / `scene_list_environments` / `scene_add_light` | 固定时刻的环境配置（昼夜靠两套配置切换；按编辑器的写法写，白天不会过曝）和属于某套配置的点光源 |
-| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通。做法见 `knowledge/notes/client-lua.zh-CN.md`，范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist` |
+| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写错了，语法错在试玩开始时报出文件和行号，运行时的错带着调用栈从试玩日志里回来。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck` |
 | `image_catalog` | 界面图片控件能用的全部图片（约 1600 张，15 类：功能图标、玩法图标、装饰图案、底板、分隔线、特殊字符、技能、道具、造物头像）：按分类返回编辑器图库的照片，每张图下面是编号 |
 | `scene_remove_entities` | 把已经导入场景的物件从存档副本里拿掉（按名字或名字前缀）：导入只能加，摆错的靠它减 |
 | `scene_list_classes` / `scene_set_class` | 职业：角色能不能跳、冲刺、攀爬、滑翔，用哪个镜头模板；角色的等级和基础生命、攻击、防御、体力（新地图默认一万血，打不死） |
@@ -320,7 +320,7 @@ npm run test:local
 
 本项目有而上面没看到的：带缩略图的物件、特效、音效、界面图片编号图鉴；在真游戏里按脚本自动试玩并取回日志和截图；场景和 3D 玩法（摆景、复杂造物的战斗、投射物、机关）。
 
-本项目没有的：游戏之外的模拟器（每一轮都要进真游戏）、给人看的节点图界面、Windows 以外的平台。客户端 Lua 脚本和客户端控件（游戏 7.1 新增）十一种控件和模板都已支持，部分细项还只有默认值。
+本项目没有的：游戏之外的模拟器（每一轮都要进真游戏）、给人看的节点图界面、Windows 以外的平台。客户端 Lua 脚本和客户端控件（游戏 7.1 新增）十一种控件、它们的设置、模板和脚本变量都已支持。
 
 以上是按各项目 README 的自述整理的，如有不准确请提 issue。
 

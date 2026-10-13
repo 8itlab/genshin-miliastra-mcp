@@ -18,8 +18,8 @@ The other kinds of client control and the templates (scene_add_client_template),
 4. `scene_add_signal` `{"name":"CL_more"}` → `{"name":"CL_more"}`
 5. `scene_add_graph` `{"name":"ClStage"}` → `{"graphId":1073741825,"name":"_GSTS_ClStage"}`
 6. `scene_set_client_script` `{"name":"CL_list","source":"<Lua，见第三节>"}` → `{"name":"CL_list"}`
-7. `scene_add_client_template` `{"name":"CL_cell","kind":"container","size":[70,70],"children":[{"name":"tile","kind":"image","image":100001,"colour":"#203050","opacity":0.9,"size":[64,64]},{"name":"icon","kind":"image","image":100138,"size":[40,40]}]}` → `{"name":"CL_cell"}`
-8. `scene_add_client_template` `{"name":"CL_dot","kind":"image","image":106025,"colour":"#e03030","size":[28,28]}` → `{"name":"CL_dot"}`
+7. `scene_add_client_template` `{"template":{"name":"CL_cell","kind":"container","size":[70,70],"children":[{"name":"tile","kind":"image","image":100001,"colour":"#203050","opacity":0.9,"size":[64,64]},{"name":"icon","kind":"image","image":100138,"size":[40,40]}]}}` → `{"name":"CL_cell"}`
+8. `scene_add_client_template` `{"template":{"name":"CL_dot","kind":"image","image":106025,"colour":"#e03030","size":[28,28]}}` → `{"name":"CL_dot"}`
 9. `scene_add_client_ui` `{"name":"CL_ui","script":"CL_list","controls":[{"name":"panel","kind":"image","image":100001,"colour":"#000000","opacity":0.55,"position":[0,-20],"size":[560,480]},{"name":"title","kind":"image","image":100138,"colour":"#ffd040","position":[0,170],"size":[48,48]},{"name":"list","kind":"grid","position":[0,-10],"size":[440,260],"itemTemplate":"CL_cell"},{"name":"row","kind":"container","position":[0,300],"size":[420,40]},{"name":"cellRef","kind":"reference","position":[-360,0],"template":"CL_cell"},{"name":"dotRef","kind":"reference","position":[-360,-120],"template":"CL_dot"},{"name":"ok","kind":"presetButton","position":[0,-270]},{"name":"hint","kind":"keyHint","position":[360,0]}]}` → `{"name":"CL_ui"}`
 10. `scene_list_prefabs` `{}`
 11. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 1 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。

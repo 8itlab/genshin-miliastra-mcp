@@ -1,0 +1,136 @@
+{
+ "about": "What a faulty Lua client script leaves behind, and four things that were not known. Seen in play on 2026-10-13: (1) A fault while the script runs comes into the log as a print with the place and a traceback: the click at play second 3 runs a handler that indexes nil, and the log has \"CC_main:13: attempt to index a nil value (local 'nothing')\" with \"stack traceback: CC_main: 13: in function <CC_main:10>\"; the 2 key at second 6 gives the same for line 24. What the handler printed before the fault is there, what came after is not. printerr lines are in the log like prints. (2) A script that does not compile never reaches the play: with cc_syntax_error.lua added as a third script (it is left out of this test), playtest_start fails at once with 试玩校验失败：脚本编译报错：CC_bad.lua:2: ')' expected. (3) OnUpdate is not called unless the script asked for it with script:EnableUpdate(true): this one never asks, and neither its fault at frame 120 nor its print at frame 240 shows. (4) A signal carries a parameter: the 1 key at second 5 makes the Lua send CC_say with AddString(\"hello\"), and the graph prints CC_SAY hello. (5) A container that starts hidden is switched on by the graph at level second 16 (f.modifyUiControlStatusWithinTheInterfaceLayout with the id scene_add_client_ui returned): the red star appears and its script starts only then (CC_LUA late started). (6) A teleport inside the level (the playtest input at second 8) leaves the client controls as they are: the green disc stays and the script does not start again.",
+ "dir": "clientcheck",
+ "namePrefix": "CC_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 16,
+ "screenshotsAt": [
+  2,
+  7,
+  10,
+  14
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "click": [
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "at": 5,
+   "key": "1"
+  },
+  {
+   "at": 6,
+   "key": "2"
+  },
+  {
+   "at": 8,
+   "teleport": [
+    3,
+    1,
+    3
+   ]
+  }
+ ],
+ "scenes": [],
+ "generator": "gen_clientcheck.py",
+ "signals": [
+  {
+   "name": "CC_say",
+   "parameter": "word"
+  }
+ ],
+ "clientScripts": [
+  {
+   "name": "CC_main",
+   "file": "cc_main.lua"
+  },
+  {
+   "name": "CC_late",
+   "file": "cc_late.lua"
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "CC_ui",
+   "script": "CC_main",
+   "controls": [
+    {
+     "name": "mark",
+     "kind": "image",
+     "image": 106025,
+     "colour": "#40c060",
+     "position": [
+      -300,
+      300
+     ],
+     "size": [
+      60,
+      60
+     ]
+    },
+    {
+     "name": "hit",
+     "kind": "cursorArea",
+     "position": [
+      0,
+      0
+     ],
+     "size": [
+      200,
+      200
+     ]
+    },
+    {
+     "name": "words",
+     "kind": "textWindow",
+     "position": [
+      300,
+      300
+     ]
+    },
+    {
+     "name": "fx",
+     "kind": "animation",
+     "position": [
+      300,
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "CC_late",
+   "script": "CC_late",
+   "hidden": true,
+   "controls": [
+    {
+     "name": "late",
+     "kind": "image",
+     "image": 100138,
+     "colour": "#ff4040",
+     "position": [
+      0,
+      300
+     ],
+     "size": [
+      80,
+      80
+     ]
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CcStage"
+  }
+ ]
+}

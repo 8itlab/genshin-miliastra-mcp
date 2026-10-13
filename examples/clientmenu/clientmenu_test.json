@@ -1,0 +1,271 @@
+{
+ "about": "A menu that uses the rest of what a client interface can be given, seen in play on 2026-10-13. Three scripts: CM_menu on the root with two script variables (title, a string, and rows, an integer: it prints \"title Shop rows 2\" from script:GetParam); CM_cell on the template CM_cell, which starts once on every item the grid makes (eight prints of CM_LUA cell); CM_spin on the child control spin, which turns that control a quarter turn a second (script.object is the control the script is on; it has to call script:EnableUpdate(true) for OnUpdate to run). The grid has four columns of 90 x 90 items; spin is drawn turned by 20 degrees and 1.4 times its size; the key hint shows the key 8; the effect 火能量满值1 plays where the control fx stands, from the start. The button is a preset button whose looks are two images it holds: blue while idle and under the cursor, yellow while pressed (states normal, hover, pressed). With no hover state given the button showed nothing from the moment the cursor was on it. The script clicks it at play seconds 4 and 7: two CM_BUY prints from the graph, and the green disc that started inactive is there from the first click on (SetActive(true)). The cursor is there without the script asking (showCursor on the interface) and the interface keeps key presses from the level under it (blockKeys). The title is a text box with its text set here: it shows on an account of 奇匠 level 2 and up.",
+ "dir": "clientmenu",
+ "namePrefix": "CM_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 12,
+ "screenshotsAt": [
+  2,
+  4.3,
+  6,
+  9
+ ],
+ "inputs": [
+  {
+   "at": 4,
+   "click": [
+    0.5,
+    0.8
+   ],
+   "holdMs": 600
+  },
+  {
+   "at": 7,
+   "click": [
+    0.5,
+    0.8
+   ]
+  }
+ ],
+ "scenes": [],
+ "generator": "gen_clientmenu.py",
+ "signals": [
+  "CM_buy"
+ ],
+ "clientScripts": [
+  {
+   "name": "CM_menu",
+   "file": "cm_menu.lua",
+   "variables": [
+    {
+     "name": "title",
+     "type": "string",
+     "value": "Shop",
+     "public": true
+    },
+    {
+     "name": "rows",
+     "type": "integer",
+     "value": 2
+    }
+   ]
+  },
+  {
+   "name": "CM_cell",
+   "file": "cm_cell.lua"
+  },
+  {
+   "name": "CM_spin",
+   "file": "cm_spin.lua"
+  }
+ ],
+ "clientTemplates": [
+  {
+   "name": "CM_cell",
+   "kind": "container",
+   "size": [
+    90,
+    90
+   ],
+   "script": "CM_cell",
+   "children": [
+    {
+     "name": "tile",
+     "kind": "image",
+     "image": 100001,
+     "colour": "#203050",
+     "opacity": 0.9,
+     "size": [
+      84,
+      84
+     ]
+    },
+    {
+     "name": "icon",
+     "kind": "image",
+     "image": 100138,
+     "size": [
+      52,
+      52
+     ]
+    }
+   ]
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "CM_ui",
+   "script": "CM_menu",
+   "showCursor": true,
+   "blockKeys": true,
+   "controls": [
+    {
+     "name": "panel",
+     "kind": "image",
+     "image": 100001,
+     "colour": "#000000",
+     "opacity": 0.55,
+     "position": [
+      0,
+      -20
+     ],
+     "size": [
+      640,
+      520
+     ]
+    },
+    {
+     "name": "title",
+     "kind": "text",
+     "position": [
+      0,
+      200
+     ],
+     "size": [
+      400,
+      60
+     ],
+     "text": {
+      "content": "Shop",
+      "fontSize": 40,
+      "colour": "#ffd040"
+     }
+    },
+    {
+     "name": "list",
+     "kind": "grid",
+     "position": [
+      0,
+      0
+     ],
+     "size": [
+      420,
+      220
+     ],
+     "itemTemplate": "CM_cell",
+     "grid": {
+      "columns": 4,
+      "itemSize": [
+       90,
+       90
+      ],
+      "spacing": [
+       10,
+       10
+      ],
+      "padding": [
+       10,
+       10,
+       10,
+       10
+      ],
+      "scrollbar": false
+     }
+    },
+    {
+     "name": "buy",
+     "kind": "presetButton",
+     "position": [
+      0,
+      -270
+     ],
+     "size": [
+      180,
+      64
+     ],
+     "states": {
+      "normal": "up",
+      "hover": "up",
+      "pressed": "down"
+     },
+     "children": [
+      {
+       "name": "up",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#40a0ff",
+       "size": [
+        180,
+        64
+       ]
+      },
+      {
+       "name": "down",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#ffd040",
+       "size": [
+        180,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "name": "spin",
+     "kind": "container",
+     "position": [
+      -420,
+      0
+     ],
+     "rotation": 20,
+     "scale": [
+      1.4,
+      1.4
+     ],
+     "script": "CM_spin",
+     "children": [
+      {
+       "name": "star",
+       "kind": "image",
+       "image": 100138,
+       "colour": "#ff6060"
+      }
+     ]
+    },
+    {
+     "name": "sleeper",
+     "kind": "image",
+     "image": 106025,
+     "colour": "#40c060",
+     "position": [
+      420,
+      160
+     ],
+     "size": [
+      60,
+      60
+     ],
+     "active": false
+    },
+    {
+     "name": "key",
+     "kind": "keyHint",
+     "position": [
+      420,
+      0
+     ],
+     "key": 8
+    },
+    {
+     "name": "fx",
+     "kind": "animation",
+     "position": [
+      420,
+      -160
+     ],
+     "effect": 10001002
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CmStage"
+  }
+ ]
+}

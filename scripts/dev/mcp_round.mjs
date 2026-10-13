@@ -153,10 +153,10 @@ try{
   for(const [i,bar] of (args.bars||[]).entries()){const made=await call('scene_add_progress_bar',{mapPath,...bar,outputName:'kingdom-bar-'+i});mapPath=made.mapPath;extra.push(['bar:'+made.name,made.controlId]);}
   // Client scripts and the client controls they run on: args.clientScripts = [{name, file}] (a .lua beside the test),
   // args.clientUis = a list of scene_add_client_ui arguments.
-  for(const [i,script] of (args.clientScripts||[]).entries())mapPath=(await call('scene_set_client_script',{mapPath,name:script.name,sourceFile:path.join(kingdom,script.file),outputName:'kingdom-script-'+i})).mapPath;
+  for(const [i,script] of (args.clientScripts||[]).entries())mapPath=(await call('scene_set_client_script',{mapPath,name:script.name,sourceFile:path.join(kingdom,script.file),...(script.variables?{variables:script.variables}:{}),outputName:'kingdom-script-'+i})).mapPath;
   // Templates of client controls (args.clientTemplates = scene_add_client_template arguments) come before the interfaces that name them.
-  for(const [i,template] of (args.clientTemplates||[]).entries())mapPath=(await call('scene_add_client_template',{mapPath,...template,outputName:'kingdom-clienttemplate-'+i})).mapPath;
-  for(const [i,ui] of (args.clientUis||[]).entries())mapPath=(await call('scene_add_client_ui',{mapPath,...ui,outputName:'kingdom-clientui-'+i})).mapPath;
+  for(const [i,template] of (args.clientTemplates||[]).entries())mapPath=(await call('scene_add_client_template',{mapPath,template,outputName:'kingdom-clienttemplate-'+i})).mapPath;
+  for(const [i,ui] of (args.clientUis||[]).entries()){const made=await call('scene_add_client_ui',{mapPath,...ui,outputName:'kingdom-clientui-'+i});mapPath=made.mapPath;extra.push(['clientui:'+made.name,made.containerId]);}
   // Buttons on the screen: args.buttons = scene_add_button arguments (the index each reports reaches the generator as 'button:<name>').
   for(const [i,button] of (args.buttons||[]).entries()){const made=await call('scene_add_button',{mapPath,...button,outputName:'kingdom-button-'+i});mapPath=made.mapPath;extra.push(['button:'+made.name,made.controlGroupIndex]);}
   // Prefabs changed after they were made (scale, asset, health): args.prefabUpdates = scene_update_prefab arguments.

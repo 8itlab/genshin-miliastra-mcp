@@ -2009,13 +2009,16 @@ const ownedBy=id=>field(504,2,Buffer.concat([field(2,0,1),field(3,0,8),field(4,0
 const CLIENT_BLOCKS={82:[72,62],83:[73,63],84:[74,64],85:[75,65],89:[76,66],90:[77,67],91:[78,68],92:[79,69],93:[80,70],94:[81,71],95:[82,72],96:[83,73],97:[84,74],98:[85,75],99:[86,76]};
 // (The inner block of a text window is the one of a text box, field 75 in slot 66: the two share their text settings.)
 const clientBlock=(type,inner,id)=>{const [wrapId,slot]=CLIENT_BLOCKS[type],[innerId,innerSlot]=type===94?[75,66]:[wrapId+1,slot+2];return field(505,2,uiBlock(wrapId,Buffer.alloc(0),slot,type,[field(503,2,uiBlock(innerId,inner,innerSlot,type,[field(503,0,1),ownedBy(id)]))]));};
+// One of the four platform states of a rectangle: scale, the two anchors, the position, the size, the pivot, the turn.
+// With both anchors at the centre the size is the size and the position counts from the centre of the holder; with
+// anchors apart the control stretches with its holder and "size" is what it is larger than the stretch (as in Unity).
 const clientState=(s,i)=>field(501,2,Buffer.concat([i?field(501,0,i):Buffer.alloc(0),field(502,2,Buffer.concat([
-  field(501,2,Buffer.concat([field(1,5,f32(1)),field(2,5,f32(1)),field(3,5,f32(1))])),
-  field(502,2,s?pair(0.5,0.5):Buffer.alloc(0)),field(503,2,s?pair(0.5,0.5):pair(1,1)),
+  field(501,2,Buffer.concat([field(1,5,f32(s?.scale?.[0]??1)),field(2,5,f32(s?.scale?.[1]??1)),field(3,5,f32(1))])),
+  field(502,2,s?pair(...(s.anchorMin??[0.5,0.5])):Buffer.alloc(0)),field(503,2,s?pair(...(s.anchorMax??[0.5,0.5])):pair(1,1)),
   field(504,2,s?pair(s.position[0],s.position[1]):Buffer.alloc(0)),
-  field(505,2,s?pair(s.size[0],s.size[1]):Buffer.alloc(0)),field(506,2,pair(0.5,0.5)),field(508,2,Buffer.alloc(0))]))]));
-// rect: {position, size} from the centre of what holds it (or {states}: one for each of the four platforms), or nothing
-// for one that fills what holds it.
+  field(505,2,s?pair(s.size[0],s.size[1]):Buffer.alloc(0)),field(506,2,pair(...(s?.pivot??[0.5,0.5]))),field(508,2,s?.rotation?field(3,5,f32(s.rotation)):Buffer.alloc(0))]))]));
+// rect: {position, size, scale, pivot, rotation, anchorMin, anchorMax} from the centre of what holds it (or {states}:
+// one for each of the four platforms), or nothing for one that fills what holds it.
 const clientRect=(id,rect,kind)=>field(505,2,uiBlock(11,Buffer.concat([field(12,2,Buffer.alloc(0)),field(501,0,2)]),1,12,[field(503,2,uiBlock(13,Buffer.concat([
   field(12,2,Buffer.concat([...[0,1,2,3].map(i=>clientState(rect?.states?rect.states[i]:rect,i)),field(502,0,kind),field(504,0,1)])),field(501,0,2)]),4,12,[field(503,0,1),ownedBy(id)]))]));
 // slot: the number a record of a template carries; template: the record is the template itself.
@@ -2023,36 +2026,82 @@ const clientHead=(id,name,children,parent,slot,template)=>Buffer.concat([field(5
   slot?field(502,2,uiBlock(12,field(501,0,slot),2,6)):Buffer.alloc(0),template?field(502,2,uiBlock(14,Buffer.alloc(0),4,4)):Buffer.alloc(0),
   children?.length?field(503,2,packIds(children)):Buffer.alloc(0),parent?field(504,0,parent):Buffer.alloc(0),field(505,2,uiBlock(12,field(501,2,Buffer.from(name,'utf8')),2,15))]);
 // The container on the screen: it fills the screen, and its content names the root of the client controls.
-export function clientContainerRecord({id,name,parent,root}){
+export function clientContainerRecord({id,name,parent,root,hidden}){
   const marker=Buffer.concat([field(15,2,Buffer.alloc(0)),field(501,0,5)]);
+  // Not shown until a graph switches it on: as with the other controls of the layout, {502: 1} in the inner block
+  // (the same bytes as a container switched off by hand, tests/fixtures/editor-2026-10-13-clientsettings.gil).
   return Buffer.concat([clientHead(id,name,null,parent),
-    field(505,2,uiBlock(14,marker,4,23,[field(503,2,uiBlock(14,marker,5,23,[field(503,0,1),ownedBy(id)]))])),
+    field(505,2,uiBlock(14,marker,4,23,[field(503,2,uiBlock(14,hidden?Buffer.concat([marker,field(502,0,1)]):marker,5,23,[field(503,0,1),ownedBy(id)]))])),
     clientRect(id,null,24),clientBlock(82,field(501,0,root),id)]);
 }
-// One client control. The values are those the editor gives a control nobody has configured, but for: image (the id
-// of the picture an image shows) and colour (0xAARRGGBB), itemTemplate (the template a grid makes its items from),
-// template (the one a reference shows). Everything else is for the script to set.
-export function clientControlRecord({id,name,kind,parent,children,rect,script,image,colour,itemTemplate,template,slot,isTemplate}){
+const flag=(id,on)=>on?field(id,0,1):Buffer.alloc(0);
+// One client control. Left alone, every setting is the one the editor gives a new control; what can be said here was
+// each changed once by hand in the editor and read back (tests/fixtures/editor-2026-10-13-clientsettings.gil):
+// - any control: active false (初始激活 off), visible false (初始可见性 off), focusable (可被手柄摇杆导航选中), scripts
+//   (the ids of the client scripts on it; rootForm: the form the root of the official sample has, {501: 1} before them);
+// - a container: isolateNavigation, blockKeys (屏蔽按键事件穿透), blockCursor (屏蔽区域内光标事件穿透), showCursor (显示常驻光标);
+// - an image: image (the picture), colour (0xAARRGGBB), mask (开启遮罩);
+// - a text box and a text window: text {content, fontSize, colour, background, outline, outlineColour, align, valign, autoSize};
+// - a grid: grid {itemTemplate, horizontal, itemSize, spacing, padding: [top, bottom, left, right], scrollbar, fixed, preview};
+// - a preset button: button {normal, hover, pressed, disabled: ids of controls it holds, enabled, sound};
+// - a key hint: keys {keyboard, pad}; an interface effect: effect {id, sound, below}; a reference: template.
+export function clientControlRecord({id,name,kind,parent,children,rect,script,scripts,rootForm,image,colour,mask,itemTemplate,template,slot,isTemplate,active,visible,focusable,
+    isolateNavigation,blockKeys,blockCursor,showCursor,text,grid,button,keys,effect}){
   const marker=Buffer.concat([field(17,2,Buffer.alloc(0)),field(501,0,7)]);
+  const shown=Buffer.concat([field(17,2,flag(503,visible===false)),field(501,0,7),flag(502,active===false)]);
+  const carried=scripts??(script?[script]:[]),isRoot=rootForm??(!parent&&!isTemplate&&!slot);
+  const align={left:0,centre:1,center:1,right:2},valign={top:0,middle:1,bottom:2};
+  // The settings of a text: 501 the least size when the size adapts, 502 that it adapts, 504 the colour of the letters,
+  // 505 the colour behind them, 506 that they have no outline, 507 the colour of the outline, 508 and 509 where the
+  // text stands across and up (none: left, top), 510 the text, 512 the size of the letters.
+  const words=(window)=>{const t=text??{},across=align[t.align??'centre'],up=valign[t.valign??'middle'];
+    return Buffer.concat([window?field(62,2,Buffer.concat([field(502,0,1),field(503,0,1)])):Buffer.alloc(0),field(501,0,t.minFontSize??20),flag(502,t.autoSize),field(503,0,12),field(504,0,t.colour??0xffffffff),field(505,0,t.background??0xffffff),
+      flag(506,t.outline===false),field(507,0,t.outlineColour??0x33333333),...(window?[]:[across?field(508,0,across):Buffer.alloc(0),up?field(509,0,up):Buffer.alloc(0)]),
+      field(510,2,t.content?field(501,2,Buffer.from(t.content,'utf8')):Buffer.alloc(0)),window?field(511,0,1):Buffer.alloc(0),field(512,0,t.fontSize??20),field(513,0,20)]);};
+  const g=grid??{},b=button??{},e=effect??{};
   const own={
-    container:[clientBlock(91,Buffer.alloc(0),id)],
-    image:[clientBlock(96,Buffer.concat([field(502,0,colour??0xffffffff),image?field(503,0,image):Buffer.alloc(0)]),id),clientBlock(97,Buffer.concat([field(502,0,1),field(504,0,1),field(505,0,1),field(507,0,2),field(508,0,100),field(510,0,1),field(511,2,pair(8,8)),field(512,5,f32(85)),field(513,5,f32(85)),field(515,0,1)]),id)],
-    text:[clientBlock(84,Buffer.concat([field(501,0,20),field(503,0,12),field(504,0,0xffffffff),field(505,0,0xffffff),field(507,0,0x33333333),field(508,0,1),field(509,0,1),field(510,2,Buffer.alloc(0)),field(512,0,20),field(513,0,20)]),id)],
+    container:[clientBlock(91,Buffer.concat([flag(501,isolateNavigation),flag(502,blockKeys),flag(503,blockCursor),flag(504,showCursor)]),id)],
+    image:[clientBlock(96,Buffer.concat([field(502,0,colour??0xffffffff),image?field(503,0,image):Buffer.alloc(0)]),id),
+      clientBlock(97,Buffer.concat([flag(501,mask),field(502,0,1),field(504,0,1),field(505,0,1),field(507,0,2),field(508,0,100),field(510,0,1),field(511,2,pair(8,8)),field(512,5,f32(85)),field(513,5,f32(85)),field(515,0,1)]),id)],
+    text:[clientBlock(84,words(false),id)],
     cursorArea:[clientBlock(85,field(501,0,1),id)],
-    textWindow:[clientBlock(94,Buffer.concat([field(62,2,Buffer.concat([field(502,0,1),field(503,0,1)])),field(501,0,20),field(503,0,12),field(504,0,0xffffffff),field(505,0,0xffffff),field(507,0,0x33333333),field(510,2,Buffer.alloc(0)),field(511,0,1),field(512,0,20),field(513,0,20)]),id)],
-    animation:[clientBlock(98,Buffer.alloc(0),id)],fullscreenAnimation:[clientBlock(99,Buffer.alloc(0),id)],
-    presetButton:[clientBlock(93,Buffer.concat([field(505,0,1),field(506,0,50888),field(507,0,1)]),id)],
-    keyHint:[clientBlock(95,Buffer.concat([field(501,0,1),field(502,0,1)]),id)],
-    // A grid: it scrolls up and down, items of 50 x 50 set 8 apart, 20 from each edge, five shown in the editor.
-    grid:[clientBlock(92,Buffer.concat([field(501,0,1),field(502,2,pair(50,50)),field(503,2,pair(8,8)),field(504,2,pair(20,20)),field(505,2,pair(20,20)),itemTemplate?field(506,0,itemTemplate):Buffer.alloc(0),field(507,0,1),field(508,0,1),field(509,0,1),field(511,0,5),field(512,0,1)]),id)],
+    textWindow:[clientBlock(94,words(true),id)],
+    // An interface effect: 501 the effect, 502 that its sound plays, 503 that it lies under the other controls.
+    animation:[clientBlock(98,Buffer.concat([e.id?field(501,0,e.id):Buffer.alloc(0),flag(502,e.sound),flag(503,e.below)]),id)],
+    fullscreenAnimation:[clientBlock(99,Buffer.concat([e.id?field(501,0,e.id):Buffer.alloc(0),flag(502,e.sound),flag(503,e.below)]),id)],
+    // A preset button: 501 to 504 the controls it shows when idle, hovered over, pressed and switched off (controls it
+    // holds), 505 that it can be clicked, 506 the sound of a click, 507 that the cursor finds it.
+    presetButton:[clientBlock(93,Buffer.concat([b.normal?field(501,0,b.normal):Buffer.alloc(0),b.hover?field(502,0,b.hover):Buffer.alloc(0),b.pressed?field(503,0,b.pressed):Buffer.alloc(0),b.disabled?field(504,0,b.disabled):Buffer.alloc(0),
+      flag(505,b.enabled!==false),field(506,0,b.sound??50888),field(507,0,1)]),id)],
+    // A key hint: 501 the key of a keyboard, 502 the one of a gamepad (the numbers of the 奇匠按键).
+    keyHint:[clientBlock(95,Buffer.concat([field(501,0,keys?.keyboard??1),field(502,0,keys?.pad??1)]),id)],
+    // A grid: 501 that it scrolls up and down (none: sideways), 502 the size of an item, 503 the gaps, 504 the margins
+    // above and below, 505 left and right, 506 the template of an item, 507 that the bar shows, 509 how many rows or
+    // columns when 510 says the number is fixed, 511 how many items the editor shows.
+    grid:[clientBlock(92,Buffer.concat([flag(501,!g.horizontal),field(502,2,pair(...(g.itemSize??[50,50]))),field(503,2,pair(...(g.spacing??[8,8]))),field(504,2,pair((g.padding??[20,20,20,20])[0],(g.padding??[20,20,20,20])[1])),field(505,2,pair((g.padding??[20,20,20,20])[2],(g.padding??[20,20,20,20])[3])),
+      (g.itemTemplate??itemTemplate)?field(506,0,g.itemTemplate??itemTemplate):Buffer.alloc(0),flag(507,g.scrollbar!==false),field(508,0,1),field(509,0,g.fixed??1),flag(510,g.fixed!==undefined),field(511,0,g.preview??5),field(512,0,1)]),id)],
     reference:[clientBlock(89,template?field(501,0,template):Buffer.alloc(0),id)]}[kind];
   return Buffer.concat([clientHead(id,name,children,parent,slot,isTemplate),
-    field(505,2,uiBlock(14,marker,4,86,[field(503,2,uiBlock(14,marker,5,86,[field(503,0,1),ownedBy(id)]))])),
+    field(505,2,uiBlock(14,marker,4,86,[field(503,2,uiBlock(14,shown,5,86,[field(503,0,1),ownedBy(id)]))])),
     clientRect(id,kind==='fullscreenAnimation'?null:rect,CLIENT_KINDS[kind]),
-    clientBlock(83,script?Buffer.concat([field(501,0,1),field(502,2,field(1,2,field(1,0,script)))]):Buffer.alloc(0),id),
-    ...own,clientBlock(90,Buffer.alloc(0),id)]);
+    clientBlock(83,carried.length?Buffer.concat([flag(501,isRoot),...carried.map(s=>field(502,2,field(1,2,field(1,0,s))))]):Buffer.alloc(0),id),
+    ...own,clientBlock(90,flag(505,focusable),id)]);
 }
-export const clientScriptRecord=({id,name,file,source})=>Buffer.concat([field(1,0,id),field(2,2,Buffer.from(name,'utf8')),field(3,2,Buffer.from(file,'utf8')),field(5,2,Buffer.from(source,'utf8'))]);
+// A variable of a script (脚本变量, read with script:GetParam(name)): {2: name, 3: type, 4: its value as the node graphs
+// write one, 5: 1 when a control may set its own value (公开), 7 and 8: 6, 10: a code of the type}. Two kinds were
+// made by hand and read back, a string and an integer.
+function scriptVariable(v){
+  if(typeof v.name!=='string'||!/^[^\s]{1,40}$/.test(v.name))fail('INVALID_VARIABLE','A script variable is {name, type: "integer" | "string", value, public}.',{variable:v});
+  let value,type,kind,code;
+  if(v.type==='integer'){if(!Number.isInteger(v.value??0)||Math.abs(v.value??0)>2147483647)fail('INVALID_VARIABLE','An integer variable takes a whole number.',{variable:v});type=3;kind=2;code=3;value=field(102,2,v.value?field(1,0,BigInt.asUintN(64,BigInt(v.value))):Buffer.alloc(0));}
+  else if(v.type==='string'){if(typeof (v.value??'')!=='string'||(v.value??'').length>200)fail('INVALID_VARIABLE','A string variable takes a text.',{variable:v});type=6;kind=5;code=9;value=field(105,2,v.value?field(1,2,Buffer.from(v.value,'utf8')):Buffer.alloc(0));}
+  else fail('INVALID_VARIABLE','A script variable is an integer or a string (the other types are not written yet).',{variable:v});
+  return Buffer.concat([field(2,2,Buffer.from(v.name,'utf8')),field(3,0,type),field(4,2,Buffer.concat([field(1,0,kind),field(2,0,1),field(4,2,Buffer.concat([field(1,0,1),field(100,2,field(1,0,type))])),value])),
+    flag(5,v.public),field(7,0,6),field(8,0,6),field(10,0,code)]);
+}
+// The variables stand in the record twice, as fields 7 and as fields 8 (as the editor wrote them once 应用修改 was pressed).
+export const clientScriptRecord=({id,name,file,source,variables=[]})=>Buffer.concat([field(1,0,id),field(2,2,Buffer.from(name,'utf8')),field(3,2,Buffer.from(file,'utf8')),field(5,2,Buffer.from(source,'utf8')),
+  ...variables.map(v=>field(7,2,scriptVariable(v))),...variables.map(v=>field(8,2,scriptVariable(v)))]);
 const FIRST_SCRIPT_ID=1073741826;
 // The trees of client controls of a save: each container of a layout, the controls under its root and the scripts on them.
 function clientTrees(root,records){
@@ -2077,7 +2126,7 @@ function clientScripts(root){
 const LUA_FORBIDDEN=[[/\bcoroutine\s*\./,'coroutine.* is not available'],[/\bio\s*\./,'io.* is not available'],[/\bstring\s*\.\s*dump\b/,'string.dump is not available'],
   [/\bos\s*\.\s*(?!time\b|date\b|clock\b|difftime\b)[A-Za-z_]+/,'of os only time, date, clock and difftime are available'],[/\bdebug\s*\.\s*(?!traceback\b)[A-Za-z_]+/,'of debug only traceback is available'],
   [/\brequire\s*[("']/,'require is not available: a script reaches another one through its script mapping id'],[/\b(?:loadfile|dofile)\s*\(/,'loadfile and dofile are not available']];
-export function setClientScript({mapPath,name,source,sourceFile,file:asFile,outputName},workspace){
+export function setClientScript({mapPath,name,source,sourceFile,file:asFile,variables,outputName},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file);const root=container(bytes);
   if((source===undefined)===(sourceFile===undefined))fail('INVALID_SCRIPT','Give the Lua either as source or as sourceFile (the path of a .lua file).');
   const lua=source??(fs.existsSync(sourceFile)?fs.readFileSync(sourceFile,'utf8').replace(/^﻿/,''):fail('SOURCE_NOT_FOUND','sourceFile does not exist.',{sourceFile}));
@@ -2090,7 +2139,10 @@ export function setClientScript({mapPath,name,source,sourceFile,file:asFile,outp
   // One file to a script: the editor writes each to external_lua_file under this name.
   if(asFile&&scripts.some(s=>s.file===asFile&&s.name!==name))fail('DUPLICATE_SCRIPT_FILE','Another script of this save already has this file name.',{file:asFile});
   const luaFile=asFile??had?.file??(/^[A-Za-z0-9_-]{1,40}$/.test(name)&&!scripts.some(s=>s.file===name+'.lua')?name+'.lua':'script_'+(id-FIRST_SCRIPT_ID+1)+'.lua');
-  const record=field(1,2,clientScriptRecord({id,name,file:luaFile,source:lua}));
+  if(variables&&new Set(variables.map(v=>v.name)).size!==variables.length)fail('INVALID_VARIABLE','Two variables of the script have the same name.');
+  // A script that is replaced keeps the variables it had unless new ones are given.
+  const keptVariables=had&&!variables?fields(had.raw.data).filter(f=>(f.id===7||f.id===8)&&f.wire===2).map(f=>f.raw):null;
+  const record=field(1,2,keptVariables?Buffer.concat([clientScriptRecord({id,name,file:luaFile,source:lua}),...keptVariables]):clientScriptRecord({id,name,file:luaFile,source:lua,variables:variables??[]}));
   const section=fields(one(root,50));let placed=false;
   const rebuilt=section.flatMap(f=>{
     if(had&&f.id===1&&f.wire===2&&varintOf(f.data,1)===had.id){placed=true;return [record];}
@@ -2100,9 +2152,12 @@ export function setClientScript({mapPath,name,source,sourceFile,file:asFile,outp
   if(!placed)rebuilt.push(record);
   const out=output(workspace,file,outputName,'-script');fs.writeFileSync(out,wrap(bytes,replace(root,50,2,Buffer.concat(rebuilt))));
   const callbacks=['OnInit','OnStart','OnEnable','OnDisable','OnUpdate','OnLevelUpdate','OnDestroy'].filter(n=>new RegExp('\\bfunction\\s+'+n+'\\s*\\(').test(stripped));
+  // OnUpdate is only called once the script asked for it (seen in play, 2026-10-13: without the call, never).
+  const idleUpdate=/\bfunction\s+OnUpdate\s*\(/.test(stripped)&&!/EnableUpdate\s*\(/.test(stripped);
   // A tween does nothing until it is played (a basket that never moved, 2026-10-13).
   const idle=stripped.split('\n').map((l,i)=>/^\s*game\s*\.\s*Tween\s*\(/.test(l)&&!/:\s*Play\s*\(/.test(l)?i+1:0).filter(Boolean);
-  return {mapPath:out,source:file,scriptId:id,name,file:luaFile,replaced:!!had,lines:lua.split('\n').length,callbacks,
+  return {mapPath:out,source:file,scriptId:id,name,file:luaFile,replaced:!!had,lines:lua.split('\n').length,callbacks,...(variables?.length?{variables:variables.map(v=>v.name)}:{}),
+    ...(idleUpdate?{updateNotEnabled:'The script defines OnUpdate but never calls script:EnableUpdate(true): the game does not call OnUpdate until it does (put the call in OnStart).'}:{}),
     ...(idle.length?{tweensNotPlayed:{lines:idle,note:'game.Tween(...) only makes a tween: it moves nothing until :Play() is called on it.'}}:{}),
     ...(callbacks.length?{}:{warning:'The script defines none of the lifecycle functions the game calls by name (OnInit, OnStart, OnEnable, OnUpdate(dt), OnLevelUpdate(dt), OnDisable, OnDestroy): only what stands at the top level runs, once, when the script loads.'}),
     next:had?'Use mapPath in later calls. The controls that carried this script carry the new source.':'Use mapPath in later calls. A script runs only on a client control: scene_add_client_ui {script: "'+name+'"} puts the controls on the screen with this script on their root.'};
@@ -2116,44 +2171,70 @@ export function listClientScripts({mapPath,includeSource=false}){
 // The templates of client controls a save has: {id, name}. The id is the 控件模板索引 a script gives
 // game.InstantiateClientUIControl, and what a grid or a reference names.
 function clientTemplates(records){return records.filter(r=>r.structure.includes(4)&&r.content.includes(86)).map(r=>({id:r.id,name:r.name}));}
+// "#rrggbb" and an opacity as the number a record holds (0xAARRGGBB).
+const tint=(colour,opacity,name)=>{
+  if(colour!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(colour))fail('INVALID_COLOUR','A colour is "#rrggbb".',{name,colour});
+  return Number((BigInt(Math.round((opacity??1)*255))<<24n)|BigInt(parseInt((colour??'#ffffff').slice(1),16)));};
 // Turns the controls asked for into records, a holder before what it holds. take gives each its id; known are the
-// templates there are, by name. slots: a function giving the next slot, for the records of a template.
-function clientRecords(list,parent,take,known,slots,made,paths,trail=[]){
+// templates there are and scripts the scripts, by name. slots: a function giving the next slot, for the records of a template.
+function clientRecords(list,parent,take,known,scripts,slots,made,paths,trail=[]){
   const names=new Set();
   return list.map(c=>{
     if(!CLIENT_KINDS[c.kind])fail('INVALID_CONTROL','kind is one of '+Object.keys(CLIENT_KINDS).join(', ')+'.',{name:c.name,kind:c.kind});
     // Controls of one holder must differ in name: a script finds them by it (GetChild).
     if(names.has(c.name))fail('DUPLICATE_CONTROL_NAME','Two controls of one holder have the same name.',{name:c.name});names.add(c.name);
-    if(c.children?.length&&c.kind!=='container')fail('INVALID_CONTROL','Only a container holds other controls.',{name:c.name});
+    if(c.children?.length&&c.kind!=='container'&&c.kind!=='presetButton')fail('INVALID_CONTROL','Only a container and a preset button hold other controls.',{name:c.name});
     const size=c.size??CLIENT_SIZES[c.kind]??[100,100],position=c.position??[0,0];
-    if(!(size[0]>0&&size[0]<=3200&&size[1]>0&&size[1]<=1800)||Math.abs(position[0])>3200||Math.abs(position[1])>1800)fail('INVALID_RECT','position is [x, y] from the centre of the holder on a 1600 x 900 canvas, y up; size is [width, height].',{name:c.name,position,size});
-    for(const key of ['image','colour','opacity'])if(c[key]!==undefined&&c.kind!=='image')fail('INVALID_CONTROL',key+' goes with an image.',{name:c.name});
-    if(c.itemTemplate!==undefined&&c.kind!=='grid')fail('INVALID_CONTROL','itemTemplate goes with a grid.',{name:c.name});
-    if(c.template!==undefined&&c.kind!=='reference')fail('INVALID_CONTROL','template goes with a reference.',{name:c.name});
+    if(!(Math.abs(size[0])<=3200&&Math.abs(size[1])<=1800)||Math.abs(position[0])>3200||Math.abs(position[1])>1800)fail('INVALID_RECT','position is [x, y] from the centre of the holder on a 1600 x 900 canvas, y up; size is [width, height].',{name:c.name,position,size});
+    const only=(keys,kinds,what)=>{for(const key of keys)if(c[key]!==undefined&&!kinds.includes(c.kind))fail('INVALID_CONTROL',key+' goes with '+what+'.',{name:c.name,kind:c.kind});};
+    only(['image','colour','opacity','mask'],['image'],'an image');only(['itemTemplate','grid'],['grid'],'a grid');only(['template'],['reference'],'a reference');
+    only(['text'],['text','textWindow'],'a text box or a text window');only(['states','enabled','sound'],['presetButton'],'a preset button');only(['key','padKey'],['keyHint'],'a key hint');
+    only(['effect','effectSound','below'],['animation','fullscreenAnimation'],'an interface effect');only(['showCursor','blockKeys','blockCursor','isolateNavigation'],['container'],'a container');
     const named=key=>{if(c[key]===undefined)return undefined;const hit=known.find(t=>t.name===c[key]);
       if(!hit)fail('TEMPLATE_NOT_FOUND','The save has no client control template of this name. Add it first: scene_add_client_template.',{name:c.name,[key]:c[key],templates:known.map(t=>t.name)});return hit.id;};
-    if(c.colour!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(c.colour))fail('INVALID_COLOUR','colour is "#rrggbb".',{name:c.name,colour:c.colour});
-    const tinted=c.colour!==undefined||c.opacity!==undefined?Number((BigInt(Math.round((c.opacity??1)*255))<<24n)|BigInt(parseInt((c.colour??'#ffffff').slice(1),16))):undefined;
+    const carried=[...(c.script!==undefined?[c.script]:[]),...(c.scripts??[])].map(n=>{const hit=scripts.find(x=>x.name===n);
+      if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{name:c.name,script:n,scripts:scripts.map(x=>x.name)});return hit.id;});
+    const t=c.text,g=c.grid;
+    if(g?.rows!==undefined&&g?.columns!==undefined)fail('INVALID_CONTROL','A grid has a fixed number of rows (it then scrolls sideways) or of columns (it scrolls up and down), not both.',{name:c.name});
     const id=take(c.name);paths.push({name:c.name,kind:c.kind,path:[...trail,c.name].join('/'),controlId:id,...(c.kind==='fullscreenAnimation'?{}:{position,size})});
-    const record={id,name:c.name,kind:c.kind,parent,rect:c.states?{states:c.states}:{position,size},image:c.image,colour:tinted,itemTemplate:named('itemTemplate'),template:named('template'),slot:slots?.()};made.push(record);
-    record.children=clientRecords(c.children??[],id,take,known,slots,made,paths,[...trail,c.name]);return id;});
+    const rect=c.rectStates?{states:c.rectStates}:{position,size,scale:c.scale,pivot:c.pivot,rotation:c.rotation,anchorMin:c.anchor?.min,anchorMax:c.anchor?.max};
+    const record={id,name:c.name,kind:c.kind,parent,rect,slot:slots?.(),rootForm:false,scripts:carried,active:c.active,visible:c.visible,focusable:c.focusable,
+      isolateNavigation:c.isolateNavigation,blockKeys:c.blockKeys,blockCursor:c.blockCursor,showCursor:c.showCursor,
+      image:c.image,colour:c.colour!==undefined||c.opacity!==undefined?tint(c.colour,c.opacity,c.name):undefined,mask:c.mask,template:named('template'),
+      text:t&&{content:t.content,fontSize:t.fontSize,minFontSize:t.minFontSize,autoSize:t.autoSize,align:t.align,valign:t.valign,outline:t.outline,
+        colour:t.colour!==undefined||t.opacity!==undefined?tint(t.colour,t.opacity,c.name):undefined,
+        background:t.background!==undefined?tint(t.background,t.backgroundOpacity??1,c.name):undefined,
+        outlineColour:t.outlineColour!==undefined?tint(t.outlineColour,t.outlineOpacity??1,c.name):undefined},
+      // A grid with rows given lies on its side: the editor offers 固定行数 for a grid that scrolls sideways and
+      // 固定列数 for one that scrolls up and down.
+      grid:(g||c.itemTemplate!==undefined)?{itemTemplate:named('itemTemplate'),horizontal:g?.horizontal??(g?.rows!==undefined),itemSize:g?.itemSize,spacing:g?.spacing,padding:g?.padding,scrollbar:g?.scrollbar,fixed:g?.rows??g?.columns,preview:g?.preview}:undefined,
+      keys:(c.key!==undefined||c.padKey!==undefined)?{keyboard:c.key,pad:c.padKey}:undefined,
+      effect:(c.effect!==undefined||c.effectSound||c.below)?{id:c.effect,sound:c.effectSound,below:c.below}:undefined};
+    made.push(record);
+    record.children=clientRecords(c.children??[],id,take,known,scripts,slots,made,paths,[...trail,c.name]);
+    if(c.kind==='presetButton'){
+      // What the button shows in each of its states are controls it holds, by name.
+      const mine=(c.children??[]).map((k,i)=>[k.name,record.children[i]]),state=key=>{const n=c.states?.[key];if(n===undefined)return undefined;const hit=mine.find(m=>m[0]===n);
+        if(!hit)fail('INVALID_CONTROL','A state of a preset button names one of the controls it holds (its children).',{name:c.name,state:key,given:n,children:mine.map(m=>m[0])});return hit[1];};
+      record.button={normal:state('normal'),hover:state('hover'),pressed:state('pressed'),disabled:state('disabled'),enabled:c.enabled,sound:c.sound};
+    }
+    return id;});
 }
 // Puts a tree of client controls on the screen: the container in the layout, a root that fills the screen and carries
 // the script, and the controls under it. ids: for the test that rebuilds the official sample (the editor numbers
 // controls as they were made, which is not the order they stand in).
-export function addClientUi({mapPath,name,script,controls=[],hidden=false,outputName,ids},workspace){
+export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hidden=false,showCursor,blockKeys,blockCursor,isolateNavigation,outputName,ids},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
   const records=uiRecords(root),layout=records.find(r=>r.structure.includes(7));
   if(!layout)fail('UNSUPPORTED_SAVE','The save has no default layout to add to.');
   if(!records.some(r=>r.name==='ClientUIRootHierarchyRoot'))fail('UNSUPPORTED_SAVE','This save was written by a game version older than 7.1, which has no client controls. Open it in the editor and save it once.');
   if(records.some(r=>r.name===name))fail('DUPLICATE_CONTROL_NAME','The interface already has a control with this name.',{name});
-  const scripts=clientScripts(root),carried=script===undefined?null:scripts.find(s=>s.name===script);
-  if(script!==undefined&&!carried)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{script,scripts:scripts.map(s=>s.name)});
-  if(hidden)fail('NOT_SUPPORTED','A container hidden at the start is not written yet: leave hidden out and let the script hide its controls (SetVisible(false)) until they are wanted.');
+  const scripts=clientScripts(root),wanted=[...(script!==undefined?[script]:[]),...more],onRoot=wanted.map(n=>{const hit=scripts.find(s=>s.name===n);
+    if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{script:n,scripts:scripts.map(s=>s.name)});return hit;});
   let next=Math.max(...records.map(r=>r.id))+1;const take=key=>ids?.[key]??next++;
   const containerId=take(name),rootId=take('容器节点'),made=[],paths=[];
-  const rootRecord={id:rootId,name:'容器节点',kind:'container',rect:null,script:carried?.id};made.push(rootRecord);
-  rootRecord.children=clientRecords(controls,rootId,take,clientTemplates(records),null,made,paths);
+  const rootRecord={id:rootId,name:'容器节点',kind:'container',rect:null,scripts:onRoot.map(s=>s.id),rootForm:true,showCursor,blockKeys,blockCursor,isolateNavigation};made.push(rootRecord);
+  rootRecord.children=clientRecords(controls,rootId,take,clientTemplates(records),scripts,null,made,paths);
   const fresh=made.map(clientControlRecord);
   const section=fields(one(root,9));let lastOfLayout=-1,lastRecord=-1;
   section.forEach((f,i)=>{if(f.id===502&&f.wire===2){lastRecord=i;if(varintOf(f.data,504)===layout.id)lastOfLayout=i;}});
@@ -2166,12 +2247,12 @@ export function addClientUi({mapPath,name,script,controls=[],hidden=false,output
     if(f.id===501&&f.wire===2)return [field(501,2,Buffer.concat([f.data,varint(rootId)]))];
     const out=f.id===502&&f.wire===2&&varintOf(f.data,501)===layout.id?[field(502,2,adopt(f.data))]:[f.raw];
     // The container stands after the last control of the layout, the client controls after every record.
-    if(i===(lastOfLayout<0?lastRecord:lastOfLayout))out.push(field(502,2,clientContainerRecord({id:containerId,name,parent:layout.id,root:rootId})));
+    if(i===(lastOfLayout<0?lastRecord:lastOfLayout))out.push(field(502,2,clientContainerRecord({id:containerId,name,parent:layout.id,root:rootId,hidden})));
     if(i===lastRecord)out.push(...fresh.map(b=>field(502,2,b)));
     return out;});
   root=replace(root,9,2,Buffer.concat(rebuilt));
   const out=output(workspace,file,outputName,'-clientui');fs.writeFileSync(out,wrap(bytes,root));
-  return {mapPath:out,source:file,containerId,rootId,name,script:carried?{name:carried.name,scriptId:carried.id}:undefined,controls:paths,
+  return {mapPath:out,source:file,containerId,rootId,name,scripts:onRoot.map(s=>({name:s.name,scriptId:s.id})),controls:paths,
     templates:clientTemplates(uiRecords(root)).map(t=>({templateIndex:t.id,name:t.name})),
     next:'Use mapPath in later calls. In the script, script.object is the root (a container that fills the screen) and '+(paths.length?'script.object:GetChild("'+paths[0].name+'")':'script.object:GetChild(name)')+' finds a control under it by name (a child of a child through its own GetChild). The controls are written as the editor makes them, empty: an image shows nothing until the script gives it a picture (control:SetImage(Enum.ImageSource.StaticReference, id), ids from image_catalog) and a colour (control.imageColor = Color(r, g, b)). Controls stand in the order given, later ones over earlier ones. On an account of 奇匠 level 1 a client text box shows nothing either (seen in play, 2026-10-13): say it with pictures.'};
 }
@@ -2180,7 +2261,7 @@ export function addClientUi({mapPath,name,script,controls=[],hidden=false,output
 // reference to show. Read from two templates saved by hand (tests/fixtures/editor-2026-10-13-clientkinds.gil): the
 // template stands among the roots before the layout, its record and those of what it holds before the layout's, each
 // with a slot of its own.
-export function addClientTemplate({mapPath,name,kind='container',size,children=[],image,colour,opacity,outputName},workspace){
+export function addClientTemplate({mapPath,name,outputName,...spec},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
   const records=uiRecords(root),layout=records.find(r=>r.structure.includes(7));
   if(!layout)fail('UNSUPPORTED_SAVE','The save has no default layout.');
@@ -2189,7 +2270,7 @@ export function addClientTemplate({mapPath,name,kind='container',size,children=[
   if(known.some(t=>t.name===name))fail('DUPLICATE_TEMPLATE_NAME','The save already has a client control template of this name.',{name});
   let next=Math.max(...records.map(r=>r.id))+1,slot=Math.max(0,...records.map(r=>r.slot));
   const made=[],paths=[];
-  clientRecords([{name,kind,size,children,image,colour,opacity}],0,()=>next++,known,()=>++slot,made,paths);
+  clientRecords([{kind:'container',...spec,name,position:[0,0]}],0,()=>next++,known,clientScripts(root),()=>++slot,made,paths);
   made[0].isTemplate=true;made[0].parent=undefined;
   const fresh=made.map(clientControlRecord),templateId=made[0].id;
   const section=fields(one(root,9));let placed=false;
@@ -2203,4 +2284,46 @@ export function addClientTemplate({mapPath,name,kind='container',size,children=[
   const out=output(workspace,file,outputName,'-template');fs.writeFileSync(out,wrap(bytes,root));
   return {mapPath:out,source:file,templateIndex:templateId,name,controls:paths.map(({position,...p})=>p),
     next:'Use mapPath in later calls. A script makes a copy with game.InstantiateClientUIControl('+templateId+', parent) and removes one with game.DestroyClientUIControl(control); a grid of scene_add_client_ui takes it as itemTemplate: "'+name+'", a reference as template: "'+name+'".'};
+}
+// Takes a client interface, a template or a script out of a copy of a save. Changing one that is there is taking it
+// out and adding it again (a script alone is replaced by scene_set_client_script, which keeps its id).
+export function removeClient({mapPath,ui,template,script,outputName},workspace){
+  const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
+  if([ui,template,script].filter(v=>v!==undefined).length!==1)fail('INVALID_ARGUMENT','Give one of ui, template or script: the name of the one to take out.');
+  const idsOf=b=>{const out=[];let p=0;while(p<b.length){let n=0,shift=0;for(;;){const v=b[p++];n+=(v&127)*2**shift;shift+=7;if(!(v&128))break;}out.push(n);}return out;};
+  const records=uiRecords(root),byId=new Map(records.map(r=>[r.id,r]));
+  const childIds=r=>{const list=fields(r.raw.data).find(f=>f.id===503&&f.wire===2);return list?idsOf(list.data):[];};
+  const tree=id=>{const r=byId.get(id);return r?[id,...childIds(r).flatMap(tree)]:[];};
+  const blockInner=(r,type,innerId)=>{const b=fields(r.raw.data).filter(f=>f.id===505&&f.wire===2).map(f=>f.data).find(x=>varintOf(x,502)===type);const nested=b&&fields(b).find(f=>f.id===503&&f.wire===2);
+    return nested?fields(nested.data).find(f=>f.id===innerId&&f.wire===2)?.data??null:null;};
+  if(script!==undefined){
+    const scripts=clientScripts(root),hit=scripts.find(s=>s.name===script);
+    if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name.',{script,scripts:scripts.map(s=>s.name)});
+    const on=records.filter(r=>{const inner=blockInner(r,83,74);return inner&&fields(inner).some(f=>f.id===502&&f.wire===2&&fields(f.data).some(x=>x.id===1&&x.wire===2&&varintOf(x.data,1)===hit.id));}).map(r=>r.name);
+    if(on.length)fail('SCRIPT_IN_USE','Controls carry this script: take the interface or the template they belong to out first.',{script,on});
+    const kept=fields(one(root,50)).filter(f=>!(f.id===1&&f.wire===2&&varintOf(f.data,1)===hit.id)).map(f=>f.raw);
+    const out=output(workspace,file,outputName,'-removed');fs.writeFileSync(out,wrap(bytes,replace(root,50,2,Buffer.concat(kept))));
+    return {mapPath:out,source:file,removed:{script,scriptId:hit.id},next:'Use mapPath in later calls.'};
+  }
+  let gone,rootIds=[],layoutChild=null,what;
+  if(ui!==undefined){
+    const box=records.find(r=>r.name===ui&&r.content.includes(82));
+    if(!box)fail('CLIENT_UI_NOT_FOUND','The save has no client interface of this name.',{ui,interfaces:records.filter(r=>r.content.includes(82)).map(r=>r.name)});
+    const top=varintOf(blockInner(box,82,73),501);gone=new Set([box.id,...tree(top)]);rootIds=[top];layoutChild=box.id;what={ui,containerId:box.id,controls:gone.size-1};
+  }else{
+    const hit=clientTemplates(records).find(t=>t.name===template);
+    if(!hit)fail('TEMPLATE_NOT_FOUND','The save has no client control template of this name.',{template,templates:clientTemplates(records).map(t=>t.name)});
+    gone=new Set(tree(hit.id));rootIds=[hit.id];
+    const users=records.filter(r=>!gone.has(r.id)&&(varintOf(blockInner(r,92,80)??Buffer.alloc(0),506)===hit.id||varintOf(blockInner(r,89,77)??Buffer.alloc(0),501)===hit.id)).map(r=>r.name);
+    if(users.length)fail('TEMPLATE_IN_USE','A grid or a reference names this template: take the interface it belongs to out first.',{template,usedBy:users});
+    what={template,templateIndex:hit.id,controls:gone.size};
+  }
+  const rebuilt=fields(one(root,9)).flatMap(f=>{
+    if(f.id===501&&f.wire===2)return [field(501,2,packIds(idsOf(f.data).filter(id=>!rootIds.includes(id))))];
+    if(f.id!==502||f.wire!==2)return [f.raw];
+    const id=varintOf(f.data,501);if(gone.has(id))return [];
+    if(layoutChild===null||!childIds({raw:f}).includes(layoutChild))return [f.raw];
+    return [field(502,2,Buffer.concat(fields(f.data).map(x=>x.id===503&&x.wire===2?field(503,2,packIds(idsOf(x.data).filter(i=>i!==layoutChild))):x.raw)))];});
+  const out=output(workspace,file,outputName,'-removed');fs.writeFileSync(out,wrap(bytes,replace(root,9,2,Buffer.concat(rebuilt))));
+  return {mapPath:out,source:file,removed:what,next:'Use mapPath in later calls. The scripts it carried are still in the save (scene_list_client_scripts): add the interface again with what is to be different, or take the scripts out too.'};
 }

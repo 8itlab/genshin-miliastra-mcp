@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields,field,replace,wrap,varint} from '../src/scene/wire.mjs';
-import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,addClientTemplate,listClientScripts,listInterface} from '../src/scene-save.mjs';
+import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,addClientTemplate,removeClient,listClientScripts,listInterface} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-clientui-'));
 const official=path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith('mh47p30a87qo_'))),blank=path.join(root,'tests','fixtures','editor-2026-10-13-handui.gil');
@@ -43,7 +43,7 @@ try{
   const scripted=setClientScript({mapPath:bare,name:'收集圆圈',source,file:'main.lua'},workspace);
   assert.equal(scripted.scriptId,1073741826);assert.deepEqual(scripted.callbacks,['OnStart','OnUpdate','OnDestroy']);
   const made=addClientUi({mapPath:scripted.mapPath,name:'收集圆圈',script:'收集圆圈',ids:{'收集圆圈':C,'容器节点':R,'背景':R+3,'分数文本':R+2,'圆圈容器':R+1,'圆圈图片':R+5,'圆圈点击区域':R+4},controls:[
-    {name:'背景',kind:'image',states:[back,back,back,back]},{name:'分数文本',kind:'text',states:[words,words,words,words]},
+    {name:'背景',kind:'image',rectStates:[back,back,back,back]},{name:'分数文本',kind:'text',rectStates:[words,words,words,words]},
     {name:'圆圈容器',kind:'container',size:[150,150],children:[{name:'圆圈图片',kind:'image',size:[80,80]},{name:'圆圈点击区域',kind:'cursorArea',size:[150,50]}]}]},workspace);
   assert.ok(section(made.mapPath,50).equals(section(official,50)),'the script section differs from the official save');
   assert.ok(section(made.mapPath,9).equals(section(official,9)),'the interface section differs from the official save');
@@ -55,7 +55,8 @@ try{
   const two=setClientScript({mapPath:one.mapPath,name:'菜单',source:'print("menu")\n'},workspace);
   assert.equal(two.scriptId,one.scriptId+1);assert.equal(two.file,'script_2.lua');assert.ok(two.warning);
   const again=setClientScript({mapPath:two.mapPath,name:'hud',source:'function OnUpdate(dt)\nend\n'},workspace);
-  assert.equal(again.replaced,true);assert.equal(again.scriptId,one.scriptId);
+  assert.equal(again.replaced,true);assert.equal(again.scriptId,one.scriptId);assert.ok(again.updateNotEnabled,'OnUpdate without EnableUpdate is pointed out');
+  assert.ok(!setClientScript({mapPath:blank,name:'u',source:'function OnStart()\n  script:EnableUpdate(true)\nend\nfunction OnUpdate(dt)\nend\n'},workspace).updateNotEnabled);
   assert.deepEqual(setClientScript({mapPath:blank,name:'t',source:'function OnStart()\n  game.Tween(a, {x = 1}, 1)\n  game.Tween(a, {x = 1}, 1):Play()\nend\n'},workspace).tweensNotPlayed.lines,[2]);
   assert.deepEqual(listClientScripts({mapPath:again.mapPath,includeSource:true}).scripts.map(s=>[s.name,s.file,s.source.length]),[['hud','hud.lua',26],['菜单','script_2.lua',14]]);
   const ui=addClientUi({mapPath:again.mapPath,name:'HUD',script:'hud',controls:[{name:'panel',kind:'image',position:[-600,380],size:[300,80]},{name:'row',kind:'container',position:[-600,300],size:[300,60],children:[{name:'a',kind:'image',size:[40,40]},{name:'hit',kind:'cursorArea',size:[40,40]}]}]},workspace);
@@ -98,6 +99,63 @@ try{
   assert.throws(()=>addClientUi({mapPath:dot.mapPath,name:'x',controls:[{name:'g',kind:'grid',itemTemplate:'none'}]},workspace),e=>e.code==='TEMPLATE_NOT_FOUND');
   assert.throws(()=>addClientUi({mapPath:dot.mapPath,name:'x',controls:[{name:'g',kind:'image',template:'dot'}]},workspace),e=>e.code==='INVALID_CONTROL');
   assert.throws(()=>addClientTemplate({mapPath:dot.mapPath,name:'dot',kind:'image'},workspace),e=>e.code==='DUPLICATE_TEMPLATE_NAME');
+  // Every setting that was changed by hand in the editor, against the record the editor saved with it
+  // (tests/fixtures/editor-2026-10-13-clientsettings.gil): a hidden container, two scripts on the root and one on a
+  // child, flags of containers, a tinted masked image, a text with all its settings, a turned and scaled container
+  // with anchors apart, a grid, a button with its states, a key hint, an effect, a script with variables.
+  const set=path.join(root,'tests','fixtures','editor-2026-10-13-clientsettings.gil'),setRoot=container(fs.readFileSync(set));
+  const hand=new Map(fields(section(set,9)).filter(f=>f.id===502).map(f=>[number(f.data,501),f.data]));
+  const sub=(b,id)=>fields(b).find(x=>x.id===id&&x.wire===2)?.data,fl=(b,id)=>{const x=b&&fields(b).find(y=>y.id===id&&y.wire===5);return x?x.data.readFloatLE(0):0;};
+  const statesOf=r=>{const rect=fields(r).filter(x=>x.id===505).map(x=>x.data).find(b=>number(b,502)===12);
+    return fields(sub(sub(sub(rect,503),13),12)).filter(x=>x.id===501).map(x=>{const st=sub(x.data,502),p=id=>[fl(sub(st,id),501),fl(sub(st,id),502)];
+      return {scale:[fl(sub(st,501),1),fl(sub(st,501),2)],anchorMin:p(502),anchorMax:p(503),position:p(504),size:p(505),pivot:p(506),rotation:fl(sub(st,508),3)};});};
+  const K=B+42,as=id=>({states:statesOf(hand.get(id))});
+  assert.ok(clientContainerRecord({id:B+41,name:'KS_ui',parent:B+1,root:K,hidden:true}).equals(hand.get(B+41)),'the hidden container differs');
+  for(const spec of [
+    {id:K,name:'容器节点',kind:'container',children:[43,44,45,46,47,49,50,51,52,53,54].map(n=>B+n),rect:null,scripts:[B+2,B+3],showCursor:true,blockKeys:true},
+    {id:B+43,name:'img',kind:'image',parent:K,rect:as(B+43),image:100138,colour:0xB212AB34,mask:true,visible:false},
+    {id:B+44,name:'txt',kind:'text',parent:K,rect:as(B+44),text:{content:'hello',fontSize:37,colour:0xCCFF0000,background:0x7F00FF00,outline:false,outlineColour:0x990000FF,align:'left',valign:'top',autoSize:true}},
+    {id:B+47,name:'box',kind:'container',parent:K,children:[B+48],rect:as(B+47),scripts:[B+3],active:false,focusable:true,isolateNavigation:true,blockCursor:true},
+    {id:B+49,name:'grid',kind:'grid',parent:K,rect:as(B+49),grid:{itemTemplate:B+39,horizontal:true,itemSize:[61,73],spacing:[9,11],padding:[21,22,23,24],scrollbar:false,fixed:3,preview:7}},
+    {id:B+51,name:'btn',kind:'presetButton',parent:K,children:[B+56,B+55],rect:as(B+51),button:{normal:B+55,pressed:B+56,enabled:false}},
+    {id:B+52,name:'hint',kind:'keyHint',parent:K,rect:as(B+52),keys:{keyboard:8,pad:3}},
+    {id:B+53,name:'fx',kind:'animation',parent:K,rect:as(B+53),effect:{id:10001002,sound:true,below:true}},
+    {id:B+55,name:'图片',kind:'image',parent:B+51,rect:as(B+55)}])
+    assert.ok(clientControlRecord(spec).equals(hand.get(spec.id)),'the '+spec.kind+' "'+spec.name+'" with its settings differs from the one configured in the editor');
+  const handScript=fields(fields(setRoot).find(x=>x.id===50).data).filter(x=>x.id===1)[0].data;
+  assert.ok(clientScriptRecord({id:B+2,name:'KS_a',file:'KS_a.lua',source:sub(handScript,5).toString('utf8'),variables:[{name:'greet',type:'string',value:'abc',public:true},{name:'count',type:'integer',value:42}]}).equals(handScript),'the script with variables differs');
+  // The same through the tools: the settings arrive in the records, names become ids.
+  const v=setClientScript({mapPath:dot.mapPath,name:'menu',source:'function OnStart()\n  print(script:GetParam("title"))\nend\n',variables:[{name:'title',type:'string',value:'Shop',public:true},{name:'rows',type:'integer',value:3}]},workspace);
+  assert.deepEqual(v.variables,['title','rows']);
+  const kept=setClientScript({mapPath:v.mapPath,name:'menu',source:'function OnStart()\nend\n'},workspace);
+  assert.equal(fields(fields(fields(container(fs.readFileSync(kept.mapPath))).find(x=>x.id===50).data).filter(x=>x.id===1).find(x=>number(x.data,1)===kept.scriptId).data).filter(x=>x.id===7).length,2,'a replaced script keeps its variables');
+  const row=setClientScript({mapPath:kept.mapPath,name:'row',source:'function OnStart()\nend\n'},workspace);
+  const full=addClientUi({mapPath:row.mapPath,name:'menu',scripts:['menu'],showCursor:true,blockKeys:true,hidden:true,controls:[
+    {name:'title',kind:'text',position:[0,300],size:[400,60],text:{content:'Shop',fontSize:36,colour:'#ffd040',align:'left',outline:false}},
+    {name:'list',kind:'grid',size:[500,300],itemTemplate:'card',grid:{columns:4,itemSize:[100,100],spacing:[12,12],scrollbar:false}},
+    {name:'buy',kind:'presetButton',position:[0,-250],size:[160,60],states:{normal:'up',pressed:'down'},children:[{name:'up',kind:'image',image:100001,colour:'#40a0ff',size:[160,60]},{name:'down',kind:'image',image:100001,colour:'#2060a0',size:[160,60],visible:false}]},
+    {name:'spin',kind:'container',position:[300,0],rotation:45,scale:[1.5,1.5],pivot:[0.5,0.5],script:'row',active:false,children:[{name:'dot',kind:'image'}]},
+    {name:'edge',kind:'image',image:100001,anchor:{min:[0,0],max:[1,0]},position:[0,20],size:[0,40]},
+    {name:'key',kind:'keyHint',key:8},{name:'fx',kind:'animation',effect:10001002,effectSound:true}]},workspace);
+  const built=new Map(fields(section(full.mapPath,9)).filter(f=>f.id===502).map(f=>[number(f.data,501),f.data])),idOf=n=>full.controls.find(c=>c.path===n).controlId;
+  assert.ok(clientControlRecord({id:idOf('buy'),name:'buy',kind:'presetButton',parent:full.rootId,children:[idOf('buy/up'),idOf('buy/down')],rect:{position:[0,-250],size:[160,60]},button:{normal:idOf('buy/up'),pressed:idOf('buy/down')}}).equals(built.get(idOf('buy'))),'the button names its states by the ids of its children');
+  assert.ok(clientControlRecord({id:idOf('spin'),name:'spin',kind:'container',parent:full.rootId,children:[idOf('spin/dot')],rect:{position:[300,0],size:[150,150],rotation:45,scale:[1.5,1.5],pivot:[0.5,0.5]},scripts:[row.scriptId],active:false}).equals(built.get(idOf('spin'))));
+  assert.ok(clientControlRecord({id:idOf('list'),name:'list',kind:'grid',parent:full.rootId,rect:{position:[0,0],size:[500,300]},grid:{itemTemplate:card.templateIndex,horizontal:false,itemSize:[100,100],spacing:[12,12],scrollbar:false,fixed:4}}).equals(built.get(idOf('list'))));
+  const menu=listInterface({mapPath:full.mapPath}).clientInterfaces.find(c=>c.name==='menu');
+  assert.deepEqual(menu.root.scripts,['menu']);assert.deepEqual(menu.root.children.find(c=>c.name==='spin').scripts,['row']);
+  assert.deepEqual(listClientScripts({mapPath:full.mapPath}).scripts.find(x=>x.name==='row').on,['spin']);
+  assert.throws(()=>addClientUi({mapPath:row.mapPath,name:'x',controls:[{name:'b',kind:'presetButton',states:{normal:'nobody'}}]},workspace),e=>e.code==='INVALID_CONTROL');
+  assert.throws(()=>addClientUi({mapPath:row.mapPath,name:'x',controls:[{name:'b',kind:'image',text:{content:'a'}}]},workspace),e=>e.code==='INVALID_CONTROL');
+  // Taking things out again: a script in use and a template in use are refused; an interface goes with all it holds.
+  assert.throws(()=>removeClient({mapPath:full.mapPath,script:'row'},workspace),e=>e.code==='SCRIPT_IN_USE');
+  assert.throws(()=>removeClient({mapPath:full.mapPath,template:'card'},workspace),e=>e.code==='TEMPLATE_IN_USE');
+  const less=removeClient({mapPath:full.mapPath,ui:'menu'},workspace);
+  assert.equal(less.removed.controls,full.controls.length+1);
+  assert.ok(section(less.mapPath,9).equals(section(row.mapPath,9)),'taking the interface out leaves the interface section as it was before it was added');
+  const noRow=removeClient({mapPath:less.mapPath,script:'row'},workspace),noCard=removeClient({mapPath:noRow.mapPath,template:'card'},workspace);
+  assert.deepEqual(listClientScripts({mapPath:noCard.mapPath}).scripts.map(x=>x.name),['menu']);
+  assert.deepEqual(listInterface({mapPath:noCard.mapPath}).clientTemplates.map(t=>t.name),['dot']);
+  assert.throws(()=>removeClient({mapPath:noCard.mapPath,ui:'menu'},workspace),e=>e.code==='CLIENT_UI_NOT_FOUND');
   // The debug log of a play: what a graph prints is field 22 of a record, what a client script prints field 23.
   const record=(seconds,body)=>field(1,2,Buffer.concat([field(1,0,382),field(3,0,seconds),body]));
   const logBody=Buffer.concat([record(9,Buffer.concat([field(7,2,Buffer.concat([field(1,0,1),field(2,0,1073741825)])),field(22,2,Buffer.concat([field(1,0,382),field(2,2,Buffer.from('CU_CLICK'))]))])),

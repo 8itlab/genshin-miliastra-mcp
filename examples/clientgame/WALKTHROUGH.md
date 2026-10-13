@@ -21,7 +21,7 @@ A whole 2D game in a Lua client script (cg_game.lua): coins fall down five lanes
 7. `scene_set_client_script` `{"name":"CG_game","source":"<Lua，见第三节>"}` → `{"name":"CG_game"}`
 8. `scene_add_client_ui` `{"name":"CG_ui","script":"CG_game","controls":[{"name":"back","kind":"image","position":[0,0],"size":[760,860]},{"name":"caught1","kind":"image","position":[-330,390],"size":[32,32]},{"name":"caught2","kind":"image","position":[-286,390],"size":[32,32]},{"name":"caught3","kind":"image","position":[-242,390],"size":[32,32]},{"name":"caught4","kind":"image","position":[-198,390],"size":[32,32]},{"name":"caught5","kind":"image","position":[-154,390],"size":[32,32]},{"name":"missed1","kind":"image","position":[242,390],"size":[32,32]},{"name":"missed2","kind":"image","position":[286,390],"size":[32,32]},{"name":"missed3","kind":"image","position":[330,390],"size":[32,32]},{"name":"coin","kind":"image","position":[0,330],"size":[56,56]},{"name":"basket","kind":"image","position":[0,-260],"size":[110,36]}]}` → `{"name":"CG_ui"}`
 9. `scene_list_prefabs` `{}`
-10. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
+10. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 1 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。
 11. `scene_list_components` `{"prefab":"player"}`
 12. `inspect_map` `{}`
 13. [UI] `playtest_start` `{"graphNames":["_GSTS_CgStage"],"durationSeconds":22,"screenshotsAt":[2,5,8,11,15],"inputs":[{"at":3,"key":"1"},{"at":3.4,"key":"RIGHT"},{"at":5.52,"key":"RIGHT"},{"at":7.64,"key":"LEFT"},{"at":7.99,"key":"LEFT"},{"at":9.76,"key":"LEFT"},{"at":11.88,"key":"RIGHT"},{"at":12.23,"key":"RIGHT"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）
