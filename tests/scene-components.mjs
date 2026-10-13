@@ -177,6 +177,15 @@ try{
   const contents=(file,code)=>{const out=[],cf=code+11,walk=(b,d)=>{let list;try{list=fields(b);}catch{return;}
     const k=list.find(x=>x.id===1&&x.wire===0),c=list.find(x=>x.id===cf&&x.wire===2);if(k&&Number(k.value)===code&&c)out.push(c.data);
     if(d<7)for(const x of list)if(x.wire===2&&x.data.length>8)walk(x.data,d+1);};walk(container(fs.readFileSync(file)),0);return out;};
+  // The navigation indicator: its two items are those of the official sample 铭牌与气泡对话 (功能示例1), and so are the
+  // switch, the two distances, the offset and the hiding while the nameplate shows.
+  {
+    const sample=contents(talk,27).find(c=>fields(fields(c).find(f=>f.id===501).data).some(f=>f.id===510)),theirs=fields(fields(sample).find(f=>f.id===501).data);
+    const mine=fields(fields(nameplateContent([{attach:'头顶',radius:5,indicator:{text:'{2:PDist} 米',icon:11044,min:5,max:15,offset:[0,0.5,0]},items:[{text:'靠近与村民对话'}]}])).find(f=>f.id===501).data);
+    const of=(list,id)=>list.filter(f=>f.id===id).map(f=>f.raw.toString('hex'));
+    for(const id of [505,506,507,508,510,511,514])assert.deepEqual(of(mine,id),of(theirs,id),'field '+id+' of the nameplate with an indicator differs from the official one');
+    assert.throws(()=>nameplateContent([{indicator:{max:10},items:[{text:'a'}]}]),e=>e.code==='INVALID_NAMEPLATE');
+  }
   const label=nameplateContent([{items:[{text:'开始',fontSize:48,size:[300,100],offset:[0,300]}]}]);
   assert.ok(contents(pick('mhujr59z1756_'),27).some(c=>c.equals(label)),'the label differs from the official one');
   const gauge=nameplateContent([{active:false,items:[{bar:{current:'当前值',min:'最小值',max:'最大值'},size:[300,50],offset:[0,100]}]}]);

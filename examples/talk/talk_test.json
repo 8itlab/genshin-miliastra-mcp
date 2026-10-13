@@ -1,5 +1,5 @@
 {
- "about": "Text bubbles (文本气泡) and nameplates (铭牌): the platform's own way to put words, icons and bars over a thing; seen in play on 2026-10-14 on an account of 奇匠 level 2. Three dolls. TK_a says two lines once and its graph is told when it has (TK_SAID 1 in the log: endEvent); over it a label that shows its custom variable ({1:s.mood}, counting up) and under the label its health bar in red with the numbers. TK_b says its line again and again; over it an icon and a bar that follows the variable mood between zero and top (70 %, then 100 %). TK_c is silent and bare until its graph switches its first bubble on and shows its nameplate (level second 16), and switches to its second bubble (second 24). Everything hangs above: metres over the foot, which makes a custom attach point; a bubble hung at the foot is inside the model and is not seen. The offsets of the items of a nameplate are in screen units. All of it is scene_add_components {textBubbles, nameplates}; the graph uses f.switchActiveTextBubble, f.setEntityActiveNameplate and whenTextBubbleIsCompleted.",
+ "about": "Text bubbles (文本气泡) and nameplates (铭牌): the platform's own way to put words, icons and bars over a thing; seen in play on 2026-10-14 on an account of 奇匠 level 2. Three dolls. TK_a says two lines once and its graph is told when it has (TK_SAID 1 in the log: endEvent); over it a label that shows its custom variable ({1:s.mood}, counting up) and under the label its health bar in red with the numbers. TK_b says its line again and again; over it an icon and a bar that follows the variable mood between zero and top (70 %, then 100 %). TK_c is silent and bare until its graph switches its first bubble on and shows its nameplate (level second 16), and switches to its second bubble (second 24). A fourth doll, TK_d, stands twenty metres off: its nameplate is too far to show, and its navigation indicator points to it with the distance ({2:PDist} 米). Everything hangs above: metres over the foot, which makes a custom attach point; a bubble hung at the foot is inside the model and is not seen. The offsets of the items of a nameplate are in screen units. All of it is scene_add_components {textBubbles, nameplates}; the graph uses f.switchActiveTextBubble, f.setEntityActiveNameplate and whenTextBubbleIsCompleted.",
  "dir": "talk",
  "namePrefix": "TK_",
  "baseName": "未分类页签_存档_3",
@@ -40,6 +40,11 @@
   {
    "asset": 10005071,
    "name": "TK_c",
+   "scale": 1.5
+  },
+  {
+   "asset": 10005071,
+   "name": "TK_d",
    "scale": 1.5
   }
  ],
@@ -279,6 +284,26 @@
        ]
       }
      ]
+    }
+   ]
+  },
+  {
+   "prefab": "TK_d",
+   "nameplates": [
+    {
+     "above": 1.3,
+     "radius": 6,
+     "items": [
+      {
+       "text": "丁"
+      }
+     ],
+     "indicator": {
+      "text": "{2:PDist} 米",
+      "icon": 11044,
+      "min": 6,
+      "max": 80
+     }
     }
    ]
   }

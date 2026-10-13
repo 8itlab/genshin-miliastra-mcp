@@ -689,10 +689,19 @@ export function nameplateContent(plates){
   };
   return Buffer.concat(plates.map((p,i)=>{
     if(!Array.isArray(p.items)||!p.items.length||p.items.length>10)fail('INVALID_NAMEPLATE','A nameplate needs items: one to ten of {text}, {icon}, {bar}.',{nameplate:i+1});
-    const [x,y,z]=p.offset??[0,0,0];
+    // The navigation indicator (导航指示器): a mark at the edge of the screen that points to the thing while the
+    // character is between two distances from it, with words and an icon of its own ({2:PDist} in the words is the
+    // distance). 510: 1 it is on, 507 and 508 the farthest and the nearest distance, 506 its offset in metres, 514: 1
+    // it is hidden while the nameplate shows, 511 its items {501: 1 for an icon, 502 the text block, 503 the icon
+    // block, 505 its place}. From the nameplate of the official sample 铭牌与气泡对话 (功能示例1).
+    const ind=p.indicator,[x,y,z]=ind?.offset??p.offset??[0,0,0];
+    if(ind&&!(ind.max>0&&(ind.min??0)>=0&&ind.max>(ind.min??0)&&(ind.text||ind.icon)))fail('INVALID_NAMEPLATE','An indicator is {text and/or icon, min, max}: it shows while the character is between min and max metres away.',{nameplate:i+1});
+    const pointing=ind?[...(ind.text?[{text:ind.text}]:[]),...(ind.icon?[{icon:ind.icon}]:[])].map((it,k)=>field(511,2,Buffer.concat([it.icon?field(501,0,1):EMPTY,
+      field(502,2,it.text?Buffer.concat([field(502,0,ind.fontSize??24),field(503,2,two(...(ind.textSize??[160,40]))),field(504,2,field(501,2,text(it.text))),field(505,2,EMPTY)]):Buffer.concat([field(502,0,18),field(503,2,two(100,30)),field(504,2,EMPTY),field(505,2,EMPTY)])),
+      field(503,2,Buffer.concat([field(502,0,it.icon??11001),field(504,2,it.icon?two(...(ind.iconSize??[64,64])):two(32,32)),field(505,2,EMPTY)])),field(505,0,k+1)]))):[];
     return field(501,2,Buffer.concat([field(501,0,i+1),p.active===false?EMPTY:field(502,0,1),field(503,2,text(p.attach??'GI_RootNode')),field(504,2,EMPTY),field(505,5,f32(p.radius??5)),
-      field(506,2,Buffer.concat([x?field(501,5,f32(x)):EMPTY,y?field(502,5,f32(y)):EMPTY,z?field(503,5,f32(z)):EMPTY])),field(507,5,f32(20)),field(508,5,f32(1)),
-      ...p.items.map((it,k)=>item(it,k,i+1)),field(515,2,EMPTY),field(602,2,text(p.name??'铭牌 配置ID'+(i+1))),field(604,2,EMPTY),field(605,0,13)]));
+      field(506,2,Buffer.concat([x?field(501,5,f32(x)):EMPTY,y?field(502,5,f32(y)):EMPTY,z?field(503,5,f32(z)):EMPTY])),field(507,5,f32(ind?.max??20)),field(508,5,f32(ind?.min??1)),...(ind?[field(510,0,1)]:[]),...pointing,
+      ...p.items.map((it,k)=>item(it,k,i+1)),...(ind&&ind.hideNearby!==false?[field(514,0,1)]:[]),field(515,2,EMPTY),field(602,2,text(p.name??'铭牌 配置ID'+(i+1))),field(604,2,EMPTY),field(605,0,13)]));
   }));
 }
 // 32 minimap marker (小地图标识): {501: {501: marker id, 502: 1, 503: {}, 504: name, 505: 1 to show the height difference,

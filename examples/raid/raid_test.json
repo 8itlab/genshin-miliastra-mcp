@@ -1,12 +1,12 @@
 {
- "about": "A fourth kind of game built with the same tools: fight, loot, trade. Break the crate with the sword (E; it has 100 health, two hits), kill the hilichurl that appears in front of the character, pick up the apples both leave (F, twice: two and three apples), sell the five at the stall for ten coins and buy the key for eight, open the gate with it, open the chest. Everything new since the third game is in it: an animated skill with a hit box, health and a hurt box on an object, loot and drops with a wide pick-up area, items and a shop, a script that clicks on the shop screen. Won on its second run in the game, 2026-10-11 (in the first the hilichurl appeared five metres away and never came: it now appears two and a half metres in front of the character). Prints: RD_READY, RD_SWING, RD_HIT crate|brute damage, RD_DEAD, RD_HOLD coins apples keys x (every two seconds), RD_SHOP, RD_BOUGHT, RD_SOLD, RD_COIN change, RD_GATE (or RD_LOCKED), RD_CHEST, RD_VICTORY (or RD_TIME_UP).",
+ "about": "A fourth kind of game built with the same tools: fight, loot, trade. Break the crate with the sword (E; it has 100 health, two hits), kill the hilichurl that appears in front of the character, pick up the apples both leave (F, twice: two and three apples), sell the five at the stall for ten coins and buy the key for eight, open the gate with it, open the chest. Everything new since the third game is in it: an animated skill with a hit box, health and a hurt box on an object, loot and drops with a wide pick-up area, items and a shop, a script that clicks on the shop screen. Won on its second run in the game, 2026-10-11 (in the first the hilichurl appeared five metres away and never came: it now appears two and a half metres in front of the character). Prints: RD_READY, RD_SWING, RD_HIT crate|brute damage, RD_DEAD, RD_HOLD coins apples keys x (every two seconds), RD_SHOP, RD_BOUGHT, RD_SOLD, RD_COIN change, RD_GATE (or RD_LOCKED), RD_CHEST, RD_VICTORY (or RD_TIME_UP). The steps on the shop screen and the walk after them were given more room on 2026-10-14: a click on a word takes a second or two to find it, and with the old spacing the walk to the gate began late in two runs of three.",
  "dir": "raid",
  "namePrefix": "RD_",
  "baseName": "未分类页签_存档_3",
  "day": 0,
  "night": 0,
  "coins": 0,
- "durationSeconds": 57,
+ "durationSeconds": 68,
  "screenshotsAt": [
   1.5,
   4,
@@ -18,17 +18,17 @@
   19,
   22.8,
   26.5,
-  29.4,
-  32.2,
-  34.3,
-  36.3,
-  37.8,
-  39.3,
-  43.5,
-  45.5,
-  48.5,
-  51,
-  54
+  29,
+  34,
+  39,
+  42,
+  45,
+  48,
+  53,
+  55.5,
+  58.5,
+  61.5,
+  65
  ],
  "readTextAt": [
   26.6,
@@ -91,61 +91,61 @@
    "clickText": "批量出售"
   },
   {
-   "at": 28.8,
+   "at": 30,
    "click": [
     0.567,
     0.333
    ]
   },
   {
-   "at": 30.1,
+   "at": 32.5,
    "clickText": "最大"
   },
   {
-   "at": 31.3,
+   "at": 35,
    "click": [
     0.91,
     0.953
    ]
   },
   {
-   "at": 33.5,
+   "at": 37.5,
    "click": [
     0.198,
     0.26
    ]
   },
   {
-   "at": 34.9,
+   "at": 40,
    "clickText": "购买"
   },
   {
-   "at": 36.9,
+   "at": 43,
    "click": [
     0.5,
     0.92
    ]
   },
   {
-   "at": 38.3,
+   "at": 46,
    "key": "esc"
   },
   {
-   "at": 40,
+   "at": 49,
    "key": "d",
    "holdMs": 3000
   },
   {
-   "at": 44,
+   "at": 54,
    "key": "f"
   },
   {
-   "at": 46.5,
+   "at": 56.5,
    "key": "d",
    "holdMs": 1300
   },
   {
-   "at": 49,
+   "at": 59.5,
    "key": "f"
   }
  ],

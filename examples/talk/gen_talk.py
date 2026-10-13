@@ -1,11 +1,12 @@
 """Talk: text bubbles (文本气泡) and nameplates (铭牌) on things, the platform's own way to put words and bars over an
-NPC or an enemy. Three dolls stand in front of the player:
+NPC or an enemy. Three dolls stand in front of the player and a fourth far off:
 
   TK_a  speaks from the start (two lines, once, and its graph is told when it has said them); a label over it shows
         its custom variable mood, and under the label its health bar with the numbers
   TK_b  speaks again and again; over it an icon and a bar that follows mood between the variables zero and top
   TK_c  is silent and bare until level second 16, when its graph switches its first bubble on and shows its nameplate; at
         second 24 the graph switches to its second bubble
+  TK_d  stands twenty metres away: too far for its nameplate, its navigation indicator points to it with the distance
 
 Graphs (the last argument picks one):
   stage  (关卡实体)          puts the three dolls in place
@@ -32,6 +33,7 @@ BODY = {
   f.createPrefab({guids['prefab:TK_a']},[-3,0,4],[0,180,0],stage,false,1,{NO_TAGS});
   f.createPrefab({guids['prefab:TK_b']},[0,0,4],[0,180,0],stage,false,1,{NO_TAGS});
   f.createPrefab({guids['prefab:TK_c']},[3,0,4],[0,180,0],stage,false,1,{NO_TAGS});
+  f.createPrefab({guids['prefab:TK_d']},[7,0,20],[0,180,0],stage,false,1,{NO_TAGS});
   f.printString('TK_READY');
 }})
 """,
