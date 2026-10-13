@@ -1,6 +1,6 @@
 # 现状和限制
 
-更新：2026-10-13。
+更新：2026-10-14。
 
 ## 这个项目要做到什么
 
@@ -39,10 +39,10 @@
 1. 看地图：`list_maps`、`inspect_map`、`scene_list_*`、`scene_get_level_settings`。
 2. 搭景：`scene_search_assets` / `scene_asset_images` → `scene_build_blocks` → `editor_open_map` → `scene_import_assets`；摆错的用 `scene_remove_entities` 拿掉。
 3. 设置：`scene_set_camera`（`fixedView` 锁定视角）、`scene_set_spawn`、`scene_add_preset_point`、`scene_set_class`、`scene_set_faction_hostility`、`scene_set_level_settings`、`scene_add_respawn_point`、`scene_set_revive`、`scene_set_player_count`。
-4. 东西和它们的能力：`scene_add_prefab` / `scene_update_prefab`（物件、造物、掉落物；预设状态、生命值）、`scene_add_components`（碰撞触发器、选项卡、变量、运动器、跟随、小地图、受击盒、能力单元、战利品、投射运动器、命中检测、弹射器、力场、额外碰撞）、`scene_add_graph`（挂到关卡实体、元件、玩家模板、角色模板；客户端的技能图、过滤器图；道具图）。
-5. 平台的系统：`scene_add_signal`、`scene_add_global_timer`、`scene_add_skill`、`scene_add_creature_skill`、`scene_set_creature_logic`、`scene_add_currency`、`scene_add_item`、`scene_add_shop`、`scene_add_unit_status`、`scene_add_environment`、`scene_add_light`。
-6. 客户端界面（游戏 7.1）：`scene_set_client_script` 放 Lua 脚本，`scene_add_client_ui` 摆它控制的客户端控件（十一种，各自的设置都能定），`scene_add_client_template` 做运行时照着造的模板，`scene_remove_client` 拿掉；会动、收鼠标和按键的界面和 2D 玩法用它（`knowledge/notes/client-lua.zh-CN.md`）。
-7. 屏幕上的东西（服务器控件）：`scene_add_progress_bar`（横条、竖条、圆环，可显示数字）、`scene_add_image`（图从 `image_catalog` 里挑）、`scene_add_timer_display`、`scene_add_button`；控件可以一开始隐藏，由节点图开关。
+4. 东西和它们的能力：`scene_add_prefab` / `scene_update_prefab`（物件、造物、掉落物；预设状态、生命值）、`scene_add_components`（碰撞触发器、选项卡、变量、运动器、跟随、小地图、文本气泡、铭牌、自定义挂接点、受击盒、能力单元、战利品、投射运动器、命中检测、弹射器、力场、额外碰撞）、`scene_add_graph`（挂到关卡实体、元件、玩家模板、角色模板；客户端的技能图、过滤器图；道具图）。
+5. 平台的系统：`scene_add_signal`（可带多个参数，十八种类型）、`scene_add_global_timer`、`scene_add_skill`、`scene_add_creature_skill`、`scene_set_creature_logic`、`scene_add_currency`、`scene_add_item`、`scene_add_shop`、`scene_add_unit_status`、`scene_add_environment`、`scene_add_light`。
+6. 客户端界面（游戏 7.1）：`scene_set_client_script` 放 Lua 脚本，`scene_add_client_ui` 摆它控制的客户端控件（十一种，各自的设置都能定；图片可带填充、羽化、遮罩反转），`scene_add_client_template` 做运行时照着造的模板，`scene_get_client_ui` 读回、`replace: true` 原位替换，`scene_remove_client` 拿掉，`scene_check_client` 不进游戏先查名字和信号参数，`editor_preview_interface` 看手机和主机画布，`scene_import_simulator` 导入模拟器工程；会动、收鼠标和按键的界面和 2D 玩法用它（`knowledge/notes/client-lua.zh-CN.md`）。
+7. 屏幕上的东西（服务器控件）：`scene_add_progress_bar`（横条、竖条、圆环，可显示数字）、`scene_add_image`（图从 `image_catalog` 里挑）、`scene_add_timer_display`、`scene_add_button`、`scene_add_card_selector`（卡牌选择器，几选一）；控件可以一开始隐藏，由节点图开关。
 8. 写规则：`search_node_docs` 查节点，`write_graphs` 把一张或多张图的源码编译并写进存档。很多步设置可以放进一次 `scene_batch`。
 9. 反馈：`effect_catalog`、`sound_catalog`、`music_catalog` 查编号，图里放特效、音效、换音乐（做法见 `knowledge/notes/feedback.zh-CN.md`）。
 10. 试玩：`playtest_start`（按键、点鼠标、转视角、点屏幕上的字、把玩家放到指定位置、记录轨迹、读屏幕文字、截图和连拍、录音、录像）→ `playtest_status`，读日志也要看截图；`playtest_frames` 逐帧看动作。
@@ -84,4 +84,6 @@
 - 离线测试：`npm test` 和 `tests/` 下的各个脚本（`node tests/<名字>.mjs`）。场景工具的测试拿编辑器亲手存出来的存档当夹具，逐字节比。
 - 读存档里一个没见过的设置的办法：先用工具造一份“每样东西各一个”的存档（`scripts/dev/handcfg_build.mjs`）→ 在编辑器里手改那一项并保存 → `scripts/dev/savediff.mjs` 对比前后 → 写工具 → 把编辑器存出来的那份留作测试夹具。夹具进仓库之前用 `scripts/dev/scrub_account.py` 把账号编号换掉。
 - `scripts/dev/mcp_round.mjs` 按一个测试 json 把整条链路走一遍，全程只调 MCP 工具；别的开发脚本见 `scripts/dev/README.md`。
+- 改了试玩执行器（`src/playtest_runner.py`）之后，要把靠按住方向键走位的范例重跑一遍（`examples/kingdom4` 的 `kg_test.json`、`examples/raid`），不能只跑不走路的那几个：2026-10-13 加的一次“定时看一眼结算角落”让按键晚了一秒多，`kingdom4` 每次都走错站点，是第二天做十五轮回归才发现的。
+- 接一个新的平台系统之前先翻官方教学存档（`knowledge/samples/gil`）：`scripts/dev/comp_dump.mjs <组件种类码> <存档…>` 把某种组件在所有样例里的写法展开，照着逐字节写，不用上机量；样例里没有的开关再去编辑器手改一次读出来。文本气泡、铭牌、挂接点、卡牌选择器都是这么接的。
 - 关于千星奇域平台本身的发现写进 `docs/PLATFORM_RULES.zh-CN.md`，那份文件就是服务器给 AI 的 `miliastra://platform-rules`。
