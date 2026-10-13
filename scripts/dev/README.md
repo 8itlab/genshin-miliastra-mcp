@@ -71,7 +71,7 @@
 - `graph_stats.mjs <工作目录或 build.json>`：打印编译后图的节点数、引脚数、连线数和最多的几种节点；`node_dump.mjs <build.json> <节点类型号>`：打印某一种节点的原始内容。
 - 王国的测试脚本（`examples/kingdom/kv3_test_*.json`）现在从空白地图开始：`baseName` 是你在游戏里新建并保存过一次的空白存档的名字（“我的奇域 → 新建存档”，超限模式）。换机器时把它改成自己的存档名。探针脚本（`kv3_probe_*.json`）仍用最初那张旧底图。
 - `mcp_round.mjs` 的 `ROUND_REUSE=<上一轮的报告 json>`（2026-10-12）：这一轮的布置（场景、元件、组件、技能、界面，也就是 `ROUND_ARGS` 里除了试玩怎么玩以外的全部）和那一轮一样时，接着那一轮写好的存档，只重写源码变了的图，不开底图、不导场景。布置不一样就照常全做，并在 `warnings` 里说一声。报告里的 `reused`、`graphsWritten` 说明这一轮是不是接着跑的、写了几张图。可以每轮成功后把报告另存一份，下一轮拿它当 `ROUND_REUSE`。`ROUND_GRAPH_BATCH` 是一次 `write_graphs` 发几张图（默认 60）；`MILIASTRA_WRITE_ONE_BY_ONE=1` 让 `write_graphs` 退回逐张编译，用来对照。
-- `mcp_round.mjs` 不只跑王国：试玩脚本里的 `dir` 指定 `examples` 下的文件夹，`namePrefix` 指定要把哪些摆件的编号交给生成脚本。`examples/dash/dash_test.json` 是第二个样例“金币冲刺”的脚本。
+- `mcp_round.mjs` 不只跑王国：试玩脚本里的 `dir` 指定 `examples` 下的文件夹，`namePrefix` 指定要把哪些摆件的编号交给生成脚本。
 - `secdump.mjs <存档.gil> <段号[,段号]> [行数]`：把存档里某一段按字段层层展开打印出来；`seccmp.mjs <甲.gil> <乙.gil>`：列出两份存档哪些段不一样。找“某个编辑器设置存在哪个字段”时，先在编辑器里只改这一项、存一份，再用这两个脚本对比（负载需求档位、仇恨类型、阵营关系都是这样找到的）。
 - `prefab_diff.mjs <存档.gil> <元件A编号> <元件B编号> [f8]`：逐字段比较两个元件模板（第 4 段）；`comp_table.mjs <存档.gil>…`：统计元件模板 `f8` 里通用组件的种类码、内容字段和标签。对照表在 `knowledge/notes/component-codes.zh-CN.md`。官方教学存档在 `knowledge/samples/gil/`，`knowledge/samples/kb_dump.mjs` 把它们拆成 JSON（要放在仓库根目录跑）。
 - `comp_dump.mjs <种类码> <存档.gil>…`：把某一种通用组件在所有存档里的写法展开打印并去重（碰撞触发器 5、选项卡 17、自定义变量 1 的字段含义就是这样比出来的）；`mount_dump.mjs <存档.gil> <实体或元件编号>…`：打印节点图挂载记录。

@@ -47,7 +47,8 @@ export function luaSyntaxError(source){
 // What a script names: every call with the literals it is given, every Enum value, what it defines itself.
 function facts(source){
   const ast=luaparse.parse(source,{luaVersion:'5.3',locations:true,comments:false});
-  const calls=[],enums=[],own=new Set(),members=[];
+  const calls=[],enums=[],own=new Set(),members=[],selves=new Set();
+  const isSelf=n=>{const c=chain(n);return !!c&&c.length===2&&c[0]==='script'&&c[1]==='object';};
   const walk=n=>{
     if(!n||typeof n!=='object')return;
     if(Array.isArray(n)){n.forEach(walk);return;}
@@ -64,11 +65,13 @@ function facts(source){
     // What the script defines: functions by name, members it assigns, keys of the tables it builds.
     if(n.type==='FunctionDeclaration'&&n.identifier){const c=chain(n.identifier);if(c)own.add(c.at(-1));}
     if(n.type==='AssignmentStatement')for(const v of n.variables)if(v.type==='MemberExpression')own.add(v.identifier.name);
+    // A name that is given script.object (local root = script.object) stands for the control the script is on.
+    if(n.type==='LocalStatement'||n.type==='AssignmentStatement')n.variables.forEach((v,i)=>{if(v.type==='Identifier'&&isSelf(n.init[i]))selves.add(v.name);});
     if(n.type==='TableKeyString'&&n.key?.name)own.add(n.key.name);
     for(const k of Object.keys(n))if(k!=='loc'&&k!=='type')walk(n[k]);
   };
   walk(ast.body);
-  return {calls,enums,own,members};
+  return {calls,enums,own,members,selves};
 }
 // The ids of the node definitions every graph of the save uses (a signal's send, listen and client-script nodes among them).
 function graphNodeIds(root){
@@ -105,7 +108,7 @@ export function checkClient({mapPath,scripts:only},read){
   const under=new Map(),everyName=new Set();
   const visit=(node,hosts)=>{everyName.add(node.name);
     const mine=[...hosts];for(const h of mine)h.names.add(node.name);
-    const here=(node.scripts??[]).map(name=>{const h={script:name,host:node.name,names:new Set(),paths:new Set()};if(!under.has(name))under.set(name,[]);under.get(name).push(h);return h;});
+    const here=(node.scripts??[]).map(name=>{const h={script:name,host:node.name,names:new Set(),paths:new Set(),direct:new Set((node.children??[]).map(k=>k.name))};if(!under.has(name))under.set(name,[]);under.get(name).push(h);return h;});
     for(const kid of node.children??[]){
       const paths=(n,prefix)=>{const p=prefix?prefix+'/'+n.name:n.name;for(const h of here)h.paths.add(p);for(const k of n.children??[])paths(k,p);};paths(kid,'');
       visit(kid,[...mine,...here]);}
@@ -139,7 +142,12 @@ export function checkClient({mapPath,scripts:only},read){
       if((c.name==='GetChild'||c.name==='FindChild')&&typeof first==='string'&&hosts.length){
         const wanted=first.split('/').at(-1),reach=hosts.some(h=>c.name==='FindChild'&&first.includes('/')?h.paths.has(first)||[...h.paths].some(p=>p.endsWith('/'+first)):h.names.has(wanted));
         const inTemplate=templates.length&&everyName.has(wanted);
-        if(!reach&&!inTemplate){const all=[...new Set(hosts.flatMap(h=>[...h.names]))],n=nearest(wanted,all);
+        // Called on the control the script is on (script.object, or a name given it), GetChild finds only what that
+        // control holds itself: a control further down is there, and is not found.
+        const onSelf=c.name==='GetChild'&&c.on&&((c.on.length===2&&c.on[0]==='script'&&c.on[1]==='object')||(c.on.length===1&&f.selves.has(c.on[0])));
+        if(onSelf&&reach&&!hosts.some(h=>h.direct.has(first))){const where=[...new Set(hosts.flatMap(h=>[...h.paths].filter(p=>p.split('/').at(-1)===first)))];
+          say(s.name,c.line,'error','CONTROL_NOT_A_CHILD','"'+first+'" is not held by the control this script is on itself, it stands further down ('+where.slice(0,3).join(', ')+'): GetChild looks one level down and gives nil. Use FindChild with the path.',{didYouMean:':FindChild("'+(where[0]??first)+'")'});}
+        else if(!reach&&!inTemplate){const all=[...new Set(hosts.flatMap(h=>[...h.names]))],n=nearest(wanted,all);
           say(s.name,c.line,'error','CONTROL_NOT_FOUND','No control named "'+first+'" stands under '+[...new Set(hosts.map(h=>'"'+h.host+'"'))].join(' or ')+', which carr'+(hosts.length>1?'y':'ies')+' this script: the call gives nil.',{...(n?{didYouMean:n}:{}),controls:all.slice(0,40)});}
       }
       if(c.on===null&&c.name==='require'&&typeof first==='string'){const wanted=first.replace(/\.lua$/,'');

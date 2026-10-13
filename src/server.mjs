@@ -278,7 +278,7 @@ Worked examples, readable through the server: read_knowledge {id:"example-events
 {id:"example-hop"}, {id:"example-farm"}, {id:"example-checks"}, {id:"example-skills"}, {id:"example-shop"},
 {id:"example-drops"}, {id:"example-buttons"}, {id:"example-strike"}, {id:"example-raid"}, {id:"example-potion"},
 {id:"example-shoot"}, {id:"example-kingdom5"}, {id:"example-brain"}, {id:"example-skirmish"}, {id:"example-kingdom6"},
-{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-clientapi"}, {id:"example-clienttext"} give every
+{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-clientapi"}, {id:"example-clienttext"}, {id:"example-pairs"} give every
 tool call in order with its arguments and the source of every graph, recorded from a real run. All of them have been played in the game.
 examples/doors is a gate that opens and closes again with two motion devices; examples/images is a screen that speaks without
 words (a row of lives made of image controls that a graph switches off and on, bars that show a value, a ring, a picture that starts hidden).
@@ -303,9 +303,9 @@ own stage and grow on their own timer, a signal carrying the tool in hand, fruit
 nodes; it passed on its first run in the game. examples/raid is a fourth kind, fight-loot-trade (a sword skill with a
 hit box, a crate with health and a hurt box, a creature, loot and drops, a shop that buys the loot and sells a key, a gate
 that takes the key): eight graphs, 141 nodes. examples/checks uses each newer tool once
-and prints what happened. examples/kingdom (the same game as kingdom4 as one graph of about 1500 nodes) and examples/dash
-are older and were written before the component tools existed: they poll positions from one big graph on the stage
-entity, which works but is heavy and is not how the platform is meant to be used.
+and prints what happened. examples/kingdom (the same game as kingdom4 as one graph of about 1500 nodes) is older and was written before the
+component tools existed: it polls positions from one big graph on the stage entity, which works but is heavy and is not
+how the platform is meant to be used; kingdom4 to kingdom6 still take their scenery from it.
 scripts/dev/mcp_round.mjs runs a whole example through MCP calls only.`;
 const core=await connectCore();
 const server=new McpServer({name:'miliastra-mcp',version:'0.1.0'}, {instructions:

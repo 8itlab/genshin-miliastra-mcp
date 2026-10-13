@@ -10,14 +10,18 @@ An unofficial [Model Context Protocol](https://modelcontextprotocol.io) (MCP) se
 
 These three games were each made from a blank map by an AI that had never seen this repository and was given nothing but the MCP tools, and each was played through to the game's own win and lose screens by script ([record, in Chinese](docs/BLIND_TEST_2026-10-13.zh-CN.md)).
 
-> **Language note.** The tool descriptions, the built-in workflow guide, the knowledge base and most documentation are in Chinese, and automatic playtesting finds buttons by reading the Chinese game interface. Everything has been tested with the Chinese (mainland) client only. A capable model works with the Chinese tool descriptions without trouble, but the English client is untested.
+**The AI plays its own game.** The clip below was recorded by the tools: a card-matching game written in client Lua ([examples/pairs](examples/pairs)) is written into the save, the game is opened, and a script clicks pause, resume and all twelve cards through to the game's own victory screen; the log and the pictures come back to be checked. Nobody touches the mouse.
+
+![An AI playtesting a Lua card-matching game in Genshin Impact Miliastra Wonderland through MCP](docs/images/pairs.gif)
+
+> **Language note.** The tool descriptions and the built-in workflow guide are in English. The knowledge base and most documentation are in Chinese, the names in the catalogues are Chinese (as in the Chinese client), and automatic playtesting finds buttons by reading the Chinese game interface. Everything has been tested with the Chinese (mainland) client only; the English client is untested.
 
 ## What it can do
 
 - **Scenes**: a catalogue of 2,468 official props, searchable by name with thumbnails; import a hundred objects in one go; locked camera views, spawn and respawn points, time of day, lights.
 - **Mechanisms and creatures**: prefabs, collision triggers, press-F interactions, moving platforms, bounce pads, force fields, invisible walls, projectiles with hit detection, creatures that find and fight enemies on their own, skills, items, shops, currencies.
 - **Interface**: progress bars (horizontal, vertical, ring), image controls (about 1,600 built-in pictures), timers, buttons.
-- **Client Lua** (new in game version 7.1): interfaces that move and answer the mouse and keys, up to a whole 2D game on the screen; what the script prints comes back from the playtest with the prints of the graphs.
+- **Client Lua** (new in game version 7.1): interfaces that move and answer the mouse and keys, up to a whole 2D game on the screen; what the script prints comes back from the playtest with the prints of the graphs. A script is checked as it is written (syntax, and every control, signal, variable, API, picture and sound it names against the save and the catalogues); a round that changes only Lua takes about a minute in the real game; the editor draws the interface on a phone's and a console's canvas on request; a project of the community simulator is imported whole.
 - **Rules**: node graphs written in TypeScript; dozens of graphs compiled and written into the save in one call; bundled node documentation and Chinese-named catalogues of effects (3,195), sounds (1,997) and music (188).
 - **Automatic playtests**: scripted key presses and clicks, teleporting the player, screenshots, bursts, audio and video recording, and the level's log — this is how the AI finds out whether what it built actually works in the game.
 - **Publishing kit**: cover, screenshots, title and description. Publishing itself stays a click you make in the game.
@@ -105,7 +109,7 @@ The AI's work goes into a copy of the save; a playtest imports that copy as a ne
 3. **Settings**: `scene_set_camera` (with a locked view), `scene_set_spawn`, `scene_add_preset_point`, `scene_set_class`, `scene_set_faction_hostility`, `scene_set_level_settings`, `scene_add_respawn_point`, `scene_set_revive`, `scene_set_player_count`.
 4. **Things and what they can do**: `scene_add_prefab`, `scene_update_prefab`, `scene_add_components`, `scene_add_graph`.
 5. **Platform systems**: `scene_add_signal`, `scene_add_global_timer`, `scene_add_skill`, `scene_add_creature_skill`, `scene_set_creature_logic`, `scene_add_currency`, `scene_add_item`, `scene_add_shop`, `scene_add_unit_status`, `scene_add_environment`, `scene_add_light`.
-6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`; client interfaces in Lua with `scene_set_client_script`, `scene_add_client_ui`, `scene_add_client_template` and `scene_remove_client`.
+6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`; client interfaces in Lua with `scene_set_client_script`, `scene_add_client_ui`, `scene_get_client_ui`, `scene_add_client_template`, `scene_check_client`, `scene_remove_client`, `editor_preview_interface` and `scene_import_simulator`.
 7. **Rules**: `search_node_docs`, then `write_graphs` to type-check, compile and write one graph or many in one call; `scene_batch` for many settings in one call.
 8. **Feedback**: `effect_catalog`, `sound_catalog`, `music_catalog`.
 9. **Playtest**: `playtest_start`, `playtest_status`, `playtest_frames`.
@@ -132,11 +136,11 @@ The community has built a number of Miliastra Wonderland tools with different ai
 | [Miliastra node editor pack](https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack) | Reading and writing graph files, code/graph conversion, node data | Included in Genshin-TS, so used here indirectly |
 | [Ayaya_Miliastra_Editor](https://github.com/AyayaXiaowang/Ayaya_Miliastra_Editor) | Node graphs as Python code with offline validation, auto layout and a preview UI | Choose it for a Python workflow and a graph preview; this project has no UI for people |
 | [Miliastra-toolbox](https://github.com/1475505/Miliastra-toolbox) | Knowledge-base Q&A over official docs and community posts, with a hosted MCP | Complementary: it answers "how", this project does the work |
-| [miliastra-beyond-simulator](https://github.com/1475505/miliastra-beyond-simulator) | A simulator outside the game for 2D + Lua client-script games, seconds per round | Use it to iterate on a 2D interface game in seconds; this project also writes client Lua and controls but verifies every round in the real game, so the two go together |
+| [miliastra-beyond-simulator](https://github.com/1475505/miliastra-beyond-simulator) | A simulator outside the game for 2D + Lua client-script games, seconds per round | Use it to iterate on a 2D interface game in seconds; `scene_import_simulator` then writes its project (scripts, controls, templates, signals, variables, server rules) into a real save in one call and the playtest runs it in the game |
 | [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | A web node-graph editor that needs no game | For prototyping graphs |
 | [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs) | Documentation of the file formats | The prop list and sizes in this repository come from it (CC BY 4.0) |
 
-Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: a simulator outside the game (every round runs in the real game), a UI for people, platforms other than Windows. Client Lua scripts, all eleven kinds of client control with their settings, control templates and script variables (new in game version 7.1) are supported. This table follows each project's own README; please open an issue if something is inaccurate.
+Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: a simulator outside the game (every round runs in the real game; about a minute when only Lua changed), a UI for people, platforms other than Windows. Client Lua scripts, all eleven kinds of client control with their settings, control templates and script variables (new in game version 7.1) are supported. This table follows each project's own README; please open an issue if something is inaccurate.
 
 ## FAQ
 

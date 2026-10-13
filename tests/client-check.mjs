@@ -24,7 +24,7 @@ try{
   const wrong=['local root = script.object','function OnStart()','  local bar = root:GetChild("bat")','  local dot = root:FindChild("row/dott")',
     '  print(game.GetGlobalCustomVariableValue(Enum.CustomVariableEntityType.PlayerSelf, "live"))','  game.ServerSignal("pik"):SendSignal()','  script:RegisterServerSignalHandler("nobody", function() end)',
     '  bar:SetImage(Enum.ImageSource.StaticReference, 7)','  game.PlayAudio2D(3)','  print(script:GetParam("sped"))','  game.PlayAudio(1)','  script:EnableUpdates(true)',
-    '  print(Enum.Device.Keyboard, Enum.Devices.Mobile)','  bar:SetFillHorizontl(Enum.ImageFillHorizontalType.Left, 1)','  game.InstantiateClientUIControl(5, root)','end',''].join('\n');
+    '  print(Enum.Device.Keyboard, Enum.Devices.Mobile)','  bar:SetFillHorizontl(Enum.ImageFillHorizontalType.Left, 1)','  game.InstantiateClientUIControl(5, root)','  local deep = root:GetChild("dot")','end',''].join('\n');
   const made=setClientScript({mapPath:map,name:'ok',source:good,variables:[{name:'speed',type:'float',value:1}]},workspace);
   assert.equal(made.problems,undefined,'a clean script is given no problems: '+JSON.stringify(made.problems));
   const other=setClientScript({mapPath:made.mapPath,name:'off',source:wrong,variables:[{name:'speed',type:'float',value:1}]},workspace);
@@ -40,6 +40,8 @@ try{
   const face2=addClientUi({mapPath:face.mapPath,name:'two',script:'off',controls},workspace);
   // Now that controls carry the script, the two names it gets wrong are found, each with the one that was meant.
   assert.deepEqual(face2.problems.filter(p=>p.kind==='CONTROL_NOT_FOUND').map(p=>[p.line,p.didYouMean]),[[3,'bar'],[4,'dot']]);
+  // A control further down is not found by GetChild on the control the script is on: said, with the path to use.
+  assert.deepEqual(face2.problems.filter(p=>p.kind==='CONTROL_NOT_A_CHILD').map(p=>[p.line,p.didYouMean]),[[16,':FindChild("row/dot")']]);
   const all=checkClientScripts({mapPath:face2.mapPath});
   assert.deepEqual(all.checked,['ok','off']);assert.equal(all.ok,false);
   // The whole save: the signal the clean script sends is defined, and no graph listens for it yet (a warning).

@@ -11,7 +11,9 @@
 | `scene_set_client_script {name, source, variables}` | 把一段 Lua 放进存档副本；同名的就替换（编号不变，挂着它的控件不用动）；`variables` 是脚本变量，二十种类型 |
 | `scene_add_client_template {template}` | 加一个控件模板：脚本运行时照它造拷贝，网格视窗拿它当列表项，模板引用控件显示它 |
 | `scene_add_client_ui {name, script, controls}` | 在屏幕上放一棵客户端控件树：一个铺满全屏的容器，根上挂着脚本，下面是你给的控件 |
-| `scene_remove_client {ui \| template \| script}` | 拿掉一个界面、模板或脚本。要改一个已有的界面，就拿掉再照新的样子加一次 |
+| `scene_get_client_ui {ui \| template}` | 把一个已有的界面或模板整个读出来，格式和添加时一样；编辑器里手做的也读得出 |
+| `scene_add_client_ui {..., replace: true}`、`scene_add_client_template {..., replace: true}` | 改已有的界面或模板：读出来、改、带 `replace: true` 写回。容器编号、路径没变的控件的编号、模板的编号都不变，节点图和脚本不用跟着改 |
+| `scene_remove_client {ui \| template \| script}` | 拿掉一个界面、模板或脚本 |
 | `scene_list_client_scripts`、`scene_list_interface` | 读回脚本（变量的名字和类型；`includeSource` 带源码）、控件树（`clientInterfaces`）和模板（`clientTemplates`） |
 | `scene_add_signal` + 节点图里 `f.sendSignal('client:名字', 玩家)` | 节点图给脚本发一次性的消息（见“和节点图怎么通”） |
 | `scene_check_client {mapPath}` | 不进游戏，把脚本里写死的名字对着存档、节点图、图鉴和官方接口查一遍 |
@@ -103,6 +105,8 @@ end
 {"name": "b", "kind": "image", "position": [600, 300], "size": [90, 90],
  "devices": {"mobile": {"position": [480, 240], "size": [70, 70]}, "console": {"position": [720, 360]}}}
 ```
+
+**写界面时工具会直接说哪些控件在手机上出了屏幕**：`scene_add_client_ui` 的回答里多一项 `offPhoneCanvas`，列出控件的路径和它在哪一边超出多少（按手机的 1280 × 720 算，分了设备的按手机那份算；自己挂了锚点的控件不算，它跟着边走）。没有这一项就是都在屏幕里。
 
 给了 `devices` 的控件就不再“同步”，没写的设备沿用控件本身的数字。写出的记录和编辑器里手调四种设备后存下来的逐字节相同；游戏里只看过电脑这一种。
 
@@ -267,6 +271,7 @@ dot:SetAnchoredPosition(40, 0)
 
 ## 范例
 
+- `examples/pairs`：整局游戏「翻牌配对」，把下面各项用在一起（模板现造、补间序列翻牌、音效、填充做的计时条、时停暂停、脚本变量、信号结算），赢和输两条路线。想看一局完整的 Lua 游戏怎么组织，读它。
 - `examples/clientui`：血量圆点跟着变量走、点按钮给服务器发信号、条跟着分数变长。最小的“界面和节点图互通”。
 - `examples/clientgame`：整局 2D 小游戏（方向键接金币），逐帧动画和按键都在 Lua 里，输赢发信号给节点图结算。
 - `examples/clientlist`：模板、网格视窗、模板引用、按键提示和静态图片；运行时照模板造控件。
@@ -280,7 +285,6 @@ dot:SetAnchoredPosition(40, 0)
 ## 还没做的
 
 - 图片的填充和边缘羽化不能写进存档（工具只写遮罩开关），由脚本设，见“填充”。
-- 读不回一个已有界面的全部设置：`scene_list_interface` 只给控件树（名字、种类、脚本），位置、颜色、变量取值这些读不出来。所以改一个界面要自己留着当初的参数，拿掉再加；编辑器里手做的界面工具接不过来改。
 - 信号的参数只能有一个字符串（`scene_add_signal` 的限制），发给脚本的信号也一样。
 - 手机、主机上没验过：分设备的布局和手柄导航只做到“和编辑器写的一样”，本机只有电脑和键鼠。触屏点击多半和鼠标一样，但手机没有键盘，靠按键的玩法要在屏幕上放按钮。
 - 发布以后脚本是否照常打包上传，没验过（要发布才知道）。

@@ -1,0 +1,569 @@
+{
+ "dir": "pairs",
+ "namePrefix": "PR_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "scenes": [],
+ "generator": "gen_pairs.py",
+ "signals": [
+  "PR_win",
+  "PR_lose"
+ ],
+ "clientTemplates": [
+  {
+   "name": "PR_card",
+   "kind": "container",
+   "size": [
+    120,
+    150
+   ],
+   "children": [
+    {
+     "name": "back",
+     "kind": "image",
+     "image": 100001,
+     "colour": "#2a3f6a",
+     "size": [
+      120,
+      150
+     ]
+    },
+    {
+     "name": "edge",
+     "kind": "image",
+     "image": 100001,
+     "colour": "#5a7fc0",
+     "size": [
+      108,
+      138
+     ]
+    },
+    {
+     "name": "mark",
+     "kind": "image",
+     "image": 100001,
+     "colour": "#2a3f6a",
+     "size": [
+      96,
+      126
+     ]
+    },
+    {
+     "name": "face",
+     "kind": "image",
+     "image": 100005,
+     "size": [
+      84,
+      84
+     ]
+    },
+    {
+     "name": "hit",
+     "kind": "cursorArea",
+     "size": [
+      120,
+      150
+     ]
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "PrStage"
+  }
+ ],
+ "about": "The same game as pairs_win.json with six seconds on the clock instead of sixty: the script reads the length of a game from its variable seconds (script:GetParam), which is public, and here the interface gives its root another value for it (script: {name: \"PR_game\", values: {seconds: 6}}). The route presses 开始, finds one pair and waits: PR_LUA start, pair 1, lose moves 1, and PR_DEFEAT from the graph, which settles the level as lost. Seen in play on 2026-10-14; expect {prints, absent: [PR_VICTORY]} answered passed.",
+ "durationSeconds": 14,
+ "screenshotsAt": [
+  4,
+  9,
+  13
+ ],
+ "inputs": [
+  {
+   "at": 2.0,
+   "click": [
+    0.5,
+    0.5778
+   ]
+  },
+  {
+   "at": 3.0,
+   "click": [
+    0.3688,
+    0.3222
+   ]
+  },
+  {
+   "at": 3.5,
+   "click": [
+    0.5437,
+    0.5111
+   ]
+  }
+ ],
+ "clientScripts": [
+  {
+   "name": "PR_game",
+   "file": "pr_game.lua",
+   "variables": [
+    {
+     "name": "seconds",
+     "type": "integer",
+     "value": 60,
+     "public": true
+    }
+   ]
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "PR_ui",
+   "showCursor": true,
+   "blockKeys": true,
+   "controls": [
+    {
+     "name": "dim",
+     "kind": "image",
+     "image": 100001,
+     "colour": "#0b1020",
+     "size": [
+      0,
+      0
+     ],
+     "opacity": 0.72,
+     "anchor": {
+      "min": [
+       0,
+       0
+      ],
+      "max": [
+       1,
+       1
+      ]
+     }
+    },
+    {
+     "name": "title",
+     "kind": "text",
+     "position": [
+      0,
+      315
+     ],
+     "size": [
+      600,
+      60
+     ],
+     "text": {
+      "content": "翻牌配对",
+      "fontSize": 40,
+      "colour": "#ffd040"
+     }
+    },
+    {
+     "name": "cardRef",
+     "kind": "reference",
+     "template": "PR_card",
+     "position": [
+      0,
+      0
+     ]
+    },
+    {
+     "name": "board",
+     "kind": "container",
+     "position": [
+      0,
+      -10
+     ],
+     "size": [
+      600,
+      520
+     ]
+    },
+    {
+     "name": "hud",
+     "kind": "container",
+     "position": [
+      0,
+      0
+     ],
+     "size": [
+      1200,
+      700
+     ],
+     "children": [
+      {
+       "name": "barBack",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#000000",
+       "size": [
+        608,
+        26
+       ],
+       "opacity": 0.5,
+       "position": [
+        0,
+        -300
+       ]
+      },
+      {
+       "name": "bar",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#40c060",
+       "size": [
+        600,
+        18
+       ],
+       "mask": true,
+       "position": [
+        0,
+        -300
+       ]
+      },
+      {
+       "name": "moves",
+       "kind": "text",
+       "position": [
+        0,
+        -336
+       ],
+       "size": [
+        600,
+        36
+       ],
+       "text": {
+        "content": "步数 0    已配 0 / 6",
+        "fontSize": 22
+       }
+      },
+      {
+       "name": "pause",
+       "kind": "presetButton",
+       "position": [
+        500,
+        315
+       ],
+       "size": [
+        120,
+        50
+       ],
+       "states": {
+        "normal": "up",
+        "hover": "over",
+        "pressed": "down"
+       },
+       "children": [
+        {
+         "name": "up",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#3a7bd5",
+         "size": [
+          120,
+          50
+         ]
+        },
+        {
+         "name": "over",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#5a9bf5",
+         "size": [
+          120,
+          50
+         ]
+        },
+        {
+         "name": "down",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#ffd040",
+         "size": [
+          120,
+          50
+         ]
+        },
+        {
+         "name": "label",
+         "kind": "text",
+         "size": [
+          120,
+          50
+         ],
+         "text": {
+          "content": "暂停",
+          "fontSize": 28
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "menu",
+     "kind": "container",
+     "position": [
+      0,
+      0
+     ],
+     "size": [
+      700,
+      360
+     ],
+     "children": [
+      {
+       "name": "panel",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#101830",
+       "size": [
+        700,
+        360
+       ],
+       "opacity": 0.9
+      },
+      {
+       "name": "tip",
+       "kind": "text",
+       "position": [
+        0,
+        70
+       ],
+       "size": [
+        640,
+        120
+       ],
+       "text": {
+        "content": "点开两张一样的牌就配成一对\\n在时间走完之前配完六对",
+        "fontSize": 28
+       }
+      },
+      {
+       "name": "go",
+       "kind": "presetButton",
+       "position": [
+        0,
+        -70
+       ],
+       "size": [
+        220,
+        70
+       ],
+       "states": {
+        "normal": "up",
+        "hover": "over",
+        "pressed": "down"
+       },
+       "children": [
+        {
+         "name": "up",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#3a7bd5",
+         "size": [
+          220,
+          70
+         ]
+        },
+        {
+         "name": "over",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#5a9bf5",
+         "size": [
+          220,
+          70
+         ]
+        },
+        {
+         "name": "down",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#ffd040",
+         "size": [
+          220,
+          70
+         ]
+        },
+        {
+         "name": "label",
+         "kind": "text",
+         "size": [
+          220,
+          70
+         ],
+         "text": {
+          "content": "开始",
+          "fontSize": 28
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "result",
+     "kind": "text",
+     "position": [
+      0,
+      0
+     ],
+     "size": [
+      700,
+      120
+     ],
+     "text": {
+      "content": "",
+      "fontSize": 60,
+      "colour": "#ffd040",
+      "background": "#101830",
+      "backgroundOpacity": 0.9
+     }
+    },
+    {
+     "name": "pauseMask",
+     "kind": "container",
+     "anchor": {
+      "min": [
+       0,
+       0
+      ],
+      "max": [
+       1,
+       1
+      ]
+     },
+     "size": [
+      0,
+      0
+     ],
+     "children": [
+      {
+       "name": "shade",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#000000",
+       "size": [
+        0,
+        0
+       ],
+       "opacity": 0.6,
+       "anchor": {
+        "min": [
+         0,
+         0
+        ],
+        "max": [
+         1,
+         1
+        ]
+       }
+      },
+      {
+       "name": "paused",
+       "kind": "text",
+       "position": [
+        0,
+        80
+       ],
+       "size": [
+        500,
+        90
+       ],
+       "text": {
+        "content": "已暂停",
+        "fontSize": 54
+       }
+      },
+      {
+       "name": "resume",
+       "kind": "presetButton",
+       "position": [
+        0,
+        -60
+       ],
+       "size": [
+        220,
+        70
+       ],
+       "states": {
+        "normal": "up",
+        "hover": "over",
+        "pressed": "down"
+       },
+       "children": [
+        {
+         "name": "up",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#3a7bd5",
+         "size": [
+          220,
+          70
+         ]
+        },
+        {
+         "name": "over",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#5a9bf5",
+         "size": [
+          220,
+          70
+         ]
+        },
+        {
+         "name": "down",
+         "kind": "image",
+         "image": 100001,
+         "colour": "#ffd040",
+         "size": [
+          220,
+          70
+         ]
+        },
+        {
+         "name": "label",
+         "kind": "text",
+         "size": [
+          220,
+          70
+         ],
+         "text": {
+          "content": "继续",
+          "fontSize": 28
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "script": {
+    "name": "PR_game",
+    "values": {
+     "seconds": 6
+    }
+   }
+  }
+ ],
+ "expect": {
+  "prints": [
+   "PR_READY",
+   "PR_LUA start",
+   "PR_LUA pair 1",
+   "PR_LUA lose",
+   "PR_DEFEAT"
+  ],
+  "absent": [
+   "PR_VICTORY"
+  ]
+ }
+}

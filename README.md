@@ -10,6 +10,10 @@
 
 上面三局是三个没参与过开发的 AI 各自只拿到这套工具、从空白地图做出来并按脚本打通的（[经过和它们卡在哪](docs/BLIND_TEST_2026-10-13.zh-CN.md)）。
 
+**AI 自己进游戏试玩。** 下面这段是工具录的：一局用客户端 Lua 写的翻牌配对（[examples/pairs](examples/pairs)），工具把它写进存档、打开游戏、照脚本点暂停、继续、翻完十二张牌，一直打到游戏自己的胜利画面，再把日志和画面拿回来对照。没有人碰鼠标。
+
+![AI 通过 MCP 在原神千星奇域里自动试玩一局 Lua 写的翻牌配对游戏](docs/images/pairs.gif)
+
 ## 它能做什么
 
 - **搭场景**：2468 种官方物件的图鉴，按名字搜、看缩略图，一次导入一百个物件；锁定视角、出生点、复苏点、昼夜和灯光。
@@ -141,7 +145,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_progress_bar` / `scene_add_button` / `scene_add_image` / `scene_list_interface` | 屏幕上的进度条（跟着玩家变量走；可以是横条、竖条、圆环，可以直接显示当前值的数字，颜色可改）、交互按钮（按数字键触发，玩家模板上的图收事件）和图片（平台自带的图，或一块纯色的底板：不靠文字也能把话说清楚）；控件可以一开始隐藏，由节点图开关 |
 | `scene_add_unit_status` / `scene_list_unit_statuses` | 单位状态：描边、透视、加生命上限；图里加减 |
 | `scene_add_environment` / `scene_list_environments` / `scene_add_light` | 固定时刻的环境配置（昼夜靠两套配置切换；按编辑器的写法写，白天不会过曝）和属于某套配置的点光源 |
-| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通（节点图也能直接给脚本发信号：`f.sendSignal('client:名字', 玩家)`）。脚本变量二十种类型都能定，同一个脚本挂在几个控件上可以各给各的值；控件能按设备（电脑、手机、主机）给不同的位置，能指定手柄摇杆往哪走。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写进存档时当场查：语法错直接拒绝并给出行列，写死的控件名、信号名、变量名、接口名、图片和音效编号逐个对存档、节点图和图鉴（`scene_check_client`），对不上的给出行号和最接近的名字；运行时的错带着调用栈从试玩日志里回来。只改 Lua 的一轮不重新导入存档，真机上大约一分钟一轮。`editor_preview_interface` 让编辑器把界面画在手机、主机的画布上各截一张；`scene_import_simulator` 把千星沙箱模拟器的工程整个写进存档上真机。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck`、`examples/clientvars`、`examples/clientsignal`、`examples/clientapi`、`examples/clienttext` |
+| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通（节点图也能直接给脚本发信号：`f.sendSignal('client:名字', 玩家)`）。脚本变量二十种类型都能定，同一个脚本挂在几个控件上可以各给各的值；控件能按设备（电脑、手机、主机）给不同的位置，能指定手柄摇杆往哪走。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写进存档时当场查：语法错直接拒绝并给出行列，写死的控件名、信号名、变量名、接口名、图片和音效编号逐个对存档、节点图和图鉴（`scene_check_client`），对不上的给出行号和最接近的名字；运行时的错带着调用栈从试玩日志里回来。只改 Lua 的一轮不重新导入存档，真机上大约一分钟一轮。`editor_preview_interface` 让编辑器把界面画在手机、主机的画布上各截一张；`scene_import_simulator` 把千星沙箱模拟器的工程整个写进存档上真机。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck`、`examples/clientvars`、`examples/clientsignal`、`examples/clientapi`、`examples/clienttext`，以及整局游戏 `examples/pairs` |
 | `image_catalog` | 界面图片控件能用的全部图片（约 1600 张，15 类：功能图标、玩法图标、装饰图案、底板、分隔线、特殊字符、技能、道具、造物头像）：按分类返回编辑器图库的照片，每张图下面是编号 |
 | `scene_remove_entities` | 把已经导入场景的物件从存档副本里拿掉（按名字或名字前缀）：导入只能加，摆错的靠它减 |
 | `scene_list_classes` / `scene_set_class` | 职业：角色能不能跳、冲刺、攀爬、滑翔，用哪个镜头模板；角色的等级和基础生命、攻击、防御、体力（新地图默认一万血，打不死） |
@@ -210,7 +214,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 - 要特效先查 `effect_catalog`（按名字，如“烟花”“受击 火”“提示”），要声音查 `sound_catalog`，要音乐查 `music_catalog`；结果里有节点图里的写法。每个玩家动作都该有声音和画面的回应，做法见 `knowledge/notes/feedback.zh-CN.md`。
 - 先定镜头再摆景。`scene_list_cameras` 读出存档里镜头离角色多远、视角多大，`scene_set_camera` 可以改（写到存档副本），`fixedView` 把视角锁死（侧视、俯视的游戏都要锁，否则玩家一动鼠标镜头就转走）。画面在角色处的高度约为 2×距离×tan(视角/2)：6 米、45° 只有 5 米高，房子都装不下；14 米约 11.6 米高，适合横版远景。镜头一开始在角色背后，横版游戏要在开局用 `teleportPlayer` 把角色传送成面朝 +z（朝向 [0,0,0]），镜头才会在 −z 一侧横着看；`yawRange` 定不住这个方向。王国样例的完整做法见 `examples/kingdom/gen_kv3_scene.py` 开头的说明。
 - 游戏过程中才出现的东西（金币、买下后出现的城墙、跟着玩家走的标记）用元件：`scene_add_prefab` 把任意物件按指定缩放做成元件，节点图用 `f.createPrefab(元件编号, 位置, …)` 在任意位置生成，大小就是设定的大小；`scene_list_prefabs` 列出存档里的元件。会被招募、会被生成的造物也用元件：先在场景里摆一只不创建的怪，再用 `scene_add_prefab` 的 `fromEntity` 把它做成元件。
-- 全新的空白地图也能直接开工：`scene_add_graph` 在存档里建一张空的服务器节点图并挂到关卡实体（新地图没有节点图，`write_graphs` 需要一张来写）。完整例子见 `scripts/dev/fresh_map_round.mjs`。王国样例整套从空白地图搭起。第二个样例“金币冲刺”在 `examples/dash/`（俯视镜头、随机金币、追人的史莱姆）。
+- 全新的空白地图也能直接开工：`scene_add_graph` 在存档里建一张空的服务器节点图并挂到关卡实体（新地图没有节点图，`write_graphs` 需要一张来写）。完整例子见 `scripts/dev/fresh_map_round.mjs`。各个范例都是整套从空白地图搭起的（见 [examples](examples/README.zh-CN.md)）。
 - 谁打谁由阵营决定：`scene_list_factions` 看存档里的阵营和敌对关系，`scene_set_faction_hostility` 改。新地图里玩家、物件、造物三个阵营两两敌对，己方造物会去打节点图生成的物件；多数玩法应该改成只让玩家和造物敌对（`hostilePairs: [[1,3]]`）。
 - 要指挥怪去打谁、往哪儿走：`scene_set_level_settings` 把关卡的仇恨类型改成自定义（`aggroMode: "custom"`），节点图里用 `f.setTheAggroValueOfSpecifiedEntity(目标, 怪, 数值)` 下指令，怪会从远处直接跑向目标（玩家角色、己方单位、物件都可以）。沿路径巡逻的做法在 2026-10-09 游戏更新后失效了（导入存档时巡逻模板被清空），对应的工具已经拿掉。
 - 物件图鉴里同名的很多（光“乔木”就有几十种）。`scene_search_assets` 的结果带 `hasImage`；选型前用 `scene_asset_images` 按编号取缩略图看一眼（一次最多 12 个，返回名字、分组、尺寸和图）。图里每个物件都缩放到差不多大，只用来看长相，真实大小看尺寸。少数物件没有图（拍不出来的），工具会明说，这时再把候选导进练手存档看。

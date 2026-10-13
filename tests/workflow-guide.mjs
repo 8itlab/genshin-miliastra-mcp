@@ -138,6 +138,15 @@ try{
  assert.deepEqual(simScripts.on,['容器节点']);
  const simFace=(await sent('scene_list_interface',{mapPath:sim.mapPath})).clientInterfaces.at(-1);
  assert.deepEqual(simFace.root.children.map(c=>c.kind),['text','cursorArea','reference','grid','presetButton','textWindow','keyHint','image','animation','fullscreenAnimation']);
+ // The interface read back and put again in its place through the tools: the same container, the same ids, and one
+ // control moved; what it was not told to change stays as it was.
+ const faceRead=await sent('scene_get_client_ui',{mapPath:sim.mapPath,ui:simFace.name});
+ assert.equal(faceRead.interface.controls.length,10);assert.ok(faceRead.ids['/']&&Object.keys(faceRead.ids).length>=12,JSON.stringify(faceRead.ids));
+ const faceMoved=structuredClone(faceRead.interface);faceMoved.controls[0].position=[11,22];
+ const facePut=await sent('scene_add_client_ui',{mapPath:sim.mapPath,...faceMoved,replace:true});
+ const faceNow=await sent('scene_get_client_ui',{mapPath:facePut.mapPath,ui:simFace.name});
+ assert.deepEqual(faceNow.ids,faceRead.ids);assert.deepEqual(faceNow.interface.controls[0].position,[11,22]);
+ assert.deepEqual(faceNow.interface.controls.slice(1),faceRead.interface.controls.slice(1));
  const chests=(await sent('scene_search_assets',{query:'宝箱',group:'交互机关'})).assets;
  assert.ok(chests.some(a=>a.presetStatus?.statusId===100010060),'asset search does not show the preset status of the chest');
 }finally{await client.close();fs.rmSync(workspace,{recursive:true,force:true});}

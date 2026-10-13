@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields,field,replace,wrap,varint} from '../src/scene/wire.mjs';
-import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,addClientTemplate,removeClient,listClientScripts,listInterface} from '../src/scene-save.mjs';
+import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,addClientTemplate,removeClient,listClientScripts,listInterface,getClientUi} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-clientui-'));
 const official=path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith('mh47p30a87qo_'))),blank=path.join(root,'tests','fixtures','editor-2026-10-13-handui.gil');
@@ -221,6 +221,51 @@ try{
     assert.throws(()=>addClientUi({mapPath:tuned.mapPath,name:'x',controls},workspace),e=>e.code===code,code);
   for(const bad of [{name:'v',type:'colour'},{name:'v',type:'float',value:'1'},{name:'v',type:'entity',value:1},{name:'v',type:'vector3',value:[1,2]},{name:'v',type:'integerList',value:[1.5]},{name:'v',type:'guid',value:-1}])
     assert.throws(()=>setClientScript({mapPath:blank,name:'s',source:'print(1)\n',variables:[bad]},workspace),e=>e.code==='INVALID_VARIABLE',JSON.stringify(bad));
+  // What stands near the edge of the computer's canvas is off a phone's: said when the interface is written.
+  const wide=addClientUi({mapPath:blank,name:'wide',controls:[{name:'top',kind:'image',position:[0,400],size:[60,60]},{name:'ok',kind:'image',position:[600,300],size:[60,60]},{name:'side',kind:'image',position:[700,0],size:[100,40]},
+    {name:'edge',kind:'image',position:[-40,-40],size:[60,60],anchor:{min:[1,1],max:[1,1]}},{name:'fit',kind:'image',position:[700,0],devices:{mobile:{position:[560,0]}}},
+    {name:'group',kind:'container',position:[500,0],scale:[2,2],children:[{name:'far',kind:'image',position:[60,0],size:[40,40]}]}],outputName:'wide'},workspace);
+  assert.deepEqual(wide.offPhoneCanvas,[{control:'top',beyond:{top:70}},{control:'side',beyond:{right:110}},{control:'group/far',beyond:{right:20}}]);
+  assert.equal(pad.offPhoneCanvas,undefined);
+  // Reading an interface back: what scene_get_client_ui gives, given to scene_add_client_ui again, writes the records
+  // the editor wrote. The official sample and the saves configured by hand, each read, taken out and put back.
+  for(const [file,uiName,skip] of [[official,'收集圆圈',[]],[kinds,'CG_ui',[]],[set,'KS_ui',[B+51,B+55,B+56]],[more,'KS_ui',[B+47]]]){
+    const names=listInterface({mapPath:file}).clientInterfaces.map(c=>c.name);if(!names.includes(uiName)){assert.fail('no interface '+uiName+' in '+path.basename(file)+': '+names.join(','));}
+    const read=getClientUi({mapPath:file,ui:uiName}),gone=removeClient({mapPath:file,ui:uiName,outputName:'rt-gone'},workspace);
+    const back=addClientUi({mapPath:gone.mapPath,...read.interface,ids:read.ids,outputName:'rt-back',sameNames:true},workspace);
+    const was=new Map(fields(section(file,9)).filter(f=>f.id===502).map(f=>[number(f.data,501),f.data])),now=new Map(fields(section(back.mapPath,9)).filter(f=>f.id===502).map(f=>[number(f.data,501),f.data]));
+    assert.equal(now.size,was.size);
+    for(const [id,data] of was)if(!skip.includes(id)&&id>=read.containerId)assert.ok(now.get(id)?.equals(data),'the control '+id+' of '+path.basename(file)+' is not written back as it was read');
+  }
+  // (In the first hand-configured save a button holds two controls of the same name, which cannot both keep their id
+  // by path: the button and the two are left out of the comparison.)
+  assert.deepEqual(getClientUi({mapPath:set,ui:'KS_ui'}).sameNames,['btn/图片']);
+  // (In the second hand-configured save the control box2 holds values for variables that were taken out of the script
+  // afterwards: those are not read back, so that one record differs.)
+  const readMore=getClientUi({mapPath:more,ui:'KS_ui'}).interface;
+  assert.deepEqual(readMore.controls.find(c=>c.name==='box').navigation,{right:'box2',up:'box',down:'none'});
+  assert.deepEqual(Object.keys(readMore.controls.find(c=>c.name==='img').devices),['mobile','console','mobileGamepad']);
+  assert.deepEqual(readMore.scripts,[{name:'KS_a',values:{greet:'hi',count:99}}]);
+  assert.equal(readMore.controls.find(c=>c.name==='box2').scripts[0].values['变量_6'],'box','the id of a control is read back as its name');
+  // A template is read back the same way.
+  const cardRead=getClientUi({mapPath:shelf.mapPath,template:'card'});
+  assert.deepEqual([cardRead.templateIndex,cardRead.template.children.map(c=>c.kind)],[card.templateIndex,['image','cursorArea']]);
+  // Replacing in place: the interface comes back under the same container id, controls that keep their names keep
+  // their ids, a new one gets a number of its own; a template comes back under the same index though a grid names it.
+  const padRead=getClientUi({mapPath:pad.mapPath,ui:'pad'});
+  const changed={...padRead.interface,controls:[...padRead.interface.controls.filter(c=>c.name!=='log'),{name:'extra',kind:'image',position:[0,-300]}]};
+  changed.controls.find(c=>c.name==='b').position=[250,40];
+  const swapped=addClientUi({mapPath:pad.mapPath,...changed,replace:true,outputName:'swapped'},workspace);
+  assert.equal(swapped.containerId,pad.containerId);assert.equal(swapped.rootId,pad.rootId);
+  const idNow=n=>swapped.controls.find(c=>c.path===n).controlId;
+  assert.deepEqual(['a','b','row','row/c'].map(idNow),['a','b','row','row/c'].map(at));assert.ok(!Object.values({a:at('a'),b:at('b'),row:at('row'),c:at('row/c')}).includes(idNow('extra')));
+  assert.deepEqual(getClientUi({mapPath:swapped.mapPath,ui:'pad'}).interface.controls.map(c=>[c.name,c.position]),[['a',[-200,0]],['b',[250,40]],['row',[0,0]],['extra',[0,-300]]]);
+  assert.equal(swapped.replaced.idsKept,4);
+  const recard=addClientTemplate({mapPath:shelf.mapPath,name:'card',children:[{name:'face',kind:'image',image:100002},{name:'hit',kind:'cursorArea'},{name:'star',kind:'image',image:100005}],replace:true,outputName:'recard'},workspace);
+  assert.equal(recard.templateIndex,card.templateIndex);
+  assert.deepEqual(getClientUi({mapPath:recard.mapPath,template:'card'}).template.children.map(c=>c.name),['face','hit','star']);
+  assert.equal(listInterface({mapPath:recard.mapPath}).clientInterfaces[0].root.children[0].kind,'grid');
+  assert.equal(getClientUi({mapPath:recard.mapPath,ui:'shelf'}).interface.controls[0].itemTemplate,'card','the grid still names the template');
   // The debug log of a play: what a graph prints is field 22 of a record, what a client script prints field 23.
   const record=(seconds,body)=>field(1,2,Buffer.concat([field(1,0,382),field(3,0,seconds),body]));
   const logBody=Buffer.concat([record(9,Buffer.concat([field(7,2,Buffer.concat([field(1,0,1),field(2,0,1073741825)])),field(22,2,Buffer.concat([field(1,0,382),field(2,2,Buffer.from('CU_CLICK'))]))])),

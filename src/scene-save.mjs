@@ -2280,12 +2280,14 @@ const tint=(colour,opacity,name)=>{
   return Number((BigInt(Math.round((opacity??1)*255))<<24n)|BigInt(parseInt((colour??'#ffffff').slice(1),16)));};
 // Turns the controls asked for into records, a holder before what it holds. take gives each its id; known are the
 // templates there are and scripts the scripts, by name. slots: a function giving the next slot, for the records of a template.
+// (The editor lets two controls of one holder share a name; the test that writes a hand-made interface back needs that.)
+let sameNamesAllowed=false;
 function clientRecords(list,parent,take,known,scripts,slots,made,paths,trail=[]){
   const names=new Set();
   return list.map(c=>{
     if(!CLIENT_KINDS[c.kind])fail('INVALID_CONTROL','kind is one of '+Object.keys(CLIENT_KINDS).join(', ')+'.',{name:c.name,kind:c.kind});
     // Controls of one holder must differ in name: a script finds them by it (GetChild).
-    if(names.has(c.name))fail('DUPLICATE_CONTROL_NAME','Two controls of one holder have the same name.',{name:c.name});names.add(c.name);
+    if(names.has(c.name)&&!sameNamesAllowed)fail('DUPLICATE_CONTROL_NAME','Two controls of one holder have the same name: a script finds a control by its name, so give each its own.',{name:c.name});names.add(c.name);
     if(c.children?.length&&c.kind!=='container'&&c.kind!=='presetButton')fail('INVALID_CONTROL','Only a container and a preset button hold other controls.',{name:c.name});
     const size=c.size??CLIENT_SIZES[c.kind]??[100,100],position=c.position??[0,0];
     if(!(Math.abs(size[0])<=3200&&Math.abs(size[1])<=1800)||Math.abs(position[0])>3200||Math.abs(position[1])>1800)fail('INVALID_RECT','position is [x, y] from the centre of the holder on a 1600 x 900 canvas, y up; size is [width, height].',{name:c.name,position,size});
@@ -2302,7 +2304,7 @@ function clientRecords(list,parent,take,known,scripts,slots,made,paths,trail=[])
       if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{name:c.name,script:n,scripts:scripts.map(x=>x.name)});return {id:hit.id,script:hit,given:e?.values};});
     const t=c.text,g=c.grid;
     if(g?.rows!==undefined&&g?.columns!==undefined)fail('INVALID_CONTROL','A grid has a fixed number of rows (it then scrolls sideways) or of columns (it scrolls up and down), not both.',{name:c.name});
-    const id=take(c.name);paths.push({name:c.name,kind:c.kind,path:[...trail,c.name].join('/'),controlId:id,...(c.kind==='fullscreenAnimation'?{}:{position,size})});
+    const id=take(c.name,[...trail,c.name].join('/'));paths.push({name:c.name,kind:c.kind,path:[...trail,c.name].join('/'),controlId:id,...(c.kind==='fullscreenAnimation'?{}:{position,size})});
     // What is said of the control is its rectangle on a computer; devices says where it differs on the other three.
     const base={position,size,scale:c.scale,pivot:c.pivot,rotation:c.rotation,anchorMin:c.anchor?.min,anchorMax:c.anchor?.max};
     const onDevice=d=>{const o=c.devices?.[d];if(!o)return base;
@@ -2360,10 +2362,41 @@ function settleClientRecords(made,paths){
         return {name,type:v.type,value};})};});
   }
 }
+// Which controls reach beyond the canvas of a phone (1280 x 720, the smallest of the four) as they are given. The same
+// numbers serve every device unless devices says otherwise, and an interface laid out on the computer's 1600 x 900 puts
+// what stands near its edges off a phone's screen (seen in the editor's own preview, 2026-10-14: a row of counters at
+// the top of the computer's screen stood above the phone's). Only controls hung on the centre all the way up are
+// judged: one with anchors of its own follows an edge and is where it should be on every canvas.
+function beyondPhone(controls){
+  const [halfW,halfH]=[CLIENT_CANVAS.mobile[0]/2,CLIENT_CANVAS.mobile[1]/2],out=[];
+  const centred=a=>!a||(a.min.every(v=>v===0.5)&&a.max.every(v=>v===0.5));
+  const walk=(list,x0,y0,scale,trail)=>{for(const c of list){
+    const m=c.devices?.mobile,anchor=m?.anchor??c.anchor;if(!centred(anchor)||c.kind==='fullscreenAnimation')continue;
+    const position=m?.position??c.position??[0,0],size=m?.size??c.size??CLIENT_SIZES[c.kind]??[100,100],own=m?.scale??c.scale??[1,1];
+    const x=x0+position[0]*scale[0],y=y0+position[1]*scale[1],sx=scale[0]*own[0],sy=scale[1]*own[1],w=Math.abs(size[0]*sx)/2,h=Math.abs(size[1]*sy)/2,at=[...trail,c.name].join('/');
+    if(c.kind!=='container'){const by={};if(x-w<-halfW-1)by.left=Math.round(-halfW-(x-w));if(x+w>halfW+1)by.right=Math.round(x+w-halfW);if(y+h>halfH+1)by.top=Math.round(y+h-halfH);if(y-h<-halfH-1)by.bottom=Math.round(-halfH-(y-h));
+      if(Object.keys(by).length)out.push({control:at,beyond:by});}
+    walk(c.children??[],x,y,[sx,sy],[...trail,c.name]);}};
+  walk(controls,0,0,[1,1],[]);
+  return out.length?{offPhoneCanvas:out.slice(0,40),offPhoneNote:'These controls reach beyond the canvas of a phone (1280 x 720; the computer\'s is 1600 x 900 and the same numbers are used on both): by so many units on the sides named. Most players are on phones. Bring them inside ±640 across and ±360 up and down, hang them on an edge with anchor, or give them devices: {mobile: {position, size}}; editor_preview_interface shows the result on the phone\'s canvas.'}:{};
+}
 // Puts a tree of client controls on the screen: the container in the layout, a root that fills the screen and carries
 // the script, and the controls under it. ids: for the test that rebuilds the official sample (the editor numbers
 // controls as they were made, which is not the order they stand in).
-export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hidden=false,showCursor,blockKeys,blockCursor,isolateNavigation,outputName,ids},workspace){
+export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hidden=false,showCursor,blockKeys,blockCursor,isolateNavigation,outputName,ids,replace:inPlace,sameNames},workspace){
+  if(sameNames){sameNamesAllowed=true;try{return addClientUi({mapPath,name,script,scripts:more,controls,hidden,showCursor,blockKeys,blockCursor,isolateNavigation,outputName,ids,replace:inPlace},workspace);}finally{sameNamesAllowed=false;}}
+  // replace: the interface of this name that is there is taken out and this one put in its place. The container, the
+  // root and every control that stands at the same path before and after keep their ids: a graph that
+  // switches the container on, and a script that was handed the id of a control, need no change.
+  if(inPlace){const before=uiRecords(container(fs.readFileSync(resolve(mapPath))));
+    if(before.some(r=>r.name===name&&r.content.includes(82))){
+      const old=getClientUi({mapPath,ui:name}),now=new Set(),walk=(list,trail)=>{for(const c of list){const at=[...trail,c.name].join('/');now.add(at);walk(c.children??[],[...trail,c.name]);}};walk(controls,[]);
+      const kept=Object.fromEntries(Object.entries(old.ids).filter(([n])=>n===name||n==='/'||now.has(n)));
+      const without=removeClient({mapPath,ui:name,outputName:(outputName??'clientui')+'-without'},workspace);
+      const made=addClientUi({mapPath:without.mapPath,name,script,scripts:more,controls,hidden,showCursor,blockKeys,blockCursor,isolateNavigation,outputName,ids:kept},workspace);
+      return {...made,source:resolve(mapPath),replaced:{containerId:old.containerId,controlsBefore:Object.keys(old.ids).length-2,idsKept:Object.keys(kept).length-2}};
+    }
+  }
   const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
   const records=uiRecords(root),layout=records.find(r=>r.structure.includes(7));
   if(!layout)fail('UNSUPPORTED_SAVE','The save has no default layout to add to.');
@@ -2371,8 +2404,10 @@ export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hid
   if(records.some(r=>r.name===name))fail('DUPLICATE_CONTROL_NAME','The interface already has a control with this name.',{name});
   const scripts=clientScripts(root),wanted=[...(script!==undefined?[script]:[]),...more],onRoot=wanted.map(e=>{const n=typeof e==='string'?e:e?.name,hit=scripts.find(s=>s.name===n);
     if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{script:n,scripts:scripts.map(s=>s.name)});return {id:hit.id,script:hit,given:e?.values};});
-  let next=Math.max(...records.map(r=>r.id))+1;const take=key=>ids?.[key]??next++;
-  const containerId=take(name),rootId=take('容器节点'),made=[],paths=[];
+  // (With ids given, new numbers start above them: a control that is new must not get the number one that is kept has.)
+  let next=Math.max(...records.map(r=>r.id),...Object.values(ids??{}))+1;const taken=new Set(),take=(key,place)=>{const given=ids?.[place]??ids?.[key],id=given!==undefined&&!taken.has(given)?given:next++;taken.add(id);return id;};
+  // ids: by the path of a control under the root ("row/c"), "/" for the root, the name of the interface for the container.
+  const containerId=take(name),rootId=take('容器节点','/'),made=[],paths=[];
   const rootRecord={id:rootId,name:'容器节点',kind:'container',rect:null,scripts:onRoot,rootForm:true,showCursor,blockKeys,blockCursor,isolateNavigation};made.push(rootRecord);
   rootRecord.children=clientRecords(controls,rootId,take,clientTemplates(records),scripts,null,made,paths);
   settleClientRecords(made,paths);
@@ -2395,7 +2430,7 @@ export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hid
   const out=output(workspace,file,outputName,'-clientui');fs.writeFileSync(out,wrap(bytes,root));
   const mounted=[...new Set(made.flatMap(r=>(r.scripts??[]).map(x=>scripts.find(q=>q.id===(x.id??x))?.name)).filter(Boolean))];
   return {mapPath:out,source:file,containerId,rootId,name,scripts:onRoot.map(s=>({name:s.script.name,scriptId:s.id})),controls:paths,
-    ...(mounted.length?clientProblems(out,mounted,['SIGNAL_NOT_HEARD','SIGNAL_NOT_SENT']):{}),
+    ...(mounted.length?clientProblems(out,mounted,['SIGNAL_NOT_HEARD','SIGNAL_NOT_SENT']):{}),...beyondPhone(controls),
     templates:clientTemplates(uiRecords(root)).map(t=>({templateIndex:t.id,name:t.name})),
     next:'Use mapPath in later calls. In the script, script.object is the root (a container that fills the screen) and '+(paths.length?'script.object:GetChild("'+paths[0].name+'")':'script.object:GetChild(name)')+' finds a control under it by name (a child of a child through its own GetChild). The controls are written as the editor makes them, empty: an image shows nothing until the script gives it a picture (control:SetImage(Enum.ImageSource.StaticReference, id), ids from image_catalog) and a colour (control.imageColor = Color(r, g, b)). Controls stand in the order given, later ones over earlier ones. On an account of 奇匠 level 1 a client text box shows nothing either (seen in play, 2026-10-13): say it with pictures.'};
 }
@@ -2404,7 +2439,16 @@ export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hid
 // reference to show. Read from two templates saved by hand (tests/fixtures/editor-2026-10-13-clientkinds.gil): the
 // template stands among the roots before the layout, its record and those of what it holds before the layout's, each
 // with a slot of its own.
-export function addClientTemplate({mapPath,name,outputName,...spec},workspace){
+export function addClientTemplate({mapPath,name,outputName,replace:inPlace,ids,...spec},workspace){
+  // replace: the template of this name that is there is taken out and this one put in its place under the same index,
+  // so that scripts, grids and references that name it need no change.
+  if(inPlace){const before=uiRecords(container(fs.readFileSync(resolve(mapPath))));
+    if(clientTemplates(before).some(t=>t.name===name)){
+      const old=getClientUi({mapPath,template:name}),without=removeClient({mapPath,template:name,outputName:(outputName??'template')+'-without',evenIfUsed:true},workspace);
+      const made=addClientTemplate({mapPath:without.mapPath,name,outputName,ids:{[name]:old.templateIndex},...spec},workspace);
+      return {...made,source:resolve(mapPath),replaced:{templateIndex:old.templateIndex}};
+    }
+  }
   const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
   const records=uiRecords(root),layout=records.find(r=>r.structure.includes(7));
   if(!layout)fail('UNSUPPORTED_SAVE','The save has no default layout.');
@@ -2413,7 +2457,9 @@ export function addClientTemplate({mapPath,name,outputName,...spec},workspace){
   if(known.some(t=>t.name===name))fail('DUPLICATE_TEMPLATE_NAME','The save already has a client control template of this name.',{name});
   let next=Math.max(...records.map(r=>r.id))+1,slot=Math.max(0,...records.map(r=>r.slot));
   const made=[],paths=[];
-  clientRecords([{kind:'container',...spec,name,position:[0,0]}],0,()=>next++,known,clientScripts(root),()=>++slot,made,paths);
+  if(ids?.[name]!==undefined)next=Math.max(next,ids[name]+1);
+  let first=true;const take=()=>{if(first){first=false;if(ids?.[name]!==undefined)return ids[name];}return next++;};
+  clientRecords([{kind:'container',...spec,name,position:[0,0]}],0,take,known,clientScripts(root),()=>++slot,made,paths);
   made[0].isTemplate=true;made[0].parent=undefined;
   settleClientRecords(made,paths);
   const fresh=made.map(clientControlRecord),templateId=made[0].id;
@@ -2429,9 +2475,130 @@ export function addClientTemplate({mapPath,name,outputName,...spec},workspace){
   return {mapPath:out,source:file,templateIndex:templateId,name,controls:paths.map(({position,...p})=>p),
     next:'Use mapPath in later calls. A script makes a copy with game.InstantiateClientUIControl('+templateId+', parent) and removes one with game.DestroyClientUIControl(control); a grid of scene_add_client_ui takes it as itemTemplate: "'+name+'", a reference as template: "'+name+'".'};
 }
+// Reads a client interface or a template back as scene_add_client_ui and scene_add_client_template take one: the
+// reverse of clientControlRecord, block for block. What comes back, given to the tool again, writes the same records
+// (the fixtures configured by hand in the editor are read and written back byte for byte in the tests): an interface
+// that is there, also one made by hand in the editor, can be read, changed and put back.
+const hueOf=n=>'#'+(Number(n)&0xffffff).toString(16).padStart(6,'0'),solidOf=n=>((Number(n)>>>24)&255)/255;
+function readClientControl(r,byId,scripts,templates,isRoot){
+  const blocks=fields(r.raw.data).filter(f=>f.id===505&&f.wire===2).map(f=>f.data),block=type=>blocks.find(b=>varintOf(b,502)===type);
+  const inner=(type,id)=>{const b=block(type),nested=b&&fields(b).find(f=>f.id===503&&f.wire===2);return nested?fields(nested.data).find(f=>f.id===id&&f.wire===2)?.data??Buffer.alloc(0):null;};
+  const sub=(b,id)=>b?fields(b).find(f=>f.id===id&&f.wire===2)?.data??null:null,float=(b,id)=>{const f=b&&fields(b).find(x=>x.id===id&&x.wire===5);return f?f.data.readFloatLE(0):0;};
+  const two=b=>[float(b,501),float(b,502)],number=(b,id)=>{const f=b&&fields(b).find(x=>x.id===id&&x.wire===0);return f?Number(f.value):null;},has=(b,id)=>!!b&&fields(b).some(x=>x.id===id);
+  const kindCode=[[91,'container'],[96,'image'],[84,'text'],[85,'cursorArea'],[94,'textWindow'],[98,'animation'],[99,'fullscreenAnimation'],[93,'presetButton'],[95,'keyHint'],[92,'grid'],[89,'reference']];
+  const kind=kindCode.find(([type])=>r.content.includes(type))?.[1];
+  if(!kind)fail('UNSUPPORTED_CONTROL','A control of this interface is of a kind this tool does not read.',{name:r.name,controlId:r.id});
+  const out={name:r.name,kind};
+  // The rectangle: four states; the first is the computer's.
+  const rect=sub(sub(sub(block(12),503),13),12),states=fields(rect).filter(f=>f.id===501&&f.wire===2).map(f=>{const st=sub(f.data,502);
+    return {scale:[float(sub(st,501),1),float(sub(st,501),2)],anchorMin:two(sub(st,502)),anchorMax:two(sub(st,503)),position:two(sub(st,504)),size:two(sub(st,505)),pivot:two(sub(st,506)),rotation:float(sub(st,508),3)};});
+  const shape=st=>({position:st.position,size:st.size,...(st.scale[0]!==1||st.scale[1]!==1?{scale:st.scale}:{}),...(st.rotation?{rotation:st.rotation}:{}),...(st.pivot[0]!==0.5||st.pivot[1]!==0.5?{pivot:st.pivot}:{}),
+    ...(st.anchorMin.some(v=>v!==0.5)||st.anchorMax.some(v=>v!==0.5)?{anchor:{min:st.anchorMin,max:st.anchorMax}}:{})});
+  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),synced=number(rect,504)===1;
+  if(kind!=='fullscreenAnimation'&&!isRoot){
+    Object.assign(out,shape(states[0]));
+    // On another device everything is said again, so that what the computer has is not taken over by mistake.
+    const whole=st=>({position:st.position,size:st.size,scale:st.scale,rotation:st.rotation,pivot:st.pivot,anchor:{min:st.anchorMin,max:st.anchorMax}});
+    if(!synced||states.slice(1).some(st=>!same(st,states[0])))out.devices=Object.fromEntries(CLIENT_DEVICES.slice(1).map((d,i)=>[d,states[i+1]]).filter(([,st])=>!same(st,states[0])).map(([d,st])=>[d,whole(st)]));
+    if(synced&&out.devices)out.devicesNote='The editor has this control marked as the same on all devices though its rectangles differ; written back, it is marked as differing.';
+  }
+  const shown=inner(86,14);
+  if(has(shown,502))out.active=false;
+  if(has(sub(shown,17),503))out.visible=false;
+  // Scripts, each with the values this control gives its variables.
+  const carried=inner(83,74),mounted=carried?fields(carried).filter(f=>f.id===502&&f.wire===2).map(f=>{
+    const script=scripts.find(x=>x.id===number(sub(f.data,1),1)),values={};
+    for(const v of fields(f.data).filter(x=>x.id===3&&x.wire===2)){
+      const name=sub(v.data,2)?.toString('utf8')??'',typed=sub(v.data,3),code=number(typed,1),held=sub(typed,2),c=number(held,1),payload=sub(held,10+c)??Buffer.alloc(0);
+      const type=Object.keys(SCRIPT_TYPES).find(n=>SCRIPT_TYPES[n].code===code);
+      const ints=b=>{const list=[];let at=0;while(b&&at<b.length){let n=0n,shift=0n;for(;;){const x=b[at++];n|=BigInt(x&127)<<shift;shift+=7n;if(!(x&128))break;}list.push(Number(BigInt.asIntN(64,n)));}return list;};
+      const vec=b=>[float(b,1),float(b,2),float(b,3)],many=id=>fields(payload).filter(x=>x.id===id&&x.wire===2).map(x=>x.data);
+      values[name]={3:()=>{const f=fields(payload).find(x=>x.id===1&&x.wire===0);return f?Number(BigInt.asIntN(64,BigInt(f.value))):0;},7:()=>float(payload,1),5:()=>number(payload,1)===1,9:()=>sub(payload,1)?.toString('utf8')??'',11:()=>vec(sub(payload,1)),
+        4:()=>ints(sub(payload,1)),8:()=>{const b=sub(payload,1)??Buffer.alloc(0);return Array.from({length:b.length/4},(_,i)=>b.readFloatLE(i*4));},6:()=>[...(sub(payload,1)??[])].map(Boolean),10:()=>many(1).map(b=>b.toString('utf8')),12:()=>many(1).map(vec),
+        14:()=>number(payload,1)??0,18:()=>number(payload,2)??0,19:()=>number(payload,2)??0,15:()=>ints(sub(payload,1)),20:()=>many(1).map(b=>number(b,2)??0),21:()=>many(1).map(b=>number(b,2)??0)}[c]?.();
+      if(type==='controlId')values[name]=byId.get(values[name])?.name??values[name];
+      if(type==='controlIdList')values[name]=values[name].map(id=>byId.get(id)?.name??id);
+    }
+    // A value for a variable the script no longer has (taken out in the editor after the control was given it) stays
+    // in the editor's record; it is not read back, a control cannot be given it again.
+    for(const name of Object.keys(values))if(script&&!script.variables.some(v=>v.name===name&&v.public))delete values[name];
+    return Object.keys(values).length?{name:script?.name??String(number(sub(f.data,1),1)),values}:script?.name??String(number(sub(f.data,1),1));}):[];
+  if(mounted.length)out.scripts=mounted;
+  const foot=inner(90,78),towards=Object.fromEntries([['left',501],['right',502],['up',503],['down',504]].filter(([,id])=>has(foot,id)).map(([side,id])=>{
+    const f=fields(foot).find(x=>x.id===id);return [side,BigInt(f.value)===0xffffffffffffffffn?'none':byId.get(Number(f.value))?.name??Number(f.value)];}));
+  if(has(foot,505))out.focusable=true;
+  if(Object.keys(towards).length)out.navigation=towards;
+  const kids=(()=>{const list=fields(r.raw.data).find(f=>f.id===503&&f.wire===2);if(!list)return [];const ids=[];let at=0;const b=list.data;while(at<b.length){let n=0,shift=0;for(;;){const x=b[at++];n+=(x&127)*2**shift;shift+=7;if(!(x&128))break;}ids.push(n);}return ids.map(id=>byId.get(id)).filter(Boolean);})();
+  if(kind==='container'){const flags=inner(91,79);for(const [key,id] of [['isolateNavigation',501],['blockKeys',502],['blockCursor',503],['showCursor',504]])if(has(flags,id))out[key]=true;}
+  if(kind==='image'){
+    const picture=inner(96,84),look=inner(97,85),tinted=number(picture,502)??0xffffffff;
+    if(has(picture,503))out.image=number(picture,503);
+    if((tinted>>>0)!==0xffffffff){out.colour=hueOf(tinted);out.opacity=solidOf(tinted);}
+    if(has(look,501))out.mask=true;
+  }
+  if(kind==='text'||kind==='textWindow'){
+    const t=inner(kind==='text'?84:94,75),across=['left','centre','right'][number(t,508)??0],text={};
+    const content=sub(sub(t,510),501);if(content)text.content=content.toString('utf8');
+    text.fontSize=number(t,512)??20;
+    const ink=number(t,504)??0xffffffff,paper=number(t,505)??0xffffff,line=number(t,507)??0x33333333;
+    if((ink>>>0)!==0xffffffff){text.colour=hueOf(ink);text.opacity=solidOf(ink);}
+    if((paper>>>0)!==0xffffff){text.background=hueOf(paper);text.backgroundOpacity=solidOf(paper);}
+    if(has(t,506))text.outline=false;
+    if((line>>>0)!==0x33333333){text.outlineColour=hueOf(line);text.outlineOpacity=solidOf(line);}
+    text.align=across;
+    if(kind==='text')text.valign=['top','middle','bottom'][number(t,509)??0];
+    if(has(t,502))text.autoSize=true;
+    if((number(t,501)??20)!==20)text.minFontSize=number(t,501);
+    if(kind==='textWindow'){const scroll=sub(t,62);if(!has(scroll,502))text.scrollable=false;if(!has(scroll,503))text.scrollbar=false;}
+    out.text=text;
+  }
+  if(kind==='grid'){
+    const g=inner(92,80),across=!has(g,501),fixed=has(g,510)?number(g,509):null,item=number(g,506);
+    if(item)out.itemTemplate=templates.find(t=>t.id===item)?.name??String(item);
+    out.grid={itemSize:two(sub(g,502)),spacing:two(sub(g,503)),padding:[...two(sub(g,504)),...two(sub(g,505))],...(fixed!==null?(across?{rows:fixed}:{columns:fixed}):across?{horizontal:true}:{}),...(has(g,507)?{}:{scrollbar:false}),preview:number(g,511)??5};
+  }
+  if(kind==='presetButton'){
+    const b=inner(93,81),states=Object.fromEntries([['normal',501],['hover',502],['pressed',503],['disabled',504]].filter(([,id])=>has(b,id)).map(([key,id])=>[key,byId.get(number(b,id))?.name??String(number(b,id))]));
+    if(Object.keys(states).length)out.states=states;
+    if(!has(b,505))out.enabled=false;
+    if((number(b,506)??50888)!==50888)out.sound=number(b,506);
+  }
+  if(kind==='keyHint'){const k=inner(95,83);out.key=number(k,501)??1;out.padKey=number(k,502)??1;}
+  if(kind==='animation'||kind==='fullscreenAnimation'){const e=inner(kind==='animation'?98:99,86);if(has(e,501))out.effect=number(e,501);if(has(e,502))out.effectSound=true;if(has(e,503))out.below=true;}
+  if(kind==='reference'){const ref=number(inner(89,77),501);if(ref)out.template=templates.find(t=>t.id===ref)?.name??String(ref);}
+  const children=kids.map(k=>readClientControl(k,byId,scripts,templates,false).spec);
+  if(children.length)out.children=children;
+  return {spec:out};
+}
+export function getClientUi({mapPath,ui,template}){
+  const file=resolve(mapPath),root=container(fs.readFileSync(file)),records=uiRecords(root),byId=new Map(records.map(r=>[r.id,r]));
+  if((ui===undefined)===(template===undefined))fail('INVALID_ARGUMENT','Give ui (the name of a client interface) or template (the name of a template).');
+  const scripts=clientScripts(root),templates=clientTemplates(records);
+  // The ids of what a control holds, by path from it.
+  const idsUnder=(rec,trail=[])=>{const out=[];const list=fields(rec.raw.data).find(f=>f.id===503&&f.wire===2);if(list){let at=0;const b=list.data;while(at<b.length){let n=0,shift=0;for(;;){const x=b[at++];n+=(x&127)*2**shift;shift+=7;if(!(x&128))break;}
+    const kid=byId.get(n);if(kid){out.push([[...trail,kid.name].join('/'),kid.id],...idsUnder(kid,[...trail,kid.name]));}}}return out;};
+  if(template!==undefined){
+    const hit=templates.find(t=>t.name===template);
+    if(!hit)fail('TEMPLATE_NOT_FOUND','The save has no client control template of this name.',{template,templates:templates.map(t=>t.name)});
+    const {spec}=readClientControl(byId.get(hit.id),byId,scripts,templates,false);delete spec.position;delete spec.devices;
+    return {mapPath:file,templateIndex:hit.id,template:spec,ids:Object.fromEntries([[template,hit.id],...idsUnder(byId.get(hit.id),[template])]),
+      note:'template is what scene_add_client_template takes. To change the template: scene_add_client_template {template: this with your changes, replace: true} keeps its index, so the scripts that name it need no change.'};
+  }
+  const box=records.find(r=>r.name===ui&&r.content.includes(82));
+  if(!box)fail('CLIENT_UI_NOT_FOUND','The save has no client interface of this name.',{ui,interfaces:records.filter(r=>r.content.includes(82)).map(r=>r.name)});
+  const boxBlocks=fields(box.raw.data).filter(f=>f.id===505&&f.wire===2).map(f=>f.data),content=boxBlocks.find(b=>varintOf(b,502)===82),shownBlock=boxBlocks.find(b=>varintOf(b,502)===23);
+  const rootId=varintOf(fields(fields(content).find(f=>f.id===503&&f.wire===2).data).find(f=>f.id===73&&f.wire===2).data,501),rootRecord=byId.get(rootId);
+  const hiddenInner=fields(fields(shownBlock).find(f=>f.id===503&&f.wire===2).data).find(f=>f.id===14&&f.wire===2)?.data,hidden=!!hiddenInner&&fields(hiddenInner).some(f=>f.id===502);
+  const {spec}=readClientControl(rootRecord,byId,scripts,templates,true);
+  const out={name:box.name,...(spec.scripts?{scripts:spec.scripts}:{}),controls:spec.children??[],...(hidden?{hidden:true}:{})};
+  for(const key of ['showCursor','blockKeys','blockCursor','isolateNavigation'])if(spec[key])out[key]=true;
+  const twice=[],look=(list,trail)=>{const seen=new Set();for(const c of list){const at=[...trail,c.name].join('/');if(seen.has(c.name))twice.push(at);seen.add(c.name);look(c.children??[],[...trail,c.name]);}};look(out.controls,[]);
+  return {mapPath:file,containerId:box.id,rootId,interface:out,...(twice.length?{sameNames:twice,sameNamesNote:'Controls of one holder share a name here (the editor allows it). scene_add_client_ui does not: give each its own name before writing the interface back.'}:{}),ids:Object.fromEntries([[box.name,box.id],['/',rootId],...idsUnder(rootRecord)]),
+    note:'interface is what scene_add_client_ui takes (name, scripts, controls and the switches of the root). To change the interface: scene_add_client_ui {...this with your changes, replace: true} puts the new one in its place; the container and every control that keeps its name keep their ids, so graphs that switch the container and scripts need no change.'};
+}
 // Takes a client interface, a template or a script out of a copy of a save. Changing one that is there is taking it
 // out and adding it again (a script alone is replaced by scene_set_client_script, which keeps its id).
-export function removeClient({mapPath,ui,template,script,outputName},workspace){
+export function removeClient({mapPath,ui,template,script,outputName,evenIfUsed},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
   if([ui,template,script].filter(v=>v!==undefined).length!==1)fail('INVALID_ARGUMENT','Give one of ui, template or script: the name of the one to take out.');
   const idsOf=b=>{const out=[];let p=0;while(p<b.length){let n=0,shift=0;for(;;){const v=b[p++];n+=(v&127)*2**shift;shift+=7;if(!(v&128))break;}out.push(n);}return out;};
@@ -2459,7 +2626,7 @@ export function removeClient({mapPath,ui,template,script,outputName},workspace){
     if(!hit)fail('TEMPLATE_NOT_FOUND','The save has no client control template of this name.',{template,templates:clientTemplates(records).map(t=>t.name)});
     gone=new Set(tree(hit.id));rootIds=[hit.id];
     const users=records.filter(r=>!gone.has(r.id)&&(varintOf(blockInner(r,92,80)??Buffer.alloc(0),506)===hit.id||varintOf(blockInner(r,89,77)??Buffer.alloc(0),501)===hit.id)).map(r=>r.name);
-    if(users.length)fail('TEMPLATE_IN_USE','A grid or a reference names this template: take the interface it belongs to out first.',{template,usedBy:users});
+    if(users.length&&!evenIfUsed)fail('TEMPLATE_IN_USE','A grid or a reference names this template: take the interface it belongs to out first.',{template,usedBy:users});
     what={template,templateIndex:hit.id,controls:gone.size};
   }
   const rebuilt=fields(one(root,9)).flatMap(f=>{
