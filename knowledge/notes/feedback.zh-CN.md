@@ -61,6 +61,27 @@
 - 屏幕上的图片控件在 Lv.1 也显示（2026-10-13 上机看过）：进度条旁边放一个图标说明这条是什么（水果是吃的、宝箱是战利品、剑盾是战斗），条和钟后面垫一块半透明的黑底板让它们从画面里分出来，一排圆点当“还剩几条命”（少一条命就关掉一个：`f.modifyUiControlStatusWithinTheInterfaceLayout(玩家, 控件编号, UIControlGroupStatus.Off)`，上机验过，范例 `examples/images/images_lives.json`）。
 - 数字也能显示：进度条的 `shows: "value"` 直接写出当前值（钱袋里 7 枚就显示 7.0），不需要自定义文本框；圆环形的进度条适合做冷却和蓄力。能用的图有一千六百来张（`image_catalog` 按分类给出图库的照片，每张图下面是编号）：心形、钥匙、宝箱、药瓶、武器、元素、旗子、星星、皇冠、箭头、对勾和叉都有，照着图挑编号。
 
+## 有文字的时候（奇匠 Lv.2 起）：头顶的话、名字、血条，和几选一
+
+账号升到奇匠 Lv.2 以后自定义文字都显示，平台自己有三样现成的东西，不用自己拿界面拼（2026-10-14 都上机验过）：
+
+| 要表达什么 | 用什么 | 怎么给 |
+|---|---|---|
+| 这个人在说话、这里有提示 | 文本气泡 | `scene_add_components {prefab, textBubbles: [{above: 1.5, active: true, lines: [{text, seconds}]}]}`；一句接一句，默认循环；`loop: false` 只说一遍，`endEvent: true` 说完通知这个东西的图（`whenTextBubbleIsCompleted`）；图里 `f.switchActiveTextBubble(实体, 序号)` 换一段话 |
+| 这是谁、还剩多少血、进度多少 | 铭牌 | `nameplates: [{above: 1.3, items: [...]}]`，内容项可以是 `{text}`（`{1:s.变量名}` 是它自己的自定义变量，`{2:HpCur}`、`{2:HpMax}` 是生命值，注意属性不带 `s.`）、`{icon}`、`{bar: {current, min, max}}`（跟三个自定义变量走的条）、`{health: true}`（血条，可带数值、换颜色）；每项有 `size` 和 `offset`，第二项往下放就给 `offset: [0, -36]` |
+| 该往哪走 | 铭牌的导航指示器 | `indicator: {text: "{2:PDist} 米", icon, min, max}`：角色离它在这两个距离之间时，屏幕上有个标记指着它并写着距离；走近到铭牌出现，标记自己收起 |
+| 让玩家从几样里挑一样（升级、奖励、开局选职业） | 卡牌选择器 | `scene_add_card_selector {name, title, cards: [{title, description, icon, label}]}`，图里 `f.invokeDeckSelector` 唤起，玩家模板上的图 `whenDeckSelectorIsComplete` 收到选了哪张；单人关卡里打开时游戏暂停 |
+
+三件容易栽的事：
+
+- **挂多高要说。** 不给 `above` 就挂在脚底，被模型自己挡住，什么都看不见。`above` 是离脚底几米（按元件缩放前算，缩放 1.5 的东西 `above: 1.3` 实际在 2 米左右）。
+- **卡牌选择器别在开局头几秒唤起。** 关卡时钟比玩家看到画面早几秒，那时候唤起窗口不显示，过了时间玩家的图却照样收到“超时”。等十来秒，或者由玩家做的事（走进区域、打完一波）来触发。
+- **铭牌和气泡只给走近的人看**（`radius`，默认铭牌 5 米、气泡 20 米）；远处要让人知道它在哪，用导航指示器。
+
+铭牌也能挂在玩家自己的角色上（`prefab: "character"`），做称号或头顶血量。
+
+范例：`examples/talk`（气泡、名字、血条、进度条、指示器）、`examples/cards`（卡牌选择器）、`examples/raid`（战斗里跟着掉的血条）。账号还是 Lv.1 的话这些文字不显示，回到下一节的办法。
+
 ## 怎么知道声音真的响了
 
 脚本试玩时没有人在听。`playtest_start {recordAudio:true}` 会把这一局的声音录下来，`playtest_status` 的 `audio` 里有录音文件、每一秒的响度和每个声音开始的时刻。日志里打印行的秒数比真实时间慢约 1%，起点也晚约 0.8 秒，对时间时按“打印之后一两秒内有一个起音”来对。
