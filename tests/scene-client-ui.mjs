@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields,field,replace,wrap,varint} from '../src/scene/wire.mjs';
-import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,listClientScripts,listInterface} from '../src/scene-save.mjs';
+import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,addClientTemplate,listClientScripts,listInterface} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-clientui-'));
 const official=path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith('mh47p30a87qo_'))),blank=path.join(root,'tests','fixtures','editor-2026-10-13-handui.gil');
@@ -72,6 +72,32 @@ try{
   assert.throws(()=>addClientUi({mapPath:again.mapPath,name:'HUD',script:'none'},workspace),e=>e.code==='SCRIPT_NOT_FOUND');
   assert.throws(()=>addClientUi({mapPath:again.mapPath,name:'HUD',controls:[{name:'a',kind:'image'},{name:'a',kind:'image'}]},workspace),e=>e.code==='DUPLICATE_CONTROL_NAME');
   assert.throws(()=>addClientUi({mapPath:again.mapPath,name:'HUD',controls:[{name:'a',kind:'image',children:[{name:'b',kind:'image'}]}]},workspace),e=>e.code==='INVALID_CONTROL');
+  // The other kinds and the templates, each against the control the editor made (a save with one of each added by hand).
+  const kinds=path.join(root,'tests','fixtures','editor-2026-10-13-clientkinds.gil'),made7=new Map(fields(section(kinds,9)).filter(f=>f.id===502).map(f=>[number(f.data,501),f.data]));
+  const B=1073741824,top=B+22,box=(w,h,y=0)=>({position:[0,y],size:[w,h]});
+  for(const spec of [{id:B+34,name:'文本视窗',kind:'textWindow',parent:top,rect:box(100,40)},{id:B+35,name:'界面动效',kind:'animation',parent:top,rect:box(100,100)},
+    {id:B+36,name:'全屏界面动效',kind:'fullscreenAnimation',parent:top},{id:B+37,name:'预设按钮',kind:'presetButton',parent:top,rect:box(150,50)},
+    {id:B+38,name:'按键提示',kind:'keyHint',parent:top,rect:box(40,40)},{id:B+39,name:'网格视窗',kind:'grid',parent:top,rect:box(80,80),itemTemplate:B+41},
+    {id:B+40,name:'模板引用控件',kind:'reference',parent:top,rect:box(80,80),template:B+41},
+    {id:B+41,name:'basket',kind:'image',rect:box(110,36,-260),slot:1,isTemplate:true},
+    {id:B+44,name:'容器节点',kind:'container',children:[B+45],rect:box(150,150),slot:2,isTemplate:true},{id:B+45,name:'图片',kind:'image',parent:B+44,rect:box(80,80),slot:3}])
+    assert.ok(clientControlRecord(spec).equals(made7.get(spec.id)),'the '+spec.kind+' "'+spec.name+'" differs from the one the editor made');
+  // A picture chosen in the editor is one more number in the image's block.
+  assert.ok(clientControlRecord({id:B+32,name:'coin',kind:'image',parent:top,rect:{position:[0,330],size:[56,56]},image:100138}).equals(made7.get(B+32)),'the image with a picture differs');
+  // A template of our own, a grid and a reference that name it, and what the listing says of them.
+  const card=addClientTemplate({mapPath:blank,name:'card',children:[{name:'face',kind:'image',image:100138,colour:'#ffd040'},{name:'hit',kind:'cursorArea'}]},workspace);
+  assert.deepEqual(card.controls.map(c=>[c.path,c.kind]),[['card','container'],['card/face','image'],['card/hit','cursorArea']]);
+  const dot=addClientTemplate({mapPath:card.mapPath,name:'dot',kind:'image',size:[24,24]},workspace);
+  assert.equal(dot.templateIndex,card.templateIndex+3);
+  const shelf=addClientUi({mapPath:dot.mapPath,name:'shelf',controls:[{name:'list',kind:'grid',size:[400,300],itemTemplate:'card'},{name:'one',kind:'reference',template:'dot'},{name:'ok',kind:'presetButton'},{name:'key',kind:'keyHint'}]},workspace);
+  const seen=listInterface({mapPath:shelf.mapPath});
+  assert.deepEqual(seen.clientTemplates,[{templateIndex:card.templateIndex,name:'card'},{templateIndex:dot.templateIndex,name:'dot'}]);
+  assert.deepEqual(seen.clientInterfaces[0].root.children.map(c=>c.kind),['grid','reference','presetButton','keyHint']);
+  const rootIds=ids(fields(section(shelf.mapPath,9)).find(f=>f.id===501).data),layoutAt=rootIds.indexOf(1073741825);
+  assert.deepEqual(rootIds.slice(layoutAt-2,layoutAt),[card.templateIndex,dot.templateIndex],'the templates stand before the layout, in the order they were made');assert.equal(rootIds.at(-1),shelf.rootId);
+  assert.throws(()=>addClientUi({mapPath:dot.mapPath,name:'x',controls:[{name:'g',kind:'grid',itemTemplate:'none'}]},workspace),e=>e.code==='TEMPLATE_NOT_FOUND');
+  assert.throws(()=>addClientUi({mapPath:dot.mapPath,name:'x',controls:[{name:'g',kind:'image',template:'dot'}]},workspace),e=>e.code==='INVALID_CONTROL');
+  assert.throws(()=>addClientTemplate({mapPath:dot.mapPath,name:'dot',kind:'image'},workspace),e=>e.code==='DUPLICATE_TEMPLATE_NAME');
   // The debug log of a play: what a graph prints is field 22 of a record, what a client script prints field 23.
   const record=(seconds,body)=>field(1,2,Buffer.concat([field(1,0,382),field(3,0,seconds),body]));
   const logBody=Buffer.concat([record(9,Buffer.concat([field(7,2,Buffer.concat([field(1,0,1),field(2,0,1073741825)])),field(22,2,Buffer.concat([field(1,0,382),field(2,2,Buffer.from('CU_CLICK'))]))])),

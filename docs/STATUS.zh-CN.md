@@ -29,7 +29,7 @@
 | `examples/farm` | 采集经营：拿工具、开垦、播种、作物自己生长、收获、交货 | 9 张图 202 节点 | 通关；倒计时走完判负 |
 | `examples/raid` | 打怪—战利品—买卖：挥剑砍箱子和怪、捡掉落、摊位卖钱买钥匙、开门、开宝箱 | 8 张图 141 节点 | 通关 |
 
-另有一批单项的验证关，每个把一两样工具在游戏里用一遍：`events`（最小的事件驱动范例）、`checks`、`skills`、`shop`、`drops`、`buttons`、`strike`（攻击盒打到东西）、`shoot`（技能发射投射物）、`potion`、`presets`（机关的预设状态）、`hazards`（弹跳垫、力场、状态效果、锁定视角）、`walls`（什么挡得住人）、`doors`（门开了再关）、`images`（屏幕上的图片和进度条样式）、`skirmish` 和 `brain`（复杂造物）、`fitting`（近看间：逐帧看造物的动作）、`listen`（把音效放出来录音）、`clientui`（Lua 界面和节点图互通）、`clientgame`（整局用 Lua 写的 2D 小游戏）。
+另有一批单项的验证关，每个把一两样工具在游戏里用一遍：`events`（最小的事件驱动范例）、`checks`、`skills`、`shop`、`drops`、`buttons`、`strike`（攻击盒打到东西）、`shoot`（技能发射投射物）、`potion`、`presets`（机关的预设状态）、`hazards`（弹跳垫、力场、状态效果、锁定视角）、`walls`（什么挡得住人）、`doors`（门开了再关）、`images`（屏幕上的图片和进度条样式）、`skirmish` 和 `brain`（复杂造物）、`fitting`（近看间：逐帧看造物的动作）、`listen`（把音效放出来录音）、`clientui`（Lua 界面和节点图互通）、`clientgame`（整局用 Lua 写的 2D 小游戏）、`clientlist`（模板、网格、预设按钮等其余几种控件）。
 
 **一关的完整做法写在服务器自带的说明里**：资源 `miliastra://workflow`（步骤和每步用哪个工具）和 `miliastra://platform-rules`（平台实测规则，即 [PLATFORM_RULES](PLATFORM_RULES.zh-CN.md)）。想了解平台有哪些系统、官方怎么拼玩法、工具覆盖到哪，读 [HOW_MILIASTRA_BUILDS_GAMES](HOW_MILIASTRA_BUILDS_GAMES.zh-CN.md)。
 
@@ -40,7 +40,7 @@
 3. 设置：`scene_set_camera`（`fixedView` 锁定视角）、`scene_set_spawn`、`scene_add_preset_point`、`scene_set_class`、`scene_set_faction_hostility`、`scene_set_level_settings`、`scene_add_respawn_point`、`scene_set_revive`、`scene_set_player_count`。
 4. 东西和它们的能力：`scene_add_prefab` / `scene_update_prefab`（物件、造物、掉落物；预设状态、生命值）、`scene_add_components`（碰撞触发器、选项卡、变量、运动器、跟随、小地图、受击盒、能力单元、战利品、投射运动器、命中检测、弹射器、力场、额外碰撞）、`scene_add_graph`（挂到关卡实体、元件、玩家模板、角色模板；客户端的技能图、过滤器图；道具图）。
 5. 平台的系统：`scene_add_signal`、`scene_add_global_timer`、`scene_add_skill`、`scene_add_creature_skill`、`scene_set_creature_logic`、`scene_add_currency`、`scene_add_item`、`scene_add_shop`、`scene_add_unit_status`、`scene_add_environment`、`scene_add_light`。
-6. 客户端界面（游戏 7.1）：`scene_set_client_script` 放 Lua 脚本，`scene_add_client_ui` 摆它控制的客户端控件；会动、收鼠标和按键的界面和 2D 玩法用它（`knowledge/notes/client-lua.zh-CN.md`）。
+6. 客户端界面（游戏 7.1）：`scene_set_client_script` 放 Lua 脚本，`scene_add_client_ui` 摆它控制的客户端控件（十一种），`scene_add_client_template` 做运行时照着造的模板；会动、收鼠标和按键的界面和 2D 玩法用它（`knowledge/notes/client-lua.zh-CN.md`）。
 7. 屏幕上的东西（服务器控件）：`scene_add_progress_bar`（横条、竖条、圆环，可显示数字）、`scene_add_image`（图从 `image_catalog` 里挑）、`scene_add_timer_display`、`scene_add_button`；控件可以一开始隐藏，由节点图开关。
 8. 写规则：`search_node_docs` 查节点，`write_graphs` 把一张或多张图的源码编译并写进存档。很多步设置可以放进一次 `scene_batch`。
 9. 反馈：`effect_catalog`、`sound_catalog`、`music_catalog` 查编号，图里放特效、音效、换音乐（做法见 `knowledge/notes/feedback.zh-CN.md`）。
@@ -68,7 +68,7 @@
 
 ## 还没做的
 
-- 客户端控件只有四种（容器、图片、文本框、光标检测区域）；预设按钮、网格视窗、文本视窗、界面动效、按键提示、控件模板还没有。
+- 客户端控件十一种都能加，模板也能做（`scene_add_client_template`）；但预设按钮的图标和文字、网格的列表项大小、动效编号这些细项还只能用编辑器的默认值。
 
 - 排行榜和成就（在编辑器的“外围系统管理”里配，没有可参照的样本）。
 - 装备（装备栏、词条）、计分板、铭牌和文本气泡、卡牌选择器、道具展示控件。

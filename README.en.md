@@ -105,7 +105,7 @@ The AI's work goes into a copy of the save; a playtest imports that copy as a ne
 3. **Settings**: `scene_set_camera` (with a locked view), `scene_set_spawn`, `scene_add_preset_point`, `scene_set_class`, `scene_set_faction_hostility`, `scene_set_level_settings`, `scene_add_respawn_point`, `scene_set_revive`, `scene_set_player_count`.
 4. **Things and what they can do**: `scene_add_prefab`, `scene_update_prefab`, `scene_add_components`, `scene_add_graph`.
 5. **Platform systems**: `scene_add_signal`, `scene_add_global_timer`, `scene_add_skill`, `scene_add_creature_skill`, `scene_set_creature_logic`, `scene_add_currency`, `scene_add_item`, `scene_add_shop`, `scene_add_unit_status`, `scene_add_environment`, `scene_add_light`.
-6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`; client interfaces in Lua with `scene_set_client_script` and `scene_add_client_ui`.
+6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`; client interfaces in Lua with `scene_set_client_script`, `scene_add_client_ui` and `scene_add_client_template`.
 7. **Rules**: `search_node_docs`, then `write_graphs` to type-check, compile and write one graph or many in one call; `scene_batch` for many settings in one call.
 8. **Feedback**: `effect_catalog`, `sound_catalog`, `music_catalog`.
 9. **Playtest**: `playtest_start`, `playtest_status`, `playtest_frames`.
@@ -136,7 +136,7 @@ The community has built a number of Miliastra Wonderland tools with different ai
 | [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | A web node-graph editor that needs no game | For prototyping graphs |
 | [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs) | Documentation of the file formats | The prop list and sizes in this repository come from it (CC BY 4.0) |
 
-Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: a simulator outside the game (every round runs in the real game), a UI for people, platforms other than Windows. Client Lua scripts and client controls (new in game version 7.1) are supported for four kinds of control so far. This table follows each project's own README; please open an issue if something is inaccurate.
+Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: a simulator outside the game (every round runs in the real game), a UI for people, platforms other than Windows. Client Lua scripts, all eleven kinds of client control and control templates (new in game version 7.1) are supported, some of their settings with the editor's defaults only. This table follows each project's own README; please open an issue if something is inaccurate.
 
 ## FAQ
 

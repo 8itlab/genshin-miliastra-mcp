@@ -219,7 +219,8 @@ playtest_status gives the outcome.
    each with its id (hearts, keys, swords, stars, coins, potions, frames, portraits of creatures).
    A screen that moves, answers the mouse or any key, a menu, a whole 2D game: a client interface (game 7.1).
    scene_set_client_script puts a Lua script into the save, scene_add_client_ui a tree of client controls with the
-   script on its root; the script draws the controls and changes them every frame if it wants. A graph tells it
+   script on its root (pictures, mouse areas, grids, buttons), scene_add_client_template a control the script makes
+   copies of at run time; the script draws the controls and changes them every frame if it wants. A graph tells it
    something by setting a custom variable (the script hears the change), it tells a graph by a signal
    (game.ServerSignal(name):SendSignal(), heard with .onSignal). playtest_start returns what the script prints
    with the prints of the graphs. Read read_knowledge {id:"client-lua.zh-CN"} before writing one: controls start
@@ -266,7 +267,7 @@ Worked examples, readable through the server: read_knowledge {id:"example-events
 {id:"example-hop"}, {id:"example-farm"}, {id:"example-checks"}, {id:"example-skills"}, {id:"example-shop"},
 {id:"example-drops"}, {id:"example-buttons"}, {id:"example-strike"}, {id:"example-raid"}, {id:"example-potion"},
 {id:"example-shoot"}, {id:"example-kingdom5"}, {id:"example-brain"}, {id:"example-skirmish"}, {id:"example-kingdom6"},
-{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"} give every
+{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"} give every
 tool call in order with its arguments and the source of every graph, recorded from a real run. All twenty-two have been played in the game.
 examples/doors is a gate that opens and closes again with two motion devices; examples/images is a screen that speaks without
 words (a row of lives made of image controls that a graph switches off and on, bars that show a value, a ring, a picture that starts hidden).

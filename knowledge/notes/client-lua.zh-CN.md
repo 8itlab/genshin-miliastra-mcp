@@ -4,21 +4,52 @@
 
 这一页讲用本项目的工具怎么做，以及上机量出来的规矩。完整接口是官方的《附录/客户端控件API文档》（`search_knowledge "客户端控件API文档"`，页面 `mhtakr07vej4`），概念页是《客户端控件和客户端脚本》（`mhbgxf0nynww`）。
 
-## 三个工具
+## 四个工具
 
 | 工具 | 做什么 |
 |---|---|
 | `scene_set_client_script {name, source}` | 把一段 Lua 放进存档副本；同名的就替换（编号不变，挂着它的控件不用动） |
 | `scene_add_client_ui {name, script, controls}` | 在屏幕上放一棵客户端控件树：一个铺满全屏的容器，根上挂着脚本，下面是你给的控件 |
+| `scene_add_client_template {name, kind, children}` | 加一个控件模板：脚本运行时照它造拷贝，网格视窗拿它当列表项，模板引用控件显示它 |
 | `scene_list_client_scripts`、`scene_list_interface` | 读回脚本（`includeSource` 带源码）和控件树（`clientInterfaces`） |
 
 试玩照旧用 `playtest_start`：存档里有客户端脚本时，工具会自己在日志窗口勾上“客户端脚本”，脚本里 `print` 的内容和节点图的打印一起回来（带 `clientScript: true`）。
 
 改脚本的一轮：`scene_set_client_script`（换源码）→ `playtest_start` → 看打印和截图。控件不用重摆。
 
-## 控件是空的，长什么样由脚本设
+## 十一种控件
 
-`scene_add_client_ui` 写出来的控件和你在编辑器里新加一个、什么都不配的控件一模一样（和官方教学存档逐字节一致）。官方范例也是这么做的：编辑器里只摆层级和大小，图片、颜色、位置全在脚本里设。
+| `kind` | 是什么 | 要点 |
+|---|---|---|
+| `container` | 容器节点 | 装别的控件（`children`），挪它里面的跟着挪 |
+| `image` | 图片 | 给了 `image`（编号从 `image_catalog` 挑）和 `colour`、`opacity` 就直接显示，不用脚本管；不给就是空的，等脚本 `SetImage` |
+| `cursorArea` | 光标检测区域 | 收鼠标：点击、按下、抬起、进入、离开、拖拽 |
+| `grid` | 网格视窗 | 会滚动的列表，列表项是模板的拷贝（`itemTemplate: 模板名`）；脚本 `grid:RefreshItems(个数, function(control, index) ... end)` 填内容 |
+| `reference` | 模板引用控件 | 把一个模板显示在这里（`template: 模板名`）；脚本能从它读出模板的编号 `referencedPrefabIndex` |
+| `presetButton` | 预设按钮 | 能点（`AddCursorEventListener`），**但默认没有外观**（上机看过：点得到、看不见）；要看得见就在它下面垫一张图片 |
+| `keyHint` | 按键提示 | 按当前设备显示一个键；脚本 `hint.keyboardKeyCode = Enum.KeyboardKeyCode.CraftspersonKey1` 选键 |
+| `text` / `textWindow` | 文本框 / 能滚动的文本视窗 | 一级账号下不显示 |
+| `animation` / `fullscreenAnimation` | 界面动效 | 脚本设 `animationId` 再 `PlayAnimation()`；没上机验过 |
+
+前五种和按键提示、预设按钮都在游戏里看过（2026-10-13，`examples/clientlist`）。每一种写出来的记录都和在编辑器里新加一个的逐字节相同。
+
+## 模板：数量不定的东西
+
+子弹、卡牌、列表的一行，这类“运行时才知道要几个”的东西做成模板（`scene_add_client_template`），脚本照着造：
+
+```lua
+local dotIndex = root:GetChild("dotRef").referencedPrefabIndex   -- 从一个引用了模板的 reference 控件上读编号
+local dot = game.InstantiateClientUIControl(dotIndex, row)       -- 在 row 下面造一个
+dot:SetActive(true); dot:SetVisible(true)
+dot:SetAnchoredPosition(40, 0)
+-- 不要了：game.DestroyClientUIControl(dot)
+```
+
+模板的编号每张地图都不一样。两种拿法：工具返回的 `templateIndex` 直接写进脚本；或者像上面这样，在界面里放一个 `reference` 控件指向模板、脚本从它身上读（读完 `SetVisible(false)` 藏起来），脚本就不用带数字。先加模板，再加用到它的界面。
+
+## 没给内容的控件是空的
+
+`scene_add_client_ui` 写出来的控件和你在编辑器里新加一个的一模一样（和官方教学存档逐字节一致）。图片不给 `image` 就什么都不显示（编辑器里是一个问号），等脚本来设；官方范例就是这么做的：编辑器里只摆层级和大小，图片、颜色、位置全在脚本里设。
 
 **新控件默认不激活**。要显示，脚本里得对每个控件 `SetActive(true)`、`SetVisible(true)`；图片还要给图和颜色：
 
@@ -85,10 +116,11 @@ end
 
 - `examples/clientui`：血量圆点跟着变量走、点按钮给服务器发信号、条跟着分数变长。最小的“界面和节点图互通”。
 - `examples/clientgame`：整局 2D 小游戏（方向键接金币），逐帧动画和按键都在 Lua 里，输赢发信号给节点图结算。
+- `examples/clientlist`：模板、网格视窗、模板引用、预设按钮、按键提示和静态图片各用一次。
 
 ## 还没做的
 
-- 控件只有四种：容器、图片、文本框、光标检测区域。预设按钮、网格视窗、文本视窗、界面动效、按键提示、模板引用还没有（存档里各缺一份样本）。
-- 控件模板（脚本里 `game.InstantiateClientUIControl` 动态创建控件用的）还没有：要多个一样的东西，先在树里摆够数量，用 `SetVisible` 开关。
-- 图片、文字的初始内容不能在工具里定，只能脚本里设。
+- 预设按钮的四种状态图标和文字、按键提示的初始键、网格的列表项大小和间距、动效的编号：工具里还不能定（写的是编辑器的默认值），要改得在脚本里设，脚本设不了的（预设按钮的图标）就先用图片代替。
+- 文字的初始内容不能在工具里定（一级账号反正不显示）。
+- 一个控件上只能挂一个脚本，而且只挂在根上。
 - 容器一开始隐藏、由节点图打开，还没有。

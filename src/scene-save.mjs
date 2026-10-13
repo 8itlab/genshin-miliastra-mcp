@@ -889,7 +889,7 @@ export function listInterface({mapPath}){
   const file=resolve(mapPath),root=container(fs.readFileSync(file)),records=uiRecords(root);
   const layouts=records.filter(r=>r.structure.includes(7));
   return {mapPath:file,layouts:layouts.map(l=>({layoutId:l.id,name:l.name,controls:records.filter(r=>r.parent===l.id).map(r=>({id:r.id,name:r.name,kind:r.content.includes(82)?'clientContainer':r.content.includes(26)?'progressBar':r.content.includes(38)?'image':r.content.includes(25)?'textBox':r.content.includes(27)?'timer':r.content.includes(28)?'scoreboard':r.content.includes(22)?'button':r.content.includes(23)?'custom':'builtIn'}))})),
-    clientInterfaces:clientTrees(root,records),
+    clientInterfaces:clientTrees(root,records),clientTemplates:clientTemplates(records).map(t=>({templateIndex:t.id,name:t.name})),
     knownImages:IMAGE_CATALOGUE.map(([id,shows])=>({id,shows})),
     note:'scene_add_progress_bar puts a bar on the screen that follows a player custom variable. On an account whose 奇匠 level is 1, text boxes show nothing in play (measured), bars do. scene_add_image puts a picture or a coloured rectangle on the screen; knownImages are the picture ids the official samples use. clientInterfaces are the trees of client controls (scene_add_client_ui) and the Lua script each carries.'};
 }
@@ -1995,12 +1995,20 @@ export function setCreatureLogic({mapPath,prefab,entity,decisionGraphId,skills=[
 // image, 31 a text box, 33 a cursor area), its scripts (83), what belongs to its kind, and a last one all of them have
 // (90). The root is listed among the roots of the section; a child names its parent and stands in its parent's list.
 // Every inner block of these records ends with {2: 1, 3: 8, 4: the record's id}.
-const CLIENT_KINDS={container:25,image:23,text:31,cursorArea:33};
+// The other kinds were each added once in the editor and read back (tests/fixtures/editor-2026-10-13-clientkinds.gil):
+// 32 a text window (文本视窗), 29 an interface effect (界面动效), 30 one that fills the screen (全屏界面动效), 28 a
+// preset button (预设按钮), 34 a key hint (按键提示), 26 a grid (网格视窗), 27 a reference to a template (模板引用控件).
+// A template (客户端控件模板) is such a control standing by itself among the roots, with a slot of its own and the
+// mark of a template in its structure; what it holds are records with a slot too, naming it as parent.
+const CLIENT_KINDS={container:25,image:23,text:31,cursorArea:33,textWindow:32,animation:29,fullscreenAnimation:30,presetButton:28,keyHint:34,grid:26,reference:27};
+// The size the editor gives a new control of each kind.
+const CLIENT_SIZES={container:[150,150],image:[80,80],text:[200,60],cursorArea:[150,50],textWindow:[100,40],animation:[100,100],presetButton:[150,50],keyHint:[40,40],grid:[80,80],reference:[80,80]};
 const ownedBy=id=>field(504,2,Buffer.concat([field(2,0,1),field(3,0,8),field(4,0,id)]));
 // A content block of the client kind: each type has its wrapping field and its slot, the inner block the next field
 // and the slot two on.
-const CLIENT_BLOCKS={82:[72,62],83:[73,63],84:[74,64],85:[75,65],90:[77,67],91:[78,68],96:[83,73],97:[84,74]};
-const clientBlock=(type,inner,id)=>{const [wrapId,slot]=CLIENT_BLOCKS[type];return field(505,2,uiBlock(wrapId,Buffer.alloc(0),slot,type,[field(503,2,uiBlock(wrapId+1,inner,slot+2,type,[field(503,0,1),ownedBy(id)]))]));};
+const CLIENT_BLOCKS={82:[72,62],83:[73,63],84:[74,64],85:[75,65],89:[76,66],90:[77,67],91:[78,68],92:[79,69],93:[80,70],94:[81,71],95:[82,72],96:[83,73],97:[84,74],98:[85,75],99:[86,76]};
+// (The inner block of a text window is the one of a text box, field 75 in slot 66: the two share their text settings.)
+const clientBlock=(type,inner,id)=>{const [wrapId,slot]=CLIENT_BLOCKS[type],[innerId,innerSlot]=type===94?[75,66]:[wrapId+1,slot+2];return field(505,2,uiBlock(wrapId,Buffer.alloc(0),slot,type,[field(503,2,uiBlock(innerId,inner,innerSlot,type,[field(503,0,1),ownedBy(id)]))]));};
 const clientState=(s,i)=>field(501,2,Buffer.concat([i?field(501,0,i):Buffer.alloc(0),field(502,2,Buffer.concat([
   field(501,2,Buffer.concat([field(1,5,f32(1)),field(2,5,f32(1)),field(3,5,f32(1))])),
   field(502,2,s?pair(0.5,0.5):Buffer.alloc(0)),field(503,2,s?pair(0.5,0.5):pair(1,1)),
@@ -2010,7 +2018,9 @@ const clientState=(s,i)=>field(501,2,Buffer.concat([i?field(501,0,i):Buffer.allo
 // for one that fills what holds it.
 const clientRect=(id,rect,kind)=>field(505,2,uiBlock(11,Buffer.concat([field(12,2,Buffer.alloc(0)),field(501,0,2)]),1,12,[field(503,2,uiBlock(13,Buffer.concat([
   field(12,2,Buffer.concat([...[0,1,2,3].map(i=>clientState(rect?.states?rect.states[i]:rect,i)),field(502,0,kind),field(504,0,1)])),field(501,0,2)]),4,12,[field(503,0,1),ownedBy(id)]))]));
-const clientHead=(id,name,children,parent)=>Buffer.concat([field(501,0,id),field(502,2,uiBlock(11,field(501,0,id),1,5)),
+// slot: the number a record of a template carries; template: the record is the template itself.
+const clientHead=(id,name,children,parent,slot,template)=>Buffer.concat([field(501,0,id),field(502,2,uiBlock(11,field(501,0,id),1,5)),
+  slot?field(502,2,uiBlock(12,field(501,0,slot),2,6)):Buffer.alloc(0),template?field(502,2,uiBlock(14,Buffer.alloc(0),4,4)):Buffer.alloc(0),
   children?.length?field(503,2,packIds(children)):Buffer.alloc(0),parent?field(504,0,parent):Buffer.alloc(0),field(505,2,uiBlock(12,field(501,2,Buffer.from(name,'utf8')),2,15))]);
 // The container on the screen: it fills the screen, and its content names the root of the client controls.
 export function clientContainerRecord({id,name,parent,root}){
@@ -2019,18 +2029,26 @@ export function clientContainerRecord({id,name,parent,root}){
     field(505,2,uiBlock(14,marker,4,23,[field(503,2,uiBlock(14,marker,5,23,[field(503,0,1),ownedBy(id)]))])),
     clientRect(id,null,24),clientBlock(82,field(501,0,root),id)]);
 }
-// One client control. kind: container (容器节点, a holder for others), image (图片), text (文本框), cursorArea (光标检测区域).
-// The values are those the editor gives a control nobody has configured: what it shows is for the script to set.
-export function clientControlRecord({id,name,kind,parent,children,rect,script}){
+// One client control. The values are those the editor gives a control nobody has configured, but for: image (the id
+// of the picture an image shows) and colour (0xAARRGGBB), itemTemplate (the template a grid makes its items from),
+// template (the one a reference shows). Everything else is for the script to set.
+export function clientControlRecord({id,name,kind,parent,children,rect,script,image,colour,itemTemplate,template,slot,isTemplate}){
   const marker=Buffer.concat([field(17,2,Buffer.alloc(0)),field(501,0,7)]);
   const own={
     container:[clientBlock(91,Buffer.alloc(0),id)],
-    image:[clientBlock(96,field(502,0,0xffffffff),id),clientBlock(97,Buffer.concat([field(502,0,1),field(504,0,1),field(505,0,1),field(507,0,2),field(508,0,100),field(510,0,1),field(511,2,pair(8,8)),field(512,5,f32(85)),field(513,5,f32(85)),field(515,0,1)]),id)],
+    image:[clientBlock(96,Buffer.concat([field(502,0,colour??0xffffffff),image?field(503,0,image):Buffer.alloc(0)]),id),clientBlock(97,Buffer.concat([field(502,0,1),field(504,0,1),field(505,0,1),field(507,0,2),field(508,0,100),field(510,0,1),field(511,2,pair(8,8)),field(512,5,f32(85)),field(513,5,f32(85)),field(515,0,1)]),id)],
     text:[clientBlock(84,Buffer.concat([field(501,0,20),field(503,0,12),field(504,0,0xffffffff),field(505,0,0xffffff),field(507,0,0x33333333),field(508,0,1),field(509,0,1),field(510,2,Buffer.alloc(0)),field(512,0,20),field(513,0,20)]),id)],
-    cursorArea:[clientBlock(85,field(501,0,1),id)]}[kind];
-  return Buffer.concat([clientHead(id,name,children,parent),
+    cursorArea:[clientBlock(85,field(501,0,1),id)],
+    textWindow:[clientBlock(94,Buffer.concat([field(62,2,Buffer.concat([field(502,0,1),field(503,0,1)])),field(501,0,20),field(503,0,12),field(504,0,0xffffffff),field(505,0,0xffffff),field(507,0,0x33333333),field(510,2,Buffer.alloc(0)),field(511,0,1),field(512,0,20),field(513,0,20)]),id)],
+    animation:[clientBlock(98,Buffer.alloc(0),id)],fullscreenAnimation:[clientBlock(99,Buffer.alloc(0),id)],
+    presetButton:[clientBlock(93,Buffer.concat([field(505,0,1),field(506,0,50888),field(507,0,1)]),id)],
+    keyHint:[clientBlock(95,Buffer.concat([field(501,0,1),field(502,0,1)]),id)],
+    // A grid: it scrolls up and down, items of 50 x 50 set 8 apart, 20 from each edge, five shown in the editor.
+    grid:[clientBlock(92,Buffer.concat([field(501,0,1),field(502,2,pair(50,50)),field(503,2,pair(8,8)),field(504,2,pair(20,20)),field(505,2,pair(20,20)),itemTemplate?field(506,0,itemTemplate):Buffer.alloc(0),field(507,0,1),field(508,0,1),field(509,0,1),field(511,0,5),field(512,0,1)]),id)],
+    reference:[clientBlock(89,template?field(501,0,template):Buffer.alloc(0),id)]}[kind];
+  return Buffer.concat([clientHead(id,name,children,parent,slot,isTemplate),
     field(505,2,uiBlock(14,marker,4,86,[field(503,2,uiBlock(14,marker,5,86,[field(503,0,1),ownedBy(id)]))])),
-    clientRect(id,rect,CLIENT_KINDS[kind]),
+    clientRect(id,kind==='fullscreenAnimation'?null:rect,CLIENT_KINDS[kind]),
     clientBlock(83,script?Buffer.concat([field(501,0,1),field(502,2,field(1,2,field(1,0,script)))]):Buffer.alloc(0),id),
     ...own,clientBlock(90,Buffer.alloc(0),id)]);
 }
@@ -2044,7 +2062,7 @@ function clientTrees(root,records){
   const childIds=r=>{const list=fields(r.raw.data).find(f=>f.id===503&&f.wire===2);if(!list)return [];const out=[];let p=0;const b=list.data;while(p<b.length){let n=0,shift=0;for(;;){const v=b[p++];n+=(v&127)*2**shift;shift+=7;if(!(v&128))break;}out.push(n);}return out;};
   const node=r=>{const carried=inner(r,83),ids=carried?fields(carried).filter(f=>f.id===502&&f.wire===2).flatMap(f=>fields(f.data).filter(x=>x.id===1&&x.wire===2).map(x=>varintOf(x.data,1))):[];
     const kids=childIds(r).map(id=>byId.get(id)).filter(Boolean).map(node);
-    return {controlId:r.id,name:r.name,kind:r.content.includes(91)?'container':r.content.includes(96)?'image':r.content.includes(84)?'text':r.content.includes(85)?'cursorArea':'other',
+    return {controlId:r.id,name:r.name,kind:[[91,'container'],[96,'image'],[84,'text'],[85,'cursorArea'],[94,'textWindow'],[98,'animation'],[99,'fullscreenAnimation'],[93,'presetButton'],[95,'keyHint'],[92,'grid'],[89,'reference']].find(([type])=>r.content.includes(type))?.[1]??'other',
       ...(ids.length?{scripts:ids.map(id=>scripts.find(s=>s.id===id)?.name??String(id))}:{}),...(kids.length?{children:kids}:{})};};
   return records.filter(r=>r.content.includes(82)).map(r=>{const at=inner(r,82),rootRecord=at?byId.get(varintOf(at,501)):null;
     return {containerId:r.id,name:r.name,root:rootRecord?node(rootRecord):null};});
@@ -2095,6 +2113,31 @@ export function listClientScripts({mapPath,includeSource=false}){
   return {mapPath:file,scripts:clientScripts(root).map(s=>({scriptId:s.id,name:s.name,file:s.file,lines:s.source.split('\n').length,on:carried(s.id),...(includeSource?{source:s.source}:{})})),
     note:'A client script is Lua 5.3 that runs on the player\'s machine on a client control (scene_add_client_ui). read_knowledge {id:"client-lua.zh-CN"} says how one is written; the full API is the official page 附录/客户端控件API文档 (search_knowledge "客户端控件API").'};
 }
+// The templates of client controls a save has: {id, name}. The id is the 控件模板索引 a script gives
+// game.InstantiateClientUIControl, and what a grid or a reference names.
+function clientTemplates(records){return records.filter(r=>r.structure.includes(4)&&r.content.includes(86)).map(r=>({id:r.id,name:r.name}));}
+// Turns the controls asked for into records, a holder before what it holds. take gives each its id; known are the
+// templates there are, by name. slots: a function giving the next slot, for the records of a template.
+function clientRecords(list,parent,take,known,slots,made,paths,trail=[]){
+  const names=new Set();
+  return list.map(c=>{
+    if(!CLIENT_KINDS[c.kind])fail('INVALID_CONTROL','kind is one of '+Object.keys(CLIENT_KINDS).join(', ')+'.',{name:c.name,kind:c.kind});
+    // Controls of one holder must differ in name: a script finds them by it (GetChild).
+    if(names.has(c.name))fail('DUPLICATE_CONTROL_NAME','Two controls of one holder have the same name.',{name:c.name});names.add(c.name);
+    if(c.children?.length&&c.kind!=='container')fail('INVALID_CONTROL','Only a container holds other controls.',{name:c.name});
+    const size=c.size??CLIENT_SIZES[c.kind]??[100,100],position=c.position??[0,0];
+    if(!(size[0]>0&&size[0]<=3200&&size[1]>0&&size[1]<=1800)||Math.abs(position[0])>3200||Math.abs(position[1])>1800)fail('INVALID_RECT','position is [x, y] from the centre of the holder on a 1600 x 900 canvas, y up; size is [width, height].',{name:c.name,position,size});
+    for(const key of ['image','colour','opacity'])if(c[key]!==undefined&&c.kind!=='image')fail('INVALID_CONTROL',key+' goes with an image.',{name:c.name});
+    if(c.itemTemplate!==undefined&&c.kind!=='grid')fail('INVALID_CONTROL','itemTemplate goes with a grid.',{name:c.name});
+    if(c.template!==undefined&&c.kind!=='reference')fail('INVALID_CONTROL','template goes with a reference.',{name:c.name});
+    const named=key=>{if(c[key]===undefined)return undefined;const hit=known.find(t=>t.name===c[key]);
+      if(!hit)fail('TEMPLATE_NOT_FOUND','The save has no client control template of this name. Add it first: scene_add_client_template.',{name:c.name,[key]:c[key],templates:known.map(t=>t.name)});return hit.id;};
+    if(c.colour!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(c.colour))fail('INVALID_COLOUR','colour is "#rrggbb".',{name:c.name,colour:c.colour});
+    const tinted=c.colour!==undefined||c.opacity!==undefined?Number((BigInt(Math.round((c.opacity??1)*255))<<24n)|BigInt(parseInt((c.colour??'#ffffff').slice(1),16))):undefined;
+    const id=take(c.name);paths.push({name:c.name,kind:c.kind,path:[...trail,c.name].join('/'),controlId:id,...(c.kind==='fullscreenAnimation'?{}:{position,size})});
+    const record={id,name:c.name,kind:c.kind,parent,rect:c.states?{states:c.states}:{position,size},image:c.image,colour:tinted,itemTemplate:named('itemTemplate'),template:named('template'),slot:slots?.()};made.push(record);
+    record.children=clientRecords(c.children??[],id,take,known,slots,made,paths,[...trail,c.name]);return id;});
+}
 // Puts a tree of client controls on the screen: the container in the layout, a root that fills the screen and carries
 // the script, and the controls under it. ids: for the test that rebuilds the official sample (the editor numbers
 // controls as they were made, which is not the order they stand in).
@@ -2108,19 +2151,9 @@ export function addClientUi({mapPath,name,script,controls=[],hidden=false,output
   if(script!==undefined&&!carried)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{script,scripts:scripts.map(s=>s.name)});
   if(hidden)fail('NOT_SUPPORTED','A container hidden at the start is not written yet: leave hidden out and let the script hide its controls (SetVisible(false)) until they are wanted.');
   let next=Math.max(...records.map(r=>r.id))+1;const take=key=>ids?.[key]??next++;
-  const containerId=take(name),rootId=take('容器节点'),made=[],names=new Set(),paths=[];
-  // Controls of one holder must differ in name: a script finds them by it (GetChild).
-  const walk=(list,parent,trail)=>list.map(c=>{
-    if(!CLIENT_KINDS[c.kind])fail('INVALID_CONTROL','kind is container, image, text or cursorArea.',{name:c.name,kind:c.kind});
-    if(names.has(parent+'/'+c.name))fail('DUPLICATE_CONTROL_NAME','Two controls of one holder have the same name.',{name:c.name});names.add(parent+'/'+c.name);
-    if(c.children?.length&&c.kind!=='container')fail('INVALID_CONTROL','Only a container holds other controls.',{name:c.name});
-    const size=c.size??[100,100],position=c.position??[0,0];
-    if(!(size[0]>0&&size[0]<=3200&&size[1]>0&&size[1]<=1800)||Math.abs(position[0])>3200||Math.abs(position[1])>1800)fail('INVALID_RECT','position is [x, y] from the centre of the holder on a 1600 x 900 canvas, y up; size is [width, height].',{name:c.name,position,size});
-    const id=take(c.name);paths.push({name:c.name,kind:c.kind,path:[...trail,c.name].join('/'),controlId:id,position,size});
-    const record={id,name:c.name,kind:c.kind,parent,rect:c.states?{states:c.states}:{position,size}};made.push(record);
-    record.children=walk(c.children??[],id,[...trail,c.name]);return id;});
+  const containerId=take(name),rootId=take('容器节点'),made=[],paths=[];
   const rootRecord={id:rootId,name:'容器节点',kind:'container',rect:null,script:carried?.id};made.push(rootRecord);
-  rootRecord.children=walk(controls,rootId,[]);
+  rootRecord.children=clientRecords(controls,rootId,take,clientTemplates(records),null,made,paths);
   const fresh=made.map(clientControlRecord);
   const section=fields(one(root,9));let lastOfLayout=-1,lastRecord=-1;
   section.forEach((f,i)=>{if(f.id===502&&f.wire===2){lastRecord=i;if(varintOf(f.data,504)===layout.id)lastOfLayout=i;}});
@@ -2139,5 +2172,35 @@ export function addClientUi({mapPath,name,script,controls=[],hidden=false,output
   root=replace(root,9,2,Buffer.concat(rebuilt));
   const out=output(workspace,file,outputName,'-clientui');fs.writeFileSync(out,wrap(bytes,root));
   return {mapPath:out,source:file,containerId,rootId,name,script:carried?{name:carried.name,scriptId:carried.id}:undefined,controls:paths,
+    templates:clientTemplates(uiRecords(root)).map(t=>({templateIndex:t.id,name:t.name})),
     next:'Use mapPath in later calls. In the script, script.object is the root (a container that fills the screen) and '+(paths.length?'script.object:GetChild("'+paths[0].name+'")':'script.object:GetChild(name)')+' finds a control under it by name (a child of a child through its own GetChild). The controls are written as the editor makes them, empty: an image shows nothing until the script gives it a picture (control:SetImage(Enum.ImageSource.StaticReference, id), ids from image_catalog) and a colour (control.imageColor = Color(r, g, b)). Controls stand in the order given, later ones over earlier ones. On an account of 奇匠 level 1 a client text box shows nothing either (seen in play, 2026-10-13): say it with pictures.'};
+}
+// A template of client controls (客户端控件模板): a control, with what it holds, kept beside the screen for a script to
+// make copies of (game.InstantiateClientUIControl(index, parent)), for a grid to make its items from, or for a
+// reference to show. Read from two templates saved by hand (tests/fixtures/editor-2026-10-13-clientkinds.gil): the
+// template stands among the roots before the layout, its record and those of what it holds before the layout's, each
+// with a slot of its own.
+export function addClientTemplate({mapPath,name,kind='container',size,children=[],image,colour,opacity,outputName},workspace){
+  const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
+  const records=uiRecords(root),layout=records.find(r=>r.structure.includes(7));
+  if(!layout)fail('UNSUPPORTED_SAVE','The save has no default layout.');
+  if(!records.some(r=>r.name==='ClientUIRootHierarchyRoot'))fail('UNSUPPORTED_SAVE','This save was written by a game version older than 7.1, which has no client controls. Open it in the editor and save it once.');
+  const known=clientTemplates(records);
+  if(known.some(t=>t.name===name))fail('DUPLICATE_TEMPLATE_NAME','The save already has a client control template of this name.',{name});
+  let next=Math.max(...records.map(r=>r.id))+1,slot=Math.max(0,...records.map(r=>r.slot));
+  const made=[],paths=[];
+  clientRecords([{name,kind,size,children,image,colour,opacity}],0,()=>next++,known,()=>++slot,made,paths);
+  made[0].isTemplate=true;made[0].parent=undefined;
+  const fresh=made.map(clientControlRecord),templateId=made[0].id;
+  const section=fields(one(root,9));let placed=false;
+  const idsOf=b=>{const out=[];let p=0;while(p<b.length){let n=0,shift=0;for(;;){const v=b[p++];n+=(v&127)*2**shift;shift+=7;if(!(v&128))break;}out.push(n);}return out;};
+  const rebuilt=section.flatMap(f=>{
+    // Among the roots the template stands before the layout, after the templates there are.
+    if(f.id===501&&f.wire===2)return [field(501,2,packIds(idsOf(f.data).flatMap(id=>id===layout.id?[templateId,id]:[id])))];
+    if(!placed&&f.id===502&&f.wire===2&&varintOf(f.data,501)===layout.id){placed=true;return [...fresh.map(b=>field(502,2,b)),f.raw];}
+    return [f.raw];});
+  root=replace(root,9,2,Buffer.concat(rebuilt));
+  const out=output(workspace,file,outputName,'-template');fs.writeFileSync(out,wrap(bytes,root));
+  return {mapPath:out,source:file,templateIndex:templateId,name,controls:paths.map(({position,...p})=>p),
+    next:'Use mapPath in later calls. A script makes a copy with game.InstantiateClientUIControl('+templateId+', parent) and removes one with game.DestroyClientUIControl(control); a grid of scene_add_client_ui takes it as itemTemplate: "'+name+'", a reference as template: "'+name+'".'};
 }
