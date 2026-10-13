@@ -7,6 +7,7 @@ import {ROOT} from './core.mjs';
 import {fail} from './adapter.mjs';
 import {inspectDebugLog} from './debug-log.mjs';
 import {readProbe} from './playtest-probe.mjs';
+import {container,fields} from './scene/wire.mjs';
 
 // One desktop, one playtest. The runner drives the official UI, so a second
 // run would fight the first one for the mouse and keyboard.
@@ -37,6 +38,12 @@ export function otherDesktopRun(workspace,now=Date.now()){
 export function startPlaytest(args,workspace){
   if(process.platform!=='win32')fail('UNSUPPORTED_PLATFORM','Playtest automation requires Windows with the game and sandbox open.');
   if(args.mapPath&&(path.extname(args.mapPath).toLowerCase()!=='.gil'||!fs.existsSync(args.mapPath)))fail('INVALID_MAP_PATH','mapPath must be an existing .gil candidate.');
+  // A level with Lua client scripts (game 7.1): their prints come into the log through a row of their own, ticked
+  // without being asked for when the save given holds one.
+  if(args.mapPath&&args.clientScriptLog===undefined){
+    try{const scripts=fields(container(fs.readFileSync(args.mapPath))).find(f=>f.id===50&&f.wire===2);
+      if(scripts&&fields(scripts.data).some(f=>f.id===1&&f.wire===2))args={...args,clientScriptLog:true};}catch{}
+  }
   const seconds=Number(args.durationSeconds??60)+(args.mapPath?90:45);
   return launchRunner(args,workspace,seconds,`Do not touch the mouse or keyboard. Call playtest_status {runId, waitSeconds: 45}: it answers when the run has ended or 45 seconds have passed; repeat while state is "running" (about ${seconds} seconds in all).`);
 }
@@ -115,12 +122,12 @@ export function playtestStatus({runId,prefix='',graphId,maxPrints=200,includeScr
   if(status.state==='running')return json({...summary,next:'Still running. Poll again in 15 seconds.'});
   if(status.result?.logFile){
     const bytes=fs.readFileSync(status.result.logFile),parsed=inspectDebugLog(bytes,{prefix,limit:100000});
-    let prints=parsed.prints.filter(p=>graphId===undefined||p.graphId===String(graphId)).map(p=>({t:Number(p.elapsedSeconds),graphId:p.graphId,text:p.text}));
+    let prints=parsed.prints.filter(p=>graphId===undefined||p.clientScript||p.graphId===String(graphId)).map(p=>({t:Number(p.elapsedSeconds),graphId:p.graphId,text:p.text,...(p.clientScript?{clientScript:true}:{})}));
     // A run with the playtest probe: its prints give the level-clock second at which the play began (the first press of
     // the probe's key came at a known play second) and the path of the player; they are taken out of the list.
     let request=null;try{request=JSON.parse(fs.readFileSync(path.join(runDir,'request.json'),'utf8'));}catch{}
     if(request?.probe){
-      const all=inspectDebugLog(bytes,{prefix:'',limit:100000}).prints.map(p=>({t:Number(p.elapsedSeconds),graphId:p.graphId,text:p.text}));
+      const all=inspectDebugLog(bytes,{prefix:'',limit:100000}).prints.map(p=>({t:Number(p.elapsedSeconds),graphId:p.graphId,text:p.text,...(p.clientScript?{clientScript:true}:{})}));
       const probe=readProbe(all),sync=probe.keys.find(k=>k.step===0),offset=sync?Math.round((sync.t-request.probe.syncAt)*100)/100:undefined;
       // The runner presses the key of the probe again every half minute. Each press that is heard ties a level-clock
       // second to a play second anew: under load the level clock falls behind (a level of 585 nodes lost two

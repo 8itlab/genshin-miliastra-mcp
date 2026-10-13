@@ -29,7 +29,7 @@
 | `examples/farm` | 采集经营：拿工具、开垦、播种、作物自己生长、收获、交货 | 9 张图 202 节点 | 通关；倒计时走完判负 |
 | `examples/raid` | 打怪—战利品—买卖：挥剑砍箱子和怪、捡掉落、摊位卖钱买钥匙、开门、开宝箱 | 8 张图 141 节点 | 通关 |
 
-另有一批单项的验证关，每个把一两样工具在游戏里用一遍：`events`（最小的事件驱动范例）、`checks`、`skills`、`shop`、`drops`、`buttons`、`strike`（攻击盒打到东西）、`shoot`（技能发射投射物）、`potion`、`presets`（机关的预设状态）、`hazards`（弹跳垫、力场、状态效果、锁定视角）、`walls`（什么挡得住人）、`doors`（门开了再关）、`images`（屏幕上的图片和进度条样式）、`skirmish` 和 `brain`（复杂造物）、`fitting`（近看间：逐帧看造物的动作）、`listen`（把音效放出来录音）。
+另有一批单项的验证关，每个把一两样工具在游戏里用一遍：`events`（最小的事件驱动范例）、`checks`、`skills`、`shop`、`drops`、`buttons`、`strike`（攻击盒打到东西）、`shoot`（技能发射投射物）、`potion`、`presets`（机关的预设状态）、`hazards`（弹跳垫、力场、状态效果、锁定视角）、`walls`（什么挡得住人）、`doors`（门开了再关）、`images`（屏幕上的图片和进度条样式）、`skirmish` 和 `brain`（复杂造物）、`fitting`（近看间：逐帧看造物的动作）、`listen`（把音效放出来录音）、`clientui`（Lua 界面和节点图互通）、`clientgame`（整局用 Lua 写的 2D 小游戏）。
 
 **一关的完整做法写在服务器自带的说明里**：资源 `miliastra://workflow`（步骤和每步用哪个工具）和 `miliastra://platform-rules`（平台实测规则，即 [PLATFORM_RULES](PLATFORM_RULES.zh-CN.md)）。想了解平台有哪些系统、官方怎么拼玩法、工具覆盖到哪，读 [HOW_MILIASTRA_BUILDS_GAMES](HOW_MILIASTRA_BUILDS_GAMES.zh-CN.md)。
 
@@ -40,11 +40,12 @@
 3. 设置：`scene_set_camera`（`fixedView` 锁定视角）、`scene_set_spawn`、`scene_add_preset_point`、`scene_set_class`、`scene_set_faction_hostility`、`scene_set_level_settings`、`scene_add_respawn_point`、`scene_set_revive`、`scene_set_player_count`。
 4. 东西和它们的能力：`scene_add_prefab` / `scene_update_prefab`（物件、造物、掉落物；预设状态、生命值）、`scene_add_components`（碰撞触发器、选项卡、变量、运动器、跟随、小地图、受击盒、能力单元、战利品、投射运动器、命中检测、弹射器、力场、额外碰撞）、`scene_add_graph`（挂到关卡实体、元件、玩家模板、角色模板；客户端的技能图、过滤器图；道具图）。
 5. 平台的系统：`scene_add_signal`、`scene_add_global_timer`、`scene_add_skill`、`scene_add_creature_skill`、`scene_set_creature_logic`、`scene_add_currency`、`scene_add_item`、`scene_add_shop`、`scene_add_unit_status`、`scene_add_environment`、`scene_add_light`。
-6. 屏幕上的东西：`scene_add_progress_bar`（横条、竖条、圆环，可显示数字）、`scene_add_image`（图从 `image_catalog` 里挑）、`scene_add_timer_display`、`scene_add_button`；控件可以一开始隐藏，由节点图开关。
-7. 写规则：`search_node_docs` → `create_project` → `update_logic` → `build_project` → `preview_changes` → `apply_build`（一个项目一张图）；源码都写好之后用 `write_graphs` 一次把多张图写进去。很多步设置可以放进一次 `scene_batch`。
-8. 反馈：`effect_catalog`、`sound_catalog`、`music_catalog` 查编号，图里放特效、音效、换音乐（做法见 `knowledge/notes/feedback.zh-CN.md`）。
-9. 试玩：`playtest_start`（按键、点鼠标、转视角、点屏幕上的字、把玩家放到指定位置、记录轨迹、读屏幕文字、截图和连拍、录音、录像）→ `playtest_status`，读日志也要看截图；`playtest_frames` 逐帧看动作。
-10. 发布前：`publish_kit` 出封面、四张图、标题、简介和检查表。发布本身由创作者在游戏里做。
+6. 客户端界面（游戏 7.1）：`scene_set_client_script` 放 Lua 脚本，`scene_add_client_ui` 摆它控制的客户端控件；会动、收鼠标和按键的界面和 2D 玩法用它（`knowledge/notes/client-lua.zh-CN.md`）。
+7. 屏幕上的东西（服务器控件）：`scene_add_progress_bar`（横条、竖条、圆环，可显示数字）、`scene_add_image`（图从 `image_catalog` 里挑）、`scene_add_timer_display`、`scene_add_button`；控件可以一开始隐藏，由节点图开关。
+8. 写规则：`search_node_docs` → `create_project` → `update_logic` → `build_project` → `preview_changes` → `apply_build`（一个项目一张图）；源码都写好之后用 `write_graphs` 一次把多张图写进去。很多步设置可以放进一次 `scene_batch`。
+9. 反馈：`effect_catalog`、`sound_catalog`、`music_catalog` 查编号，图里放特效、音效、换音乐（做法见 `knowledge/notes/feedback.zh-CN.md`）。
+10. 试玩：`playtest_start`（按键、点鼠标、转视角、点屏幕上的字、把玩家放到指定位置、记录轨迹、读屏幕文字、截图和连拍、录音、录像）→ `playtest_status`，读日志也要看截图；`playtest_frames` 逐帧看动作。
+11. 发布前：`publish_kit` 出封面、四张图、标题、简介和检查表。发布本身由创作者在游戏里做。
 
 设计一个机制之前，先 `search_knowledge` 查官方是怎么做的；写事件监听之前，先查 `knowledge/notes/event-receivers.zh-CN.md`（事件发给哪张图，挂错地方不报错、只是永远收不到）。
 
@@ -66,6 +67,8 @@
 - 所有范例都按单人写、单人测。
 
 ## 还没做的
+
+- 客户端控件只有四种（容器、图片、文本框、光标检测区域）；预设按钮、网格视窗、文本视窗、界面动效、按键提示、控件模板还没有。
 
 - 排行榜和成就（在编辑器的“外围系统管理”里配，没有可参照的样本）。
 - 装备（装备栏、词条）、计分板、铭牌和文本气泡、卡牌选择器、道具展示控件。

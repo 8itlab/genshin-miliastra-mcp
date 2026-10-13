@@ -1,0 +1,209 @@
+{
+ "dir": "clientgame",
+ "namePrefix": "CG_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "scenes": [],
+ "generator": "gen_clientgame.py",
+ "signals": [
+  "CG_win",
+  "CG_lose"
+ ],
+ "clientScripts": [
+  {
+   "name": "CG_game",
+   "file": "cg_game.lua"
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "CG_ui",
+   "script": "CG_game",
+   "controls": [
+    {
+     "name": "back",
+     "kind": "image",
+     "position": [
+      0,
+      0
+     ],
+     "size": [
+      760,
+      860
+     ]
+    },
+    {
+     "name": "caught1",
+     "kind": "image",
+     "position": [
+      -330,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught2",
+     "kind": "image",
+     "position": [
+      -286,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught3",
+     "kind": "image",
+     "position": [
+      -242,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught4",
+     "kind": "image",
+     "position": [
+      -198,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught5",
+     "kind": "image",
+     "position": [
+      -154,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "missed1",
+     "kind": "image",
+     "position": [
+      242,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "missed2",
+     "kind": "image",
+     "position": [
+      286,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "missed3",
+     "kind": "image",
+     "position": [
+      330,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "coin",
+     "kind": "image",
+     "position": [
+      0,
+      330
+     ],
+     "size": [
+      56,
+      56
+     ]
+    },
+    {
+     "name": "basket",
+     "kind": "image",
+     "position": [
+      0,
+      -260
+     ],
+     "size": [
+      110,
+      36
+     ]
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CgStage"
+  }
+ ],
+ "about": "A whole 2D game in a Lua client script (cg_game.lua): coins fall down five lanes, the arrow keys move a basket under them. The script presses 1 at play second 3 to start and then the arrows that put the basket under each of the first five coins (lanes 4, 5, 3, 2, 4; a coin needs 2.1 s to come down): five catches, the Lua sends CG_win, the level's graph prints CG_VICTORY and settles the level as won, about 11 s after the start. The Lua prints CG_LUA ready, start, caught 1 to 5 and CG_win. Screenshots show the coin on its way and the row of dots at the top filling up.",
+ "durationSeconds": 22,
+ "screenshotsAt": [
+  2,
+  5,
+  8,
+  11,
+  15
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "key": "1"
+  },
+  {
+   "at": 3.4,
+   "key": "RIGHT"
+  },
+  {
+   "at": 5.52,
+   "key": "RIGHT"
+  },
+  {
+   "at": 7.64,
+   "key": "LEFT"
+  },
+  {
+   "at": 7.99,
+   "key": "LEFT"
+  },
+  {
+   "at": 9.76,
+   "key": "LEFT"
+  },
+  {
+   "at": 11.88,
+   "key": "RIGHT"
+  },
+  {
+   "at": 12.23,
+   "key": "RIGHT"
+  }
+ ]
+}

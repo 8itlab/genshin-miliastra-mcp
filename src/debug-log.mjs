@@ -12,13 +12,15 @@ export function inspectDebugLog(bytes,{prefix='',offset=0,limit=100}={}){
  const optional=(rows,id,wire,fallback)=>{const hits=rows.filter(f=>f.id===id);if(!hits.length)return fallback;if(hits.length!==1||hits[0].wire!==wire)throw new Error('Ambiguous debug log field '+id);return wire===0?hits[0].value:hits[0].data;};
  for(let i=0;i<root.length;i++){
   const r=root[i];if(r.id!==1||r.wire!==2){ignoredRecords++;continue;}
-  const rows=fields(r.data),print=optional(rows,22,2,null);
+  // A print of a node graph is field 22; what a Lua client script prints (game 7.1, with 客户端脚本 ticked in the
+  // log window) is field 23, with no graph beside it (seen 2026-10-13).
+  const rows=fields(r.data),ofGraph=optional(rows,22,2,null),ofScript=ofGraph?null:optional(rows,23,2,null),print=ofGraph??ofScript;
   if(!print){ignoredRecords++;continue;}
   const text=utf8(one(print,2));
   const stamp=optional(rows,4,2,null),graph=optional(rows,7,2,null);
   prints.push({recordIndex:i,elapsedSeconds:optional(rows,3,0,0n).toString(),
-   sessionLabel:stamp?utf8(stamp):null,graphId:graph?one(graph,2,0).toString():null,
-   entityId:optional(rows,9,0,null)?.toString()??null,text});
+   sessionLabel:stamp?utf8(stamp):null,graphId:graph&&!ofScript?one(graph,2,0).toString():null,
+   entityId:optional(rows,9,0,null)?.toString()??null,text,...(ofScript?{clientScript:true}:{})});
  }
  const matching=prints.filter(p=>p.text.startsWith(prefix));
  return {sourceHash:createHash('sha256').update(b).digest('hex'),bytes:b.length,recordCount:root.length,printCount:prints.length,ignoredRecords,

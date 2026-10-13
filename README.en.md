@@ -17,6 +17,7 @@ These three games were each made from a blank map by an AI that had never seen t
 - **Scenes**: a catalogue of 2,468 official props, searchable by name with thumbnails; import a hundred objects in one go; locked camera views, spawn and respawn points, time of day, lights.
 - **Mechanisms and creatures**: prefabs, collision triggers, press-F interactions, moving platforms, bounce pads, force fields, invisible walls, projectiles with hit detection, creatures that find and fight enemies on their own, skills, items, shops, currencies.
 - **Interface**: progress bars (horizontal, vertical, ring), image controls (about 1,600 built-in pictures), timers, buttons.
+- **Client Lua** (new in game version 7.1): interfaces that move and answer the mouse and keys, up to a whole 2D game on the screen; what the script prints comes back from the playtest with the prints of the graphs.
 - **Rules**: node graphs written in TypeScript; dozens of graphs compiled and written into the save in one call; bundled node documentation and Chinese-named catalogues of effects (3,195), sounds (1,997) and music (188).
 - **Automatic playtests**: scripted key presses and clicks, teleporting the player, screenshots, bursts, audio and video recording, and the level's log — this is how the AI finds out whether what it built actually works in the game.
 - **Publishing kit**: cover, screenshots, title and description. Publishing itself stays a click you make in the game.
@@ -104,7 +105,7 @@ The AI's work goes into a copy of the save; a playtest imports that copy as a ne
 3. **Settings**: `scene_set_camera` (with a locked view), `scene_set_spawn`, `scene_add_preset_point`, `scene_set_class`, `scene_set_faction_hostility`, `scene_set_level_settings`, `scene_add_respawn_point`, `scene_set_revive`, `scene_set_player_count`.
 4. **Things and what they can do**: `scene_add_prefab`, `scene_update_prefab`, `scene_add_components`, `scene_add_graph`.
 5. **Platform systems**: `scene_add_signal`, `scene_add_global_timer`, `scene_add_skill`, `scene_add_creature_skill`, `scene_set_creature_logic`, `scene_add_currency`, `scene_add_item`, `scene_add_shop`, `scene_add_unit_status`, `scene_add_environment`, `scene_add_light`.
-6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`.
+6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`; client interfaces in Lua with `scene_set_client_script` and `scene_add_client_ui`.
 7. **Rules**: `search_node_docs`, `create_project`, `update_logic`, `build_project`, `preview_changes`, `apply_build`, and `write_graphs` for many graphs at once; `scene_batch` for many settings in one call.
 8. **Feedback**: `effect_catalog`, `sound_catalog`, `music_catalog`.
 9. **Playtest**: `playtest_start`, `playtest_status`, `playtest_frames`.
@@ -131,11 +132,11 @@ The community has built a number of Miliastra Wonderland tools with different ai
 | [Miliastra node editor pack](https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack) | Reading and writing graph files, code/graph conversion, node data | Included in Genshin-TS, so used here indirectly |
 | [Ayaya_Miliastra_Editor](https://github.com/AyayaXiaowang/Ayaya_Miliastra_Editor) | Node graphs as Python code with offline validation, auto layout and a preview UI | Choose it for a Python workflow and a graph preview; this project has no UI for people |
 | [Miliastra-toolbox](https://github.com/1475505/Miliastra-toolbox) | Knowledge-base Q&A over official docs and community posts, with a hosted MCP | Complementary: it answers "how", this project does the work |
-| [miliastra-beyond-simulator](https://github.com/1475505/miliastra-beyond-simulator) | A simulator outside the game for 2D + Lua client-script games, seconds per round | Choose it for 2D interface games and fast iteration; this project covers node graphs only and verifies in the real game |
+| [miliastra-beyond-simulator](https://github.com/1475505/miliastra-beyond-simulator) | A simulator outside the game for 2D + Lua client-script games, seconds per round | Use it to iterate on a 2D interface game in seconds; this project also writes client Lua and controls but verifies every round in the real game, so the two go together |
 | [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | A web node-graph editor that needs no game | For prototyping graphs |
 | [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs) | Documentation of the file formats | The prop list and sizes in this repository come from it (CC BY 4.0) |
 
-Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: client Lua scripts and client controls (new in game version 7.1), a UI for people, platforms other than Windows. This table follows each project's own README; please open an issue if something is inaccurate.
+Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: a simulator outside the game (every round runs in the real game), a UI for people, platforms other than Windows. Client Lua scripts and client controls (new in game version 7.1) are supported for four kinds of control so far. This table follows each project's own README; please open an issue if something is inaccurate.
 
 ## FAQ
 

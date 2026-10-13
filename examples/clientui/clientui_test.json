@@ -1,0 +1,38 @@
+{
+ "about": "A client interface (客户端控件 with a Lua client script, game version 7.1) made with scene_set_client_script and scene_add_client_ui. On a dark panel at the top left three red discs stand for the player variable CU_lives (3 at first); the level's graph takes one away at level seconds 12 and 16 and the Lua, which listens for the change of the variable, hides a disc each time. At the bottom a blue round button: a click on it makes the Lua send the signal CU_click, the graph hears it (prints CU_CLICK) and adds one to CU_score, and the Lua draws the green bar above the button one step longer. The script clicks the button at play seconds 4, 5 and 6: three CU_CLICK prints and a bar three steps long. Screenshots at 2 (three discs, short bar), 8 (two discs after second 12 of the level clock, which runs five or six seconds ahead; longer bar) and 13 (one disc).",
+ "dir": "clientui",
+ "namePrefix": "CU_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 15,
+ "screenshotsAt": [2, 8, 13],
+ "inputs": [
+  {"at": 4, "click": [0.5, 0.8]},
+  {"at": 5, "click": [0.5, 0.8]},
+  {"at": 6, "click": [0.5, 0.8]}
+ ],
+ "scenes": [],
+ "generator": "gen_clientui.py",
+ "components": [
+  {"prefab": "player", "variables": [{"name": "CU_lives", "type": "integer", "value": 3}, {"name": "CU_score", "type": "integer", "value": 0}]}
+ ],
+ "signals": ["CU_click"],
+ "clientScripts": [{"name": "CU_hud", "file": "cu_hud.lua"}],
+ "clientUis": [
+  {"name": "CU_ui", "script": "CU_hud", "controls": [
+   {"name": "panel", "kind": "image", "position": [-620, 380], "size": [280, 80]},
+   {"name": "life1", "kind": "image", "position": [-700, 380], "size": [56, 56]},
+   {"name": "life2", "kind": "image", "position": [-620, 380], "size": [56, 56]},
+   {"name": "life3", "kind": "image", "position": [-540, 380], "size": [56, 56]},
+   {"name": "track", "kind": "image", "position": [0, -330], "size": [308, 28]},
+   {"name": "fill", "kind": "image", "position": [-144, -330], "size": [12, 20]},
+   {"name": "button", "kind": "container", "position": [0, -270], "size": [90, 90], "children": [
+    {"name": "face", "kind": "image", "size": [90, 90]},
+    {"name": "hit", "kind": "cursorArea", "size": [90, 90]}
+   ]}
+  ]}
+ ],
+ "graphs": [{"key": "stage", "name": "CuStage"}]
+}

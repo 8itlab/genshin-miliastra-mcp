@@ -156,6 +156,10 @@ try{
   // Pictures and coloured rectangles on the screen: args.images = a list of scene_add_image arguments (before the bars, so that a panel lies under them).
   for(const [i,image] of (args.images||[]).entries()){const made=await call('scene_add_image',{mapPath,...image,outputName:'kingdom-image-'+i});mapPath=made.mapPath;extra.push(['image:'+made.name,made.controlId]);}
   for(const [i,bar] of (args.bars||[]).entries()){const made=await call('scene_add_progress_bar',{mapPath,...bar,outputName:'kingdom-bar-'+i});mapPath=made.mapPath;extra.push(['bar:'+made.name,made.controlId]);}
+  // Client scripts and the client controls they run on: args.clientScripts = [{name, file}] (a .lua beside the test),
+  // args.clientUis = a list of scene_add_client_ui arguments.
+  for(const [i,script] of (args.clientScripts||[]).entries())mapPath=(await call('scene_set_client_script',{mapPath,name:script.name,sourceFile:path.join(kingdom,script.file),outputName:'kingdom-script-'+i})).mapPath;
+  for(const [i,ui] of (args.clientUis||[]).entries())mapPath=(await call('scene_add_client_ui',{mapPath,...ui,outputName:'kingdom-clientui-'+i})).mapPath;
   // Buttons on the screen: args.buttons = scene_add_button arguments (the index each reports reaches the generator as 'button:<name>').
   for(const [i,button] of (args.buttons||[]).entries()){const made=await call('scene_add_button',{mapPath,...button,outputName:'kingdom-button-'+i});mapPath=made.mapPath;extra.push(['button:'+made.name,made.controlGroupIndex]);}
   // Prefabs changed after they were made (scale, asset, health): args.prefabUpdates = scene_update_prefab arguments.

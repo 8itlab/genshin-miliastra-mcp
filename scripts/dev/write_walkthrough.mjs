@@ -8,8 +8,11 @@ const [reportFile,dir,testName]=process.argv.slice(2),root=process.cwd();
 const report=JSON.parse(fs.readFileSync(reportFile,'utf8')),test=JSON.parse(fs.readFileSync(path.join(root,'examples',dir,testName),'utf8'));
 if(!report.done)throw new Error('the round did not finish: '+report.error);
 const PER_GRAPH=['create_project','update_logic','build_project','preview_changes','apply_build'];
+const lua=[];
 const trim=(name,a)=>{
   const {mapPath,outputName,expectedSha256,...rest}=a||{};
+  // A client script given as a file: the page shows the Lua itself, in a part of its own.
+  if(name==='scene_set_client_script'&&rest.sourceFile){lua.push({name:rest.name,source:fs.readFileSync(rest.sourceFile,'utf8').replace(/^\uFEFF/,'')});return {name:rest.name,source:'<Lua，见第三节>'};}
   if(name==='scene_build_blocks'&&rest.blocks?.length>4)return {...rest,blocks:[...rest.blocks.slice(0,3),'… '+(rest.blocks.length-3)+' more pieces of the same form']};
   return rest;
 };
@@ -61,6 +64,10 @@ if(report.dry)out.push((++n)+'. [UI] `playtest_start` `'+JSON.stringify({graphNa
 out.push('','## 二、各张节点图的源码','');
 out.push('一共 '+sources.length+' 张，合计 '+sources.reduce((a,s)=>a+s.nodes,0)+' 个节点。挂在哪个实体上见第一节里对应的 `scene_add_graph`。','');
 for(const s of sources)out.push('### '+s.graph+'（'+s.nodes+' 个节点）','','```ts',s.code.trim(),'```','');
+if(lua.length){
+  out.push('## 三、客户端脚本（Lua）','','挂在哪棵控件树上见第一节里的 `scene_add_client_ui`。怎么写见 `read_knowledge {id:"client-lua.zh-CN"}`。','');
+  for(const s of lua)out.push('### '+s.name,'','```lua',s.source.trim(),'```','');
+}
 const file=path.join(root,'examples',dir,'WALKTHROUGH.md');
 fs.writeFileSync(file,out.join('\n'));
 console.log('written',file,out.join('\n').length,'chars',n,'steps',sources.length,'graphs');

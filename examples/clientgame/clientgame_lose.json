@@ -1,0 +1,180 @@
+{
+ "dir": "clientgame",
+ "namePrefix": "CG_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "scenes": [],
+ "generator": "gen_clientgame.py",
+ "signals": [
+  "CG_win",
+  "CG_lose"
+ ],
+ "clientScripts": [
+  {
+   "name": "CG_game",
+   "file": "cg_game.lua"
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "CG_ui",
+   "script": "CG_game",
+   "controls": [
+    {
+     "name": "back",
+     "kind": "image",
+     "position": [
+      0,
+      0
+     ],
+     "size": [
+      760,
+      860
+     ]
+    },
+    {
+     "name": "caught1",
+     "kind": "image",
+     "position": [
+      -330,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught2",
+     "kind": "image",
+     "position": [
+      -286,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught3",
+     "kind": "image",
+     "position": [
+      -242,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught4",
+     "kind": "image",
+     "position": [
+      -198,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "caught5",
+     "kind": "image",
+     "position": [
+      -154,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "missed1",
+     "kind": "image",
+     "position": [
+      242,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "missed2",
+     "kind": "image",
+     "position": [
+      286,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "missed3",
+     "kind": "image",
+     "position": [
+      330,
+      390
+     ],
+     "size": [
+      32,
+      32
+     ]
+    },
+    {
+     "name": "coin",
+     "kind": "image",
+     "position": [
+      0,
+      330
+     ],
+     "size": [
+      56,
+      56
+     ]
+    },
+    {
+     "name": "basket",
+     "kind": "image",
+     "position": [
+      0,
+      -260
+     ],
+     "size": [
+      110,
+      36
+     ]
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CgStage"
+  }
+ ],
+ "about": "The same game with nobody at the arrow keys after the start (1 at play second 3): the basket stays in the middle lane, the first two coins and the fourth reach the floor (the third falls into the basket), the Lua sends CG_lose and the graph settles the level as lost (CG_DEFEAT), about ten seconds after the start. Seen 2026-10-13: CG_LUA missed 1, missed 2, caught 1, missed 3, CG_lose, CG_DEFEAT.",
+ "durationSeconds": 18,
+ "screenshotsAt": [
+  2,
+  6,
+  10,
+  13
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "key": "1"
+  }
+ ]
+}

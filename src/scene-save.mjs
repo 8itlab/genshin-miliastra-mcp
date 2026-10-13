@@ -945,11 +945,12 @@ export function barRecord({id,name,slot,templateId,copies,parent,states,current,
         ...(style?[field(509,5,f32(360)),field(510,5,f32(85)),field(511,0,style.back),field(512,0,style.fill),...(style.shape?[field(513,0,style.shape===2?4:2)]:[]),field(514,0,style.fontSize),field(516,0,style.fontSize),field(517,0,style.text),field(518,0,260326)]:[])]),11,26,[field(503,0,1)]))]))]);
 }
 export function listInterface({mapPath}){
-  const file=resolve(mapPath),records=uiRecords(container(fs.readFileSync(file)));
+  const file=resolve(mapPath),root=container(fs.readFileSync(file)),records=uiRecords(root);
   const layouts=records.filter(r=>r.structure.includes(7));
-  return {mapPath:file,layouts:layouts.map(l=>({layoutId:l.id,name:l.name,controls:records.filter(r=>r.parent===l.id).map(r=>({id:r.id,name:r.name,kind:r.content.includes(26)?'progressBar':r.content.includes(38)?'image':r.content.includes(25)?'textBox':r.content.includes(27)?'timer':r.content.includes(28)?'scoreboard':r.content.includes(22)?'button':r.content.includes(23)?'custom':'builtIn'}))})),
+  return {mapPath:file,layouts:layouts.map(l=>({layoutId:l.id,name:l.name,controls:records.filter(r=>r.parent===l.id).map(r=>({id:r.id,name:r.name,kind:r.content.includes(82)?'clientContainer':r.content.includes(26)?'progressBar':r.content.includes(38)?'image':r.content.includes(25)?'textBox':r.content.includes(27)?'timer':r.content.includes(28)?'scoreboard':r.content.includes(22)?'button':r.content.includes(23)?'custom':'builtIn'}))})),
+    clientInterfaces:clientTrees(root,records),
     knownImages:IMAGE_CATALOGUE.map(([id,shows])=>({id,shows})),
-    note:'scene_add_progress_bar puts a bar on the screen that follows a player custom variable. On an account whose 奇匠 level is 1, text boxes show nothing in play (measured), bars do. scene_add_image puts a picture or a coloured rectangle on the screen; knownImages are the picture ids the official samples use.'};
+    note:'scene_add_progress_bar puts a bar on the screen that follows a player custom variable. On an account whose 奇匠 level is 1, text boxes show nothing in play (measured), bars do. scene_add_image puts a picture or a coloured rectangle on the screen; knownImages are the picture ids the official samples use. clientInterfaces are the trees of client controls (scene_add_client_ui) and the Lua script each carries.'};
 }
 // Adds a custom control to the screen: its template, the copy in the control library and the copy in the layout, and
 // registers them (root list, the library's children, the layout's children).
@@ -2041,4 +2042,161 @@ export function setCreatureLogic({mapPath,prefab,entity,decisionGraphId,skills=[
   return {mapPath:out,source:file,prefabIds:done.prefabIds,templates:done.templates,placed:done.placed,decisionGraphId,
     skills:wanted.map((s,i)=>({number:i+1,skillId:s.skillId,name:s.name,cooldownSeconds:s.cooldown??[0,3],...(s.firstCooldown?{firstCooldownSeconds:s.firstCooldown}:{})})),sharedCooldownSeconds,...(template?{logic:template}:{}),
     next:'Use mapPath in later calls. The creature now runs decision graph '+decisionGraphId+' all the time: g.creationStatusDecision({id, name, prefix:false}).on(\'start1\',(evt,f)=>{ if(...) f.switchToSelfExecutionStatus(true, <status graph id>, 1); else f.switchToSelfExecutionStatus(true, <another>, 1); }) picks the status graph to run; a status graph (scene_add_graph {kind:"creatureStatus"}) is a list of tactics and skills, each with its own condition, tried in order: f.tacticMoveToTheTargetPosition, f.tacticMoveToTheTargetEntity, f.tacticGroundIdleRoaming, f.tacticGroundPursuit, f.tacticStandStill, f.executeSkill(condition, number) and so on (search_node_docs "tactic" with scope "raw"). The graphs read custom variables (f.getCustomVariable), so a server graph steers a creature by writing its variables.'};
+}
+
+// Client controls and client scripts (客户端控件和客户端脚本, game version 7.1): an interface drawn and run on the
+// player's own machine by Lua 5.3, for menus, moving HUDs and whole 2D games. Read from the official sample 客户端脚本.
+// A script is one record of section 50: {1: id, 2: name, 3: file name, 5: the Lua source}. The source travels in the
+// save; on import the editor writes it to external_lua_file\<file name> beside the save (seen 2026-10-13).
+// On the screen stands a client control container (客户端控件容器), an ordinary control of the layout whose content
+// (type 82) names the root of a tree of client controls. A client control is a record of section 9 like the others, with
+// these content blocks: its name (15), a marker (86), its rectangle (12, ending in the kind: 25 a container node, 23 an
+// image, 31 a text box, 33 a cursor area), its scripts (83), what belongs to its kind, and a last one all of them have
+// (90). The root is listed among the roots of the section; a child names its parent and stands in its parent's list.
+// Every inner block of these records ends with {2: 1, 3: 8, 4: the record's id}.
+const CLIENT_KINDS={container:25,image:23,text:31,cursorArea:33};
+const ownedBy=id=>field(504,2,Buffer.concat([field(2,0,1),field(3,0,8),field(4,0,id)]));
+// A content block of the client kind: each type has its wrapping field and its slot, the inner block the next field
+// and the slot two on.
+const CLIENT_BLOCKS={82:[72,62],83:[73,63],84:[74,64],85:[75,65],90:[77,67],91:[78,68],96:[83,73],97:[84,74]};
+const clientBlock=(type,inner,id)=>{const [wrapId,slot]=CLIENT_BLOCKS[type];return field(505,2,uiBlock(wrapId,Buffer.alloc(0),slot,type,[field(503,2,uiBlock(wrapId+1,inner,slot+2,type,[field(503,0,1),ownedBy(id)]))]));};
+const clientState=(s,i)=>field(501,2,Buffer.concat([i?field(501,0,i):Buffer.alloc(0),field(502,2,Buffer.concat([
+  field(501,2,Buffer.concat([field(1,5,f32(1)),field(2,5,f32(1)),field(3,5,f32(1))])),
+  field(502,2,s?pair(0.5,0.5):Buffer.alloc(0)),field(503,2,s?pair(0.5,0.5):pair(1,1)),
+  field(504,2,s?pair(s.position[0],s.position[1]):Buffer.alloc(0)),
+  field(505,2,s?pair(s.size[0],s.size[1]):Buffer.alloc(0)),field(506,2,pair(0.5,0.5)),field(508,2,Buffer.alloc(0))]))]));
+// rect: {position, size} from the centre of what holds it (or {states}: one for each of the four platforms), or nothing
+// for one that fills what holds it.
+const clientRect=(id,rect,kind)=>field(505,2,uiBlock(11,Buffer.concat([field(12,2,Buffer.alloc(0)),field(501,0,2)]),1,12,[field(503,2,uiBlock(13,Buffer.concat([
+  field(12,2,Buffer.concat([...[0,1,2,3].map(i=>clientState(rect?.states?rect.states[i]:rect,i)),field(502,0,kind),field(504,0,1)])),field(501,0,2)]),4,12,[field(503,0,1),ownedBy(id)]))]));
+const clientHead=(id,name,children,parent)=>Buffer.concat([field(501,0,id),field(502,2,uiBlock(11,field(501,0,id),1,5)),
+  children?.length?field(503,2,packIds(children)):Buffer.alloc(0),parent?field(504,0,parent):Buffer.alloc(0),field(505,2,uiBlock(12,field(501,2,Buffer.from(name,'utf8')),2,15))]);
+// The container on the screen: it fills the screen, and its content names the root of the client controls.
+export function clientContainerRecord({id,name,parent,root}){
+  const marker=Buffer.concat([field(15,2,Buffer.alloc(0)),field(501,0,5)]);
+  return Buffer.concat([clientHead(id,name,null,parent),
+    field(505,2,uiBlock(14,marker,4,23,[field(503,2,uiBlock(14,marker,5,23,[field(503,0,1),ownedBy(id)]))])),
+    clientRect(id,null,24),clientBlock(82,field(501,0,root),id)]);
+}
+// One client control. kind: container (容器节点, a holder for others), image (图片), text (文本框), cursorArea (光标检测区域).
+// The values are those the editor gives a control nobody has configured: what it shows is for the script to set.
+export function clientControlRecord({id,name,kind,parent,children,rect,script}){
+  const marker=Buffer.concat([field(17,2,Buffer.alloc(0)),field(501,0,7)]);
+  const own={
+    container:[clientBlock(91,Buffer.alloc(0),id)],
+    image:[clientBlock(96,field(502,0,0xffffffff),id),clientBlock(97,Buffer.concat([field(502,0,1),field(504,0,1),field(505,0,1),field(507,0,2),field(508,0,100),field(510,0,1),field(511,2,pair(8,8)),field(512,5,f32(85)),field(513,5,f32(85)),field(515,0,1)]),id)],
+    text:[clientBlock(84,Buffer.concat([field(501,0,20),field(503,0,12),field(504,0,0xffffffff),field(505,0,0xffffff),field(507,0,0x33333333),field(508,0,1),field(509,0,1),field(510,2,Buffer.alloc(0)),field(512,0,20),field(513,0,20)]),id)],
+    cursorArea:[clientBlock(85,field(501,0,1),id)]}[kind];
+  return Buffer.concat([clientHead(id,name,children,parent),
+    field(505,2,uiBlock(14,marker,4,86,[field(503,2,uiBlock(14,marker,5,86,[field(503,0,1),ownedBy(id)]))])),
+    clientRect(id,rect,CLIENT_KINDS[kind]),
+    clientBlock(83,script?Buffer.concat([field(501,0,1),field(502,2,field(1,2,field(1,0,script)))]):Buffer.alloc(0),id),
+    ...own,clientBlock(90,Buffer.alloc(0),id)]);
+}
+export const clientScriptRecord=({id,name,file,source})=>Buffer.concat([field(1,0,id),field(2,2,Buffer.from(name,'utf8')),field(3,2,Buffer.from(file,'utf8')),field(5,2,Buffer.from(source,'utf8'))]);
+const FIRST_SCRIPT_ID=1073741826;
+// The trees of client controls of a save: each container of a layout, the controls under its root and the scripts on them.
+function clientTrees(root,records){
+  const byId=new Map(records.map(r=>[r.id,r])),scripts=fields(root).some(f=>f.id===50&&f.wire===2)?clientScripts(root):[];
+  const block=(r,type)=>fields(r.raw.data).filter(f=>f.id===505&&f.wire===2).map(f=>f.data).find(b=>varintOf(b,502)===type);
+  const inner=(r,type)=>{const b=block(r,type);if(!b)return null;const nested=fields(b).find(f=>f.id===503&&f.wire===2);return nested?fields(nested.data).find(f=>f.id===type-9&&f.wire===2)?.data??null:null;};
+  const childIds=r=>{const list=fields(r.raw.data).find(f=>f.id===503&&f.wire===2);if(!list)return [];const out=[];let p=0;const b=list.data;while(p<b.length){let n=0,shift=0;for(;;){const v=b[p++];n+=(v&127)*2**shift;shift+=7;if(!(v&128))break;}out.push(n);}return out;};
+  const node=r=>{const carried=inner(r,83),ids=carried?fields(carried).filter(f=>f.id===502&&f.wire===2).flatMap(f=>fields(f.data).filter(x=>x.id===1&&x.wire===2).map(x=>varintOf(x.data,1))):[];
+    const kids=childIds(r).map(id=>byId.get(id)).filter(Boolean).map(node);
+    return {controlId:r.id,name:r.name,kind:r.content.includes(91)?'container':r.content.includes(96)?'image':r.content.includes(84)?'text':r.content.includes(85)?'cursorArea':'other',
+      ...(ids.length?{scripts:ids.map(id=>scripts.find(s=>s.id===id)?.name??String(id))}:{}),...(kids.length?{children:kids}:{})};};
+  return records.filter(r=>r.content.includes(82)).map(r=>{const at=inner(r,82),rootRecord=at?byId.get(varintOf(at,501)):null;
+    return {containerId:r.id,name:r.name,root:rootRecord?node(rootRecord):null};});
+}
+function clientScripts(root){
+  const section=fields(root).find(f=>f.id===50&&f.wire===2);
+  if(!section)fail('UNSUPPORTED_SAVE','This save was written by a game version older than 7.1, which has no client scripts. Open it in the editor and save it once.');
+  return fields(section.data).filter(f=>f.id===1&&f.wire===2).map(f=>{const text=id=>fields(f.data).find(x=>x.id===id&&x.wire===2)?.data.toString('utf8')??'';
+    return {raw:f,id:varintOf(f.data,1),name:text(2),file:text(3),source:text(5)};});
+}
+// What the Lua of this version cannot have, from the official API page: found here rather than as a silent failure in play.
+const LUA_FORBIDDEN=[[/\bcoroutine\s*\./,'coroutine.* is not available'],[/\bio\s*\./,'io.* is not available'],[/\bstring\s*\.\s*dump\b/,'string.dump is not available'],
+  [/\bos\s*\.\s*(?!time\b|date\b|clock\b|difftime\b)[A-Za-z_]+/,'of os only time, date, clock and difftime are available'],[/\bdebug\s*\.\s*(?!traceback\b)[A-Za-z_]+/,'of debug only traceback is available'],
+  [/\brequire\s*[("']/,'require is not available: a script reaches another one through its script mapping id'],[/\b(?:loadfile|dofile)\s*\(/,'loadfile and dofile are not available']];
+export function setClientScript({mapPath,name,source,sourceFile,file:asFile,outputName},workspace){
+  const file=resolve(mapPath),bytes=fs.readFileSync(file);const root=container(bytes);
+  if((source===undefined)===(sourceFile===undefined))fail('INVALID_SCRIPT','Give the Lua either as source or as sourceFile (the path of a .lua file).');
+  const lua=source??(fs.existsSync(sourceFile)?fs.readFileSync(sourceFile,'utf8').replace(/^﻿/,''):fail('SOURCE_NOT_FOUND','sourceFile does not exist.',{sourceFile}));
+  if(!lua.trim())fail('INVALID_SCRIPT','The script is empty.');
+  const stripped=lua.replace(/--\[\[[\s\S]*?\]\]/g,'').replace(/--[^\n]*/g,'').replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g,'""');
+  const refused=LUA_FORBIDDEN.filter(([re])=>re.test(stripped)).map(x=>x[1]);
+  if(refused.length)fail('LUA_NOT_AVAILABLE','The script uses what the client Lua (5.3, sandboxed) does not have.',{refused});
+  const scripts=clientScripts(root),had=scripts.find(s=>s.name===name);
+  const id=had?.id??Math.max(FIRST_SCRIPT_ID-1,...scripts.map(s=>s.id))+1;
+  // One file to a script: the editor writes each to external_lua_file under this name.
+  if(asFile&&scripts.some(s=>s.file===asFile&&s.name!==name))fail('DUPLICATE_SCRIPT_FILE','Another script of this save already has this file name.',{file:asFile});
+  const luaFile=asFile??had?.file??(/^[A-Za-z0-9_-]{1,40}$/.test(name)&&!scripts.some(s=>s.file===name+'.lua')?name+'.lua':'script_'+(id-FIRST_SCRIPT_ID+1)+'.lua');
+  const record=field(1,2,clientScriptRecord({id,name,file:luaFile,source:lua}));
+  const section=fields(one(root,50));let placed=false;
+  const rebuilt=section.flatMap(f=>{
+    if(had&&f.id===1&&f.wire===2&&varintOf(f.data,1)===had.id){placed=true;return [record];}
+    // A new script goes after the scripts there are, before what ends the section.
+    if(!had&&!placed&&!(f.id===1&&f.wire===2)){placed=true;return [record,f.raw];}
+    return [f.raw];});
+  if(!placed)rebuilt.push(record);
+  const out=output(workspace,file,outputName,'-script');fs.writeFileSync(out,wrap(bytes,replace(root,50,2,Buffer.concat(rebuilt))));
+  const callbacks=['OnInit','OnStart','OnEnable','OnDisable','OnUpdate','OnLevelUpdate','OnDestroy'].filter(n=>new RegExp('\\bfunction\\s+'+n+'\\s*\\(').test(stripped));
+  // A tween does nothing until it is played (a basket that never moved, 2026-10-13).
+  const idle=stripped.split('\n').map((l,i)=>/^\s*game\s*\.\s*Tween\s*\(/.test(l)&&!/:\s*Play\s*\(/.test(l)?i+1:0).filter(Boolean);
+  return {mapPath:out,source:file,scriptId:id,name,file:luaFile,replaced:!!had,lines:lua.split('\n').length,callbacks,
+    ...(idle.length?{tweensNotPlayed:{lines:idle,note:'game.Tween(...) only makes a tween: it moves nothing until :Play() is called on it.'}}:{}),
+    ...(callbacks.length?{}:{warning:'The script defines none of the lifecycle functions the game calls by name (OnInit, OnStart, OnEnable, OnUpdate(dt), OnLevelUpdate(dt), OnDisable, OnDestroy): only what stands at the top level runs, once, when the script loads.'}),
+    next:had?'Use mapPath in later calls. The controls that carried this script carry the new source.':'Use mapPath in later calls. A script runs only on a client control: scene_add_client_ui {script: "'+name+'"} puts the controls on the screen with this script on their root.'};
+}
+export function listClientScripts({mapPath,includeSource=false}){
+  const file=resolve(mapPath),root=container(fs.readFileSync(file)),records=uiRecords(root);
+  const carried=id=>records.filter(r=>r.content.includes(83)&&fields(r.raw.data).some(f=>f.id===505&&f.wire===2&&varintOf(f.data,502)===83&&f.data.includes(Buffer.concat([field(1,0,id)])))).map(r=>r.name);
+  return {mapPath:file,scripts:clientScripts(root).map(s=>({scriptId:s.id,name:s.name,file:s.file,lines:s.source.split('\n').length,on:carried(s.id),...(includeSource?{source:s.source}:{})})),
+    note:'A client script is Lua 5.3 that runs on the player\'s machine on a client control (scene_add_client_ui). read_knowledge {id:"client-lua.zh-CN"} says how one is written; the full API is the official page 附录/客户端控件API文档 (search_knowledge "客户端控件API").'};
+}
+// Puts a tree of client controls on the screen: the container in the layout, a root that fills the screen and carries
+// the script, and the controls under it. ids: for the test that rebuilds the official sample (the editor numbers
+// controls as they were made, which is not the order they stand in).
+export function addClientUi({mapPath,name,script,controls=[],hidden=false,outputName,ids},workspace){
+  const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
+  const records=uiRecords(root),layout=records.find(r=>r.structure.includes(7));
+  if(!layout)fail('UNSUPPORTED_SAVE','The save has no default layout to add to.');
+  if(!records.some(r=>r.name==='ClientUIRootHierarchyRoot'))fail('UNSUPPORTED_SAVE','This save was written by a game version older than 7.1, which has no client controls. Open it in the editor and save it once.');
+  if(records.some(r=>r.name===name))fail('DUPLICATE_CONTROL_NAME','The interface already has a control with this name.',{name});
+  const scripts=clientScripts(root),carried=script===undefined?null:scripts.find(s=>s.name===script);
+  if(script!==undefined&&!carried)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{script,scripts:scripts.map(s=>s.name)});
+  if(hidden)fail('NOT_SUPPORTED','A container hidden at the start is not written yet: leave hidden out and let the script hide its controls (SetVisible(false)) until they are wanted.');
+  let next=Math.max(...records.map(r=>r.id))+1;const take=key=>ids?.[key]??next++;
+  const containerId=take(name),rootId=take('容器节点'),made=[],names=new Set(),paths=[];
+  // Controls of one holder must differ in name: a script finds them by it (GetChild).
+  const walk=(list,parent,trail)=>list.map(c=>{
+    if(!CLIENT_KINDS[c.kind])fail('INVALID_CONTROL','kind is container, image, text or cursorArea.',{name:c.name,kind:c.kind});
+    if(names.has(parent+'/'+c.name))fail('DUPLICATE_CONTROL_NAME','Two controls of one holder have the same name.',{name:c.name});names.add(parent+'/'+c.name);
+    if(c.children?.length&&c.kind!=='container')fail('INVALID_CONTROL','Only a container holds other controls.',{name:c.name});
+    const size=c.size??[100,100],position=c.position??[0,0];
+    if(!(size[0]>0&&size[0]<=3200&&size[1]>0&&size[1]<=1800)||Math.abs(position[0])>3200||Math.abs(position[1])>1800)fail('INVALID_RECT','position is [x, y] from the centre of the holder on a 1600 x 900 canvas, y up; size is [width, height].',{name:c.name,position,size});
+    const id=take(c.name);paths.push({name:c.name,kind:c.kind,path:[...trail,c.name].join('/'),controlId:id,position,size});
+    const record={id,name:c.name,kind:c.kind,parent,rect:c.states?{states:c.states}:{position,size}};made.push(record);
+    record.children=walk(c.children??[],id,[...trail,c.name]);return id;});
+  const rootRecord={id:rootId,name:'容器节点',kind:'container',rect:null,script:carried?.id};made.push(rootRecord);
+  rootRecord.children=walk(controls,rootId,[]);
+  const fresh=made.map(clientControlRecord);
+  const section=fields(one(root,9));let lastOfLayout=-1,lastRecord=-1;
+  section.forEach((f,i)=>{if(f.id===502&&f.wire===2){lastRecord=i;if(varintOf(f.data,504)===layout.id)lastOfLayout=i;}});
+  const adopt=data=>{const parts=fields(data),list=parts.find(f=>f.id===503&&f.wire===2);
+    if(list)return Buffer.concat(parts.map(f=>f===list?field(503,2,Buffer.concat([f.data,varint(containerId)])):f.raw));
+    let last=-1;parts.forEach((f,i)=>{if(f.id===502&&f.wire===2)last=i;});
+    return Buffer.concat(parts.flatMap((f,i)=>i===last?[f.raw,field(503,2,varint(containerId))]:[f.raw]));};
+  const rebuilt=section.flatMap((f,i)=>{
+    // The root of the client controls joins the roots of the section, after the ones there are.
+    if(f.id===501&&f.wire===2)return [field(501,2,Buffer.concat([f.data,varint(rootId)]))];
+    const out=f.id===502&&f.wire===2&&varintOf(f.data,501)===layout.id?[field(502,2,adopt(f.data))]:[f.raw];
+    // The container stands after the last control of the layout, the client controls after every record.
+    if(i===(lastOfLayout<0?lastRecord:lastOfLayout))out.push(field(502,2,clientContainerRecord({id:containerId,name,parent:layout.id,root:rootId})));
+    if(i===lastRecord)out.push(...fresh.map(b=>field(502,2,b)));
+    return out;});
+  root=replace(root,9,2,Buffer.concat(rebuilt));
+  const out=output(workspace,file,outputName,'-clientui');fs.writeFileSync(out,wrap(bytes,root));
+  return {mapPath:out,source:file,containerId,rootId,name,script:carried?{name:carried.name,scriptId:carried.id}:undefined,controls:paths,
+    next:'Use mapPath in later calls. In the script, script.object is the root (a container that fills the screen) and '+(paths.length?'script.object:GetChild("'+paths[0].name+'")':'script.object:GetChild(name)')+' finds a control under it by name (a child of a child through its own GetChild). The controls are written as the editor makes them, empty: an image shows nothing until the script gives it a picture (control:SetImage(Enum.ImageSource.StaticReference, id), ids from image_catalog) and a colour (control.imageColor = Color(r, g, b)). Controls stand in the order given, later ones over earlier ones. On an account of 奇匠 level 1 a client text box shows nothing either (seen in play, 2026-10-13): say it with pictures.'};
 }

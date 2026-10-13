@@ -534,7 +534,10 @@ class Run:
                 continue
             # A manager that fills the window (界面控件组管理 and its kind) has no grid icon of its own: its title stands
             # where the icon would be. The icon at its top right folds it away into a tab and the editor is back.
-            full, _ = self.wait_text('game', ['界面控件组管理', '主镜头管理'], region=(0, 0, 0.2, 0.04), timeout=1, required=False)
+            # Folded away, the same words stand on its tab further right (from 0.115 of the width on; the title of the
+            # full window ends at 0.08): a save that was stored with such a tab is not a manager in the way (the
+            # official sample 客户端脚本 is one, and was taken for it six times over, 2026-10-13).
+            full, _ = self.wait_text('game', ['界面控件组管理', '主镜头管理'], region=(0, 0, 0.09, 0.04), timeout=1, required=False)
             if full:
                 self.click_fraction('game', (1580 / 1600, 16 / 900))
                 self.step('manager-screen-folded-away', title=full)
@@ -939,7 +942,8 @@ class Run:
     def subscribe_log(self):
         # graphNames: the level is usually several small graphs, each on its own entity; the log shows only the ticked ones.
         names = [n for n in (self.req.get('graphNames') or []) if n] or ([self.req.get('graphName')] if self.req.get('graphName') else [])
-        if not names:
+        scripts = bool(self.req.get('clientScriptLog'))
+        if not names and not scripts:
             self.step('log-skipped', reason='没有提供 graphName，不订阅日志')
             return
         if not self.sandbox_drawn():
@@ -958,7 +962,8 @@ class Run:
         # for each by itself took nine seconds a graph, a minute and a half for ten. Whatever the one reading does not
         # settle (a name below the fold, a count that does not come out right) goes the careful way.
         began = time.time()
-        self.tick_log_graph(label, names[0], 1)
+        if names:
+            self.tick_log_graph(label, names[0], 1)
         rest = names[1:]
         if rest and os.environ.get('MILIASTRA_LOG_TICK_ONE_BY_ONE') != '1':
             ticked = self.tick_log_graphs_listed(label, rest)
@@ -978,10 +983,40 @@ class Run:
         else:
             for count, name in enumerate(rest, 2):
                 self.tick_log_graph(label, name, count)
+        if scripts:
+            self.tick_client_scripts(label)
         self.result['logTickSeconds'] = round(time.time() - began, 1)
         self.click_text('log', '确认选择', scale=1, timeout=5)
         self.shot('log', 'log-subscribed')
-        self.step('log-subscribed', graphNames=names)
+        self.step('log-subscribed', graphNames=names, clientScripts=scripts)
+
+    def tick_client_scripts(self, label):
+        """Tick the row 客户端脚本 of the log window: what the Lua client scripts print and where they fail (game 7.1).
+        It is one row for all scripts, the last of the list, under the two groups of graphs: with the filter emptied
+        and the list wheeled to its end it is in sight."""
+        line = label['box'][3] - label['box'][1]
+        self.click(label['x'] + line * 4, label['y'] + line * 2.6)  # search box under the label
+        self.key('CTRL+A')
+        time.sleep(0.3)
+        self.key('BACKSPACE')
+        time.sleep(0.2)
+        self.key('ENTER')
+        time.sleep(1)
+        left, top, right, bottom = self.window('log')['rect']
+        row = None
+        for attempt in range(4):
+            self.scroll('log', 40, at=(0.18, 0.6))
+            rows = [i for i in self.read('log', region=(0, 0, 0.38, 1), scale=1) if self.plain(i['text']) == '客户端脚本' and i['y'] > label['y'] + line * 4.5]
+            if rows:
+                row = max(rows, key=lambda i: i['y'])
+                break
+        if not row:
+            self.shot('log', 'no-client-script-row')
+            self.step('client-script-log-not-found')
+            return
+        self.click(left + (right - left) * 0.33, row['y'])
+        time.sleep(0.4)
+        self.step('client-script-log-ticked')
 
     def tick_log_graphs_listed(self, label, names):
         """Tick the graphs of `names` that the unfiltered list shows, after one graph was ticked the careful way.

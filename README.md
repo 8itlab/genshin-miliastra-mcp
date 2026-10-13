@@ -15,6 +15,7 @@
 - **搭场景**：2468 种官方物件的图鉴，按名字搜、看缩略图，一次导入一百个物件；锁定视角、出生点、复苏点、昼夜和灯光。
 - **做机关和怪**：元件、碰撞触发器、按 F 交互、移动平台、弹跳垫、力场、隐形墙、投射物和命中检测、会自己找敌人打的复杂造物、技能、道具、商店、货币。
 - **做界面**：进度条（横条、竖条、圆环）、图片（约 1600 张平台自带的图）、计时器、按钮。
+- **写客户端 Lua**（游戏 7.1 的新能力）：会动、能收鼠标和按键的界面，甚至整局 2D 小游戏；脚本的打印和节点图的打印一起从试玩里拿回来。
 - **写规则**：节点图用 TypeScript 写，一次编译几十张图写进存档；自带节点文档、特效（3195 条）、音效（1997 条）、音乐（188 条）的中文目录。
 - **自己试玩**：按脚本按键、点鼠标、把玩家放到指定位置，截图、连拍、录音、录像，读回日志；AI 靠这个知道做出来的东西在游戏里到底对不对。
 - **发布前的准备**：出封面、截图、标题和简介。发布本身由你在游戏里点。
@@ -139,6 +140,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_progress_bar` / `scene_add_button` / `scene_add_image` / `scene_list_interface` | 屏幕上的进度条（跟着玩家变量走；可以是横条、竖条、圆环，可以直接显示当前值的数字，颜色可改）、交互按钮（按数字键触发，玩家模板上的图收事件）和图片（平台自带的图，或一块纯色的底板：不靠文字也能把话说清楚）；控件可以一开始隐藏，由节点图开关 |
 | `scene_add_unit_status` / `scene_list_unit_statuses` | 单位状态：描边、透视、加生命上限；图里加减 |
 | `scene_add_environment` / `scene_list_environments` / `scene_add_light` | 固定时刻的环境配置（昼夜靠两套配置切换；按编辑器的写法写，白天不会过曝）和属于某套配置的点光源 |
+| `scene_set_client_script` / `scene_add_client_ui` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（图片、光标检测区域、容器、文本框）。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通。做法见 `knowledge/notes/client-lua.zh-CN.md`，范例 `examples/clientui`、`examples/clientgame` |
 | `image_catalog` | 界面图片控件能用的全部图片（约 1600 张，15 类：功能图标、玩法图标、装饰图案、底板、分隔线、特殊字符、技能、道具、造物头像）：按分类返回编辑器图库的照片，每张图下面是编号 |
 | `scene_remove_entities` | 把已经导入场景的物件从存档副本里拿掉（按名字或名字前缀）：导入只能加，摆错的靠它减 |
 | `scene_list_classes` / `scene_set_class` | 职业：角色能不能跳、冲刺、攀爬、滑翔，用哪个镜头模板；角色的等级和基础生命、攻击、防御、体力（新地图默认一万血，打不死） |
@@ -323,14 +325,14 @@ npm run test:local
 | [千星奇域节点图工具集](https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack) | 读写节点图文件、代码和节点图互转、节点数据 | Genshin-TS 内含它的成果，本项目间接用到 |
 | [Ayaya_Miliastra_Editor](https://github.com/AyayaXiaowang/Ayaya_Miliastra_Editor) | 用 Python 写节点图，离线校验、自动排版，有给人看的预览界面 | 想要 Python 工作流和节点图预览界面的选它；本项目没有给人看的界面 |
 | [千星奇域工具箱](https://github.com/1475505/Miliastra-toolbox) | 官方文档和社区经验的知识库问答，有在线 MCP | 可以和本项目同时接：它回答“怎么做”，本项目动手做 |
-| [千星沙箱模拟器](https://github.com/1475505/miliastra-beyond-simulator) | 游戏之外的模拟器，面向 2D + Lua 客户端脚本的玩法，几秒一轮 | 做 2D 界面玩法、要快速迭代的选它；本项目目前只做节点图这一路，验证是进真游戏 |
+| [千星沙箱模拟器](https://github.com/1475505/miliastra-beyond-simulator) | 游戏之外的模拟器，面向 2D + Lua 客户端脚本的玩法，几秒一轮 | 2D 界面玩法要几秒一轮地快速迭代时用它；本项目也能写客户端 Lua 和控件，但每一轮都是进真游戏验证，可以两头配合：模拟器里调，这里上真机 |
 | [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | 网页版节点图编辑器，不开游戏就能画节点图 | 画节点图原型用 |
 | [genshin-starcraft-mcp](https://github.com/ystyle/genshin-starcraft-mcp) | 查官方教程和节点文档的 MCP | 本项目自带一份离线的官方指南，功能有重叠 |
 | [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs)、[genshin-miliastra-file-format](https://github.com/script-1024/genshin-miliastra-file-format) | 存档和导出文件格式的文档 | 本项目的物件名单和尺寸来自前者（CC BY 4.0） |
 
 本项目有而上面没看到的：带缩略图的物件、特效、音效、界面图片编号图鉴；在真游戏里按脚本自动试玩并取回日志和截图；场景和 3D 玩法（摆景、复杂造物的战斗、投射物、机关）。
 
-本项目没有的：客户端 Lua 脚本和客户端控件（游戏 7.1 版本新增，还没支持）、给人看的节点图界面、Windows 以外的平台。
+本项目没有的：游戏之外的模拟器（每一轮都要进真游戏）、给人看的节点图界面、Windows 以外的平台。客户端 Lua 脚本和客户端控件（游戏 7.1 新增）已经支持四种控件，其余几种还没有。
 
 以上是按各项目 README 的自述整理的，如有不准确请提 issue。
 
