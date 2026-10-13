@@ -89,10 +89,14 @@ export function readSimulatorSave(file){
       if((node.imageSource??'StaticReference')!=='StaticReference')say('The image "'+node.name+'" takes its picture from '+node.imageSource+', which a save cannot be given here: the script has to set it (control:SetImage).');
       else if(Number.isInteger(node.imageId)&&node.imageId>=100000)out.image=node.imageId;
       const tint=node.imageColor??0xffffffff;if((tint>>>0)!==0xffffffff){out.colour=hue(tint);out.opacity=solid(tint);}
-      // A fill shows only on an image whose mask is on (seen in play); the fill itself is the script's to set.
+      // The mask and what it does: a fill, a soft edge, the mask turned inside out (in the game these work only under
+      // a mask that is on, so any of them switches it on).
       if(node.enableMask||node.enableFill)out.mask=true;
-      if(node.enableFill)say('The image "'+node.name+'" is filled partly in the simulator ('+node.fillType+', '+node.fillAmount+'). A save cannot be given a fill here: its mask is switched on and the script has to set the fill (SetFillHorizontal and its kind).');
-      if(node.enableSoftEdge)say('The soft edge of the image "'+node.name+'" is not written.');
+      if(node.enableFill){const low=v=>typeof v==='string'?v[0].toLowerCase()+v.slice(1):undefined,shape=low(node.fillType)??'horizontal';
+        const from=low({horizontal:node.fillHorizontalType,vertical:node.fillVerticalType,radial90:node.fillRadial90Type}[shape]??node.fillRadialType);
+        out.fill={shape,...(from?{from}:{}),amount:Math.max(0,Math.min(1,Number(node.fillAmount??1))),...(node.fillClockwise===false?{clockwise:false}:{})};delete out.mask;}
+      if(node.enableSoftEdge&&(node.enableMask||node.enableFill)){out.feather=node.softEdgeMode==='Percentage'?{percent:[node.horizontalSoftRange??85,node.verticalSoftRange??85]}:{pixels:[node.softEdgeWidthX??8,node.softEdgeWidthY??8]};delete out.mask;}
+      if(node.reverseMaskArea&&(node.enableMask||node.enableFill)){out.invertMask=true;delete out.mask;}
     }
     if(kind==='presetButton'){
       // The simulator calls the four state slots 不可用, 悬停, 按下, 选中; in the editor they are 默认, 悬停, 按下, 不可用

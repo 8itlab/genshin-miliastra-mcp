@@ -70,6 +70,16 @@ try{
   assert.notEqual(luaOf(lone.mapPath).key,k0.key,'one script more is another level');
   assert.notEqual(luaOf(setClientScript({mapPath:face.mapPath,name:'ok',source:good,variables:[{name:'speed',type:'float',value:2}],outputName:'v3'},workspace).mapPath).key,k0.key,'another value of a variable is another level');
   assert.equal(luaOf(blank),null,'a save without scripts has no short way');
+  // The values a script adds to a signal, against what the signal carries: they travel by place.
+  const carrying=addSignal({mapPath:map,name:'score',parameters:[{name:'points',type:'integer'},{name:'label',type:'string'},{name:'at',type:'vector3'}]},workspace).mapPath;
+  const sending=['function OnStart()','  local a = game.ServerSignal("score")','  a:AddInt(3)','  a:AddString("x")','  a:AddVector3({x=1,y=2,z=3})','  a:SendSignal()',
+    '  local b = game.ServerSignal("score")','  b:AddString("x")','  b:AddInt(3)','  b:SendSignal()','  game.ServerSignal("score"):SendSignal()',
+    '  local c = game.ServerSignal("pick")','  c:AddInt(1)','  c:SendSignal()','  game.ServerSignal("pick"):SendSignal()',
+    '  local d = game.ServerSignal("score")','  d:AddParam(Enum.ParamType.Int, 3)','  d:SendSignal()','end',''].join('\n');
+  const sent=setClientScript({mapPath:carrying,name:'sender',source:sending},workspace).problems.filter(p=>p.kind==='SIGNAL_PARAMETERS_DIFFER');
+  assert.deepEqual(sent.map(p=>p.line),[10,11,14],JSON.stringify(sent));
+  assert.equal(sent[0].expected,'local s = game.ServerSignal("score") s:AddInt(points) s:AddString(label) s:AddVector3(at) s:SendSignal()');
+  assert.equal(sent[2].expected,'game.ServerSignal("pick"):SendSignal()');
   // What a run was expected to print: in order, with the first that is missing and what stood there instead.
   const printed=[{t:1,text:'A_READY'},{t:2,text:'A_GO 3'},{t:5,text:'x:13: attempt to index a nil value (local n)',clientScript:true},{t:9,text:'A_WIN'}];
   const verdict=judge({prints:['A_READY','A_WIN','A_GO'],absent:['A_LOSE']},printed,{state:'succeeded'});

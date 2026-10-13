@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields,field,replace,wrap,varint} from '../src/scene/wire.mjs';
-import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,addClientTemplate,removeClient,listClientScripts,listInterface,getClientUi} from '../src/scene-save.mjs';
+import {clientContainerRecord,clientControlRecord,clientScriptRecord,setClientScript,addClientUi,addClientTemplate,removeClient,listClientScripts,listInterface,getClientUi,maskBlock,maskOf} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-clientui-'));
 const official=path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith('mh47p30a87qo_'))),blank=path.join(root,'tests','fixtures','editor-2026-10-13-handui.gil');
@@ -221,6 +221,27 @@ try{
     assert.throws(()=>addClientUi({mapPath:tuned.mapPath,name:'x',controls},workspace),e=>e.code===code,code);
   for(const bad of [{name:'v',type:'colour'},{name:'v',type:'float',value:'1'},{name:'v',type:'entity',value:1},{name:'v',type:'vector3',value:[1,2]},{name:'v',type:'integerList',value:[1.5]},{name:'v',type:'guid',value:-1}])
     assert.throws(()=>setClientScript({mapPath:blank,name:'s',source:'print(1)\n',variables:[bad]},workspace),e=>e.code==='INVALID_VARIABLE',JSON.stringify(bad));
+  // The mask of an image: the bytes of the block as the editor stored it after each setting was changed by hand
+  // (2026-10-13, one image, a save read after every change).
+  const byHand={plain:'b01f01c01f01c81f01d81f02e01f64f01f01fa1f0cad1f00000041b51f0000004185200000aa428d200000aa42982001',
+    whole:'a81f01b01f01c01f01c81f01d81f02e01f64f01f01fa1f0cad1f00000041b51f0000004185200000aa428d200000aa42902001982001',
+    fromRight:'a81f01b01f01b81f01c01f01c81f01d81f02e01f1ef01f01fa1f0cad1f00000041b51f0000004185200000aa428d200000aa42902001982001',
+    turned:'a81f01b01f01b81f01c81f01d01f02e01f1ee81f01fa1f0cad1f00000041b51f0000004185200000aa428d200000aa42902001982005a02001'};
+  assert.equal(maskBlock({}).toString('hex'),byHand.plain);
+  assert.equal(maskBlock({fill:{}}).toString('hex'),byHand.whole);
+  assert.equal(maskBlock({fill:{shape:'horizontal',from:'right',amount:0.3}}).toString('hex'),byHand.fromRight);
+  // The last one carries what was set on the way (from the right, a corner): read, it is a full turn from the bottom.
+  assert.deepEqual(maskOf(Buffer.from(byHand.turned,'hex')),{fill:{shape:'radial360',from:'bottom',amount:0.3},feather:{percent:[85,85]},invertMask:true});
+  assert.deepEqual(maskOf(Buffer.from(byHand.fromRight,'hex')),{fill:{shape:'horizontal',from:'right',amount:0.3}});
+  assert.deepEqual(maskOf(Buffer.from(byHand.plain,'hex')),{});
+  for(const look of [{mask:true},{fill:{shape:'vertical',from:'bottom',amount:0.5}},{fill:{shape:'vertical',from:'top',amount:1}},{fill:{shape:'radial90',from:'topRight',amount:0.25,clockwise:false}},
+    {fill:{shape:'radial180',from:'left',amount:0.75}},{fill:{shape:'radial360',from:'top',amount:0.1},feather:{pixels:[4,12]},invertMask:true},{feather:{percent:[60,90]}},{invertMask:true}])
+    assert.deepEqual(maskOf(maskBlock(look)),look,JSON.stringify(look));
+  const ringed=addClientUi({mapPath:blank,name:'ring',controls:[{name:'cool',kind:'image',image:100002,size:[80,80],fill:{shape:'radial360',amount:0.4,clockwise:false},feather:{pixels:[2,2]}}],outputName:'ring'},workspace);
+  const cool=getClientUi({mapPath:ringed.mapPath,ui:'ring'}).interface.controls[0];
+  assert.deepEqual([cool.name,cool.image,cool.fill,cool.feather,cool.mask,cool.invertMask],['cool',100002,{shape:'radial360',from:'top',amount:0.4,clockwise:false},{pixels:[2,2]},undefined,undefined]);
+  assert.throws(()=>addClientUi({mapPath:blank,name:'x',controls:[{name:'a',kind:'image',fill:{shape:'vertical',from:'left'}}]},workspace),e=>e.code==='INVALID_CONTROL');
+  assert.throws(()=>addClientUi({mapPath:blank,name:'x',controls:[{name:'a',kind:'text',fill:{}}]},workspace),e=>e.code==='INVALID_CONTROL');
   // What stands near the edge of the computer's canvas is off a phone's: said when the interface is written.
   const wide=addClientUi({mapPath:blank,name:'wide',controls:[{name:'top',kind:'image',position:[0,400],size:[60,60]},{name:'ok',kind:'image',position:[600,300],size:[60,60]},{name:'side',kind:'image',position:[700,0],size:[100,40]},
     {name:'edge',kind:'image',position:[-40,-40],size:[60,60],anchor:{min:[1,1],max:[1,1]}},{name:'fit',kind:'image',position:[700,0],devices:{mobile:{position:[560,0]}}},

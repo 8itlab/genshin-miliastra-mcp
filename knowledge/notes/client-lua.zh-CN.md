@@ -30,7 +30,7 @@
 
 - **只改了 Lua，不用重新导入存档。** 编辑器把每个脚本存成存档旁边的一个文件（`external_lua_file\<文件名>`），游戏跑的就是那个文件。上一次试玩打开的存档还开着、这次的存档和它只差脚本的文字时，`playtest_start` 直接把新脚本写进那些文件就开始试玩，日志窗口里勾着的图也不重勾。实测一轮 74 秒（其中试玩 8 秒；剩下主要是游戏自己上传关卡和加载），重新导入的一轮是四五分钟。结果里的 `shortWay` 说明走的是这条路。加了脚本、改了控件或变量，就照常导入。
 - **写进去的当场就查。** `scene_set_client_script` 遇到语法错直接拒绝并给出行列（不用等试玩校验）；脚本里写死的名字逐个对一遍：`game` 的函数、`script` 的方法、`Enum` 的值对官方接口，`GetChild` / `FindChild` 的控件名对挂着这个脚本的控件底下有什么，信号名对存档里定义的信号，自定义变量名对玩家和角色模板上的变量，`GetParam` 的名字对脚本自己的变量，模板编号、图片编号、音效编号对存档和图鉴。对不上的在结果的 `problems` 里，带脚本名、行号和最接近的名字。这个平台上名字对不上不报错、只是没反应，所以这一步能省掉大半“为什么没动静”的试玩。
-- **全部写完后整份再查一遍**：`scene_check_client {mapPath}`。这时节点图也在存档里了，还会指出“脚本发的信号没有图在听”“图发给脚本的信号没有脚本在收”。`playtest_start` 开始前也会自己查一遍，结果在 `clientCheck` 里。只查得到写死的名字，运行时拼出来的名字查不到。
+- **全部写完后整份再查一遍**：`scene_check_client {mapPath}`。这时节点图也在存档里了，还会指出“脚本发的信号没有图在听”“图发给脚本的信号没有脚本在收”。信号带参数时两边都查：脚本发之前 `Add…` 的个数、类型、顺序要和信号的定义一样（`SIGNAL_PARAMETERS_DIFFER`，给出该怎么写）；节点图源码里的 `defineSignal` 和定义对不上，`write_graphs` 直接不写并给出正确的那一行（值是按位置传的，对不上编译器也不报）。`playtest_start` 开始前也会自己查一遍，结果在 `clientCheck` 里。只查得到写死的名字，运行时拼出来的名字查不到。
 - **让试玩自己说过没过**：`playtest_start` 给 `expect: {prints: ["CG_READY", "CG_LUA caught 5", "CG_VICTORY"], absent: ["CG_LOSE"]}`，`playtest_status` 的 `expectations` 就是 `passed` 或者第一条没等到的打印（以及那个位置实际打印了什么）；脚本运行时报错也算没过。画面对不对还是要看截图。
 
 ## 脚本写错了会看到什么
@@ -75,7 +75,7 @@ end
 | `kind` | 是什么 | 能定什么 |
 |---|---|---|
 | `container` | 容器节点 | 装别的控件（`children`），挪它里面的跟着挪；`showCursor`、`blockKeys`、`blockCursor` |
-| `image` | 图片 | `image`（编号从 `image_catalog` 挑）、`colour`、`opacity`、`mask`；不给 `image` 就是空的，等脚本 `SetImage` |
+| `image` | 图片 | `image`（编号从 `image_catalog` 挑）、`colour`、`opacity`、`mask`，以及遮罩下的 `fill`（只画一部分）、`feather`（边缘羽化）、`invertMask`（反转），见“填充”；不给 `image` 就是空的，等脚本 `SetImage` |
 | `cursorArea` | 光标检测区域 | 收鼠标：点击、按下、抬起、进入、离开、拖拽 |
 | `presetButton` | 预设按钮 | 它的样子是它装着的控件：`states: {normal, hover, pressed, disabled}` 各叫一个子控件的名字；`enabled`、`sound` |
 | `grid` | 网格视窗 | 会滚动的列表，列表项是模板的拷贝（`itemTemplate`）；`grid: {columns 或 rows, itemSize, spacing, padding, scrollbar}`；脚本 `RefreshItems(个数, function(control, index) end)` 填内容 |
@@ -152,6 +152,24 @@ control.imageColor = Color(255, 208, 64)                     -- 0 到 255；第�
 ### 填充：进度条和冷却圈（要开遮罩）
 
 图片可以只画出一部分：横着、竖着、绕一圈。**只有开了遮罩的图片填充才生效**——没开时 `fillAmount` 读回来是你设的数，画面上图片还是整张（上机试过两种图片类型、晚几秒再设，都一样；开了遮罩就对了）。遮罩在 `scene_add_client_ui` 里给 `mask: true`，或者脚本里 `control.enableMask = true`。
+
+**填充、羽化、反转也能直接写进存档，不用脚本（2026-10-14 凌晨上机验过，`examples/clientapi` 的 `still` 那一排）：**
+
+![写进存档的八种样子：从右填三成、从下填六成、四分之一圈、半圈、整圈、按百分比羽化、按像素羽化、反转](../../docs/images/image-fill.jpg)
+
+```json
+{"name": "cool", "kind": "image", "image": 100002, "size": [80, 80],
+ "fill": {"shape": "radial360", "from": "top", "amount": 0.4, "clockwise": false}}
+```
+
+| `fill.shape` | `from` 可以是 | 不写时 |
+|---|---|---|
+| `horizontal`（横向） | `left`、`right` | `left` |
+| `vertical`（纵向） | `top`、`bottom` | `top` |
+| `radial90`（90 度环绕） | `bottomLeft`、`topLeft`、`topRight`、`bottomRight` | `bottomLeft` |
+| `radial180`、`radial360` | `top`、`bottom`、`left`、`right` | `top` |
+
+`amount` 是 0 到 1（不写是 1），三种环绕默认顺时针，`clockwise: false` 反过来。`feather` 是边缘羽化：`{"pixels": [横, 竖]}` 是羽化的宽度，`{"percent": [横, 竖]}` 是中间保持完整的部分占百分之几。`invertMask: true` 把遮罩反过来（填了四分之一就显示另外四分之三）。这三样给了任何一样，遮罩就自动打开。之后脚本照样可以改 `control.fillAmount`。这些设置在编辑器里是图片的“遮罩设置”一栏，存档里的写法是在编辑器里逐项手改、逐次保存读出来的，和编辑器存的逐字节相同。
 
 ```lua
 bar:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, 0.3)   -- 从左边起画三成；Right 是从右边起
@@ -255,7 +273,7 @@ dot:SetAnchoredPosition(40, 0)
 - 脚本、控件模板、界面（脚本挂在原来的控件上，各设备不同的位置照搬）都写进存档；脚本和服务端规则里提到的信号自动定义，规则要设的玩家变量自动加上。
 - 模拟器的“服务端规则”（收到脚本发来的某个信号时：设变量、给脚本发信号）会变成关卡实体上的一张节点图，源码在结果里。
 - **模板编号自动对上**：Lua 里凡是等于模拟器里模板编号的数字，都换成模板在这份存档里的编号；只动 Lua 自己的数字，字符串和注释里的不动。
-- 结果的 `notes` 列出模拟器里有、这边写不进去的东西（图片的填充和羽化、信号的第二个参数、游戏里不存在的按钮状态），`check` 是 `scene_check_client` 对导入后整份存档查出来的问题。
+- 结果的 `notes` 列出模拟器里有、这边写不进去的东西（信号的第二个参数、游戏里不存在的按钮状态）；图片的填充、羽化、反转会原样带过来，`check` 是 `scene_check_client` 对导入后整份存档查出来的问题。
 - 然后 `playtest_start {mapPath}` 上真机。上机验过（2026-10-13）：脚本发信号、节点图设变量再发回、脚本收到，文字和模板都画出来了。
 
 两处模拟器和游戏不一样、导入时替你处理了的：模拟器把预设按钮的第一个状态叫“不可用”、第四个叫“选中”，编辑器里其实是“默认”和“不可用”；按键提示的键盘键和手柄键在它那里是反的。只读了它的存档格式，没有用它的代码。
@@ -290,10 +308,9 @@ dot:SetAnchoredPosition(40, 0)
 - `examples/clientvars`：每种类型的脚本变量、控件各自的取值、控件编号换成控件；另带一个分设备布局、手柄导航和文本视窗的写法。
 - `examples/clientsignal`：节点图给脚本发信号（不带参数和带一个字符串），脚本收到后换灯的颜色。
 - `examples/clienttext`：文本框的每项设置、字号自适应、两种文本视窗、脚本运行时改文字，外加一个跟着变量走的普通文本框（要奇匠 Lv.2 的账号才看得到）。
-- `examples/clientapi`：图片填充做的进度条和冷却圈（要开遮罩）、关卡时停、音效、画布大小和设备、按路径找控件。
+- `examples/clientapi`：图片填充做的进度条和冷却圈（要开遮罩；脚本设的和直接写进存档的都有）、羽化、反转、关卡时停、音效、画布大小和设备、按路径找控件。
 
 ## 还没做的
 
-- 图片的填充和边缘羽化不能写进存档（工具只写遮罩开关），由脚本设，见“填充”。
 - 手机、主机上没验过：分设备的布局和手柄导航只做到“和编辑器写的一样”，本机只有电脑和键鼠。触屏点击多半和鼠标一样，但手机没有键盘，靠按键的玩法要在屏幕上放按钮。
 - 发布以后脚本是否照常打包上传，没验过（要发布才知道）。

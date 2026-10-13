@@ -1,5 +1,5 @@
 {
- "about": "Things of the Lua API that are easy to miss, each seen in play on 2026-10-13. (1) The fill of an image (a bar that grows, a ring that runs out) shows only on an image whose mask is on: bar has mask: true in the save, ring gets control.enableMask = true in the script. Without the mask the value reads back as set and the picture stays whole (tried with both image types and at a later moment: no difference). SetFillHorizontal(Enum.ImageFillHorizontalType.Left, 0) and SetFillRadial360(Enum.ImageFillRadialType.Top, 1) set the kind of fill; fillAmount can be tweened: the bar is half full at play second 1, three quarters at 4 and full at 9, the ring half, a quarter, gone. (2) game.PauseLevelTime(true) stops the level in single play: the graph prints CA_TICK every second, and there is none between level seconds 10 and 14 while the script had the level paused. OnUpdate goes on meanwhile (OnLevelUpdate is the one that stops), and so does a tween. (3) game.PlayAudio2D(50888) plays a sound by its id of the sound catalogue and returns an instance id; game.IsAudioAlive says true (the sound itself was not listened to). (4) game.GetUICanvasSize() is 1600 x 900 on a computer, game.GetDevice() is Enum.Device.KeyboardAndMouse, game.IsTestPlay() is true in a playtest. (5) control:FindChild(\"corner/ring\") finds a control by its path; GetChild only a direct child.",
+ "about": "Things of the Lua API that are easy to miss, each seen in play on 2026-10-13. (1) The fill of an image (a bar that grows, a ring that runs out) shows only on an image whose mask is on: bar has mask: true in the save, ring gets control.enableMask = true in the script. Without the mask the value reads back as set and the picture stays whole (tried with both image types and at a later moment: no difference). SetFillHorizontal(Enum.ImageFillHorizontalType.Left, 0) and SetFillRadial360(Enum.ImageFillRadialType.Top, 1) set the kind of fill; fillAmount can be tweened: the bar is half full at play second 1, three quarters at 4 and full at 9, the ring half, a quarter, gone. (2) game.PauseLevelTime(true) stops the level in single play: the graph prints CA_TICK every second, and there is none between level seconds 10 and 14 while the script had the level paused. OnUpdate goes on meanwhile (OnLevelUpdate is the one that stops), and so does a tween. (3) game.PlayAudio2D(50888) plays a sound by its id of the sound catalogue and returns an instance id; game.IsAudioAlive says true (the sound itself was not listened to). (4) game.GetUICanvasSize() is 1600 x 900 on a computer, game.GetDevice() is Enum.Device.KeyboardAndMouse, game.IsTestPlay() is true in a playtest. (5) control:FindChild(\"corner/ring\") finds a control by its path; GetChild only a direct child. (6) A fill, a soft edge and an inverted mask written into the save, with no script touching them (the row still, eight images over dark copies of themselves): a bar filled 30% from the right, one 60% from the bottom, a quarter turn from the top right at 50%, a half turn from the left counter-clockwise, a full turn from the top at 40% counter-clockwise, a soft edge by hundredths and one by pixels, and a full turn at 25% turned inside out (the other three quarters show).",
  "dir": "clientapi",
  "namePrefix": "CA_",
  "baseName": "未分类页签_存档_3",
@@ -73,6 +73,297 @@
         100,
         100
        ]
+      }
+     ]
+    },
+    {
+     "name": "still",
+     "kind": "container",
+     "position": [
+      0,
+      -120
+     ],
+     "size": [
+      800,
+      100
+     ],
+     "children": [
+      {
+       "name": "fromRightBack",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        -350,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ]
+      },
+      {
+       "name": "fromRight",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#40c0ff",
+       "position": [
+        -350,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ],
+       "fill": {
+        "shape": "horizontal",
+        "from": "right",
+        "amount": 0.3
+       }
+      },
+      {
+       "name": "fromBottomBack",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        -250,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ]
+      },
+      {
+       "name": "fromBottom",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#40c0ff",
+       "position": [
+        -250,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ],
+       "fill": {
+        "shape": "vertical",
+        "from": "bottom",
+        "amount": 0.6
+       }
+      },
+      {
+       "name": "quarterBack",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        -150,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ]
+      },
+      {
+       "name": "quarter",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#40c0ff",
+       "position": [
+        -150,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ],
+       "fill": {
+        "shape": "radial90",
+        "from": "topRight",
+        "amount": 0.5
+       }
+      },
+      {
+       "name": "halfBack",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        -50,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ]
+      },
+      {
+       "name": "half",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#40c0ff",
+       "position": [
+        -50,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ],
+       "fill": {
+        "shape": "radial180",
+        "from": "left",
+        "amount": 0.5,
+        "clockwise": false
+       }
+      },
+      {
+       "name": "turnBack",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        50,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ]
+      },
+      {
+       "name": "turn",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#40c0ff",
+       "position": [
+        50,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ],
+       "fill": {
+        "shape": "radial360",
+        "from": "top",
+        "amount": 0.4,
+        "clockwise": false
+       }
+      },
+      {
+       "name": "softBack",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        150,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ]
+      },
+      {
+       "name": "soft",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#40c0ff",
+       "position": [
+        150,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ],
+       "feather": {
+        "percent": [
+         50,
+         50
+        ]
+       }
+      },
+      {
+       "name": "edgeBack",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        250,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ]
+      },
+      {
+       "name": "edge",
+       "kind": "image",
+       "image": 100001,
+       "colour": "#40c0ff",
+       "position": [
+        250,
+        0
+       ],
+       "size": [
+        80,
+        60
+       ],
+       "feather": {
+        "pixels": [
+         20,
+         6
+        ]
+       }
+      },
+      {
+       "name": "restBack",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#000000",
+       "opacity": 0.45,
+       "position": [
+        350,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ]
+      },
+      {
+       "name": "rest",
+       "kind": "image",
+       "image": 100002,
+       "colour": "#40c0ff",
+       "position": [
+        350,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ],
+       "fill": {
+        "shape": "radial360",
+        "from": "top",
+        "amount": 0.25
+       },
+       "invertMask": true
       }
      ]
     }

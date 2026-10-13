@@ -49,12 +49,14 @@ function facts(source){
   const ast=luaparse.parse(source,{luaVersion:'5.3',locations:true,comments:false});
   const calls=[],enums=[],own=new Set(),members=[],selves=new Set();
   const isSelf=n=>{const c=chain(n);return !!c&&c.length===2&&c[0]==='script'&&c[1]==='object';};
+  const signalMade=n=>{if(n?.type!=='CallExpression'&&n?.type!=='StringCallExpression')return null;const c=chain(n.base),a=n.type==='CallExpression'?n.arguments[0]:n.argument;
+    return c&&c.join('.')==='game.ServerSignal'&&a?.type==='StringLiteral'?literal(a):null;};
   const walk=n=>{
     if(!n||typeof n!=='object')return;
     if(Array.isArray(n)){n.forEach(walk);return;}
     if(n.type==='CallExpression'||n.type==='StringCallExpression'||n.type==='TableCallExpression'){
       const args=n.type==='CallExpression'?n.arguments:[n.argument],base=n.base;
-      if(base?.type==='MemberExpression')calls.push({line:n.loc.start.line,on:chain(base.base),indexer:base.indexer,name:base.identifier.name,args});
+      if(base?.type==='MemberExpression')calls.push({line:n.loc.start.line,on:chain(base.base),indexer:base.indexer,name:base.identifier.name,args,...(signalMade(base.base)?{onSignal:signalMade(base.base)}:{})});
       else if(base?.type==='Identifier')calls.push({line:n.loc.start.line,on:null,indexer:null,name:base.name,args});
     }
     if(n.type==='MemberExpression'){
@@ -69,6 +71,9 @@ function facts(source){
     if(n.type==='LocalStatement'||n.type==='AssignmentStatement')n.variables.forEach((v,i)=>{if(v.type==='Identifier'&&isSelf(n.init[i]))selves.add(v.name);});
     if(n.type==='TableKeyString'&&n.key?.name)own.add(n.key.name);
     for(const k of Object.keys(n))if(k!=='loc'&&k!=='type')walk(n[k]);
+    // A name that is given a signal to send (local s = game.ServerSignal("NAME")): noted after the call itself, so
+    // that what is added to it afterwards can be told from what was added to an earlier one of that name.
+    if(n.type==='LocalStatement'||n.type==='AssignmentStatement')n.variables.forEach((v,i)=>{const made=signalMade(n.init[i]);if(v.type==='Identifier'&&made)calls.push({line:n.loc.start.line,on:null,indexer:null,name:'',args:[],holds:{name:v.name,signal:made}});});
   };
   walk(ast.body);
   return {calls,enums,own,members,selves};
@@ -115,6 +120,8 @@ export function checkClient({mapPath,scripts:only},read){
   };
   for(const t of trees)visit(t,[]);
   const problems=[],heard=new Set(),sentUp=new Set();
+  // What each signal carries, as the methods that add the values in order (AddInt, AddString ...).
+  const carried=(()=>{try{const p=read.listSignals?.({mapPath}).parameters??{};return name=>(p[name]??[]).map(x=>({...x,lua:read.signalWords(x.type)?.lua??'AddParam'}));}catch{return ()=>[];}})();
   // require("name") loads the script whose file is name.lua, letter for letter (seen in play: "zr_mod" does not find
   // ZR_mod.lua). A script that is only required is carried by no control, and need not be.
   const everyScript=read.listClientScripts({mapPath,includeSource:true}).scripts,modules=new Set(everyScript.map(x=>x.file.replace(/\.lua$/,''))),required=new Set();
@@ -133,7 +140,20 @@ export function checkClient({mapPath,scripts:only},read){
       if(!API.enums[e.type]){const n=nearest(e.type,Object.keys(API.enums));say(s.name,e.line,'error','UNKNOWN_ENUM','There is no Enum.'+e.type+'.',n?{didYouMean:'Enum.'+n}:{});}
       else if(!API.enums[e.type].includes(e.value)){const n=nearest(e.value,API.enums[e.type]);say(s.name,e.line,'error','UNKNOWN_ENUM','Enum.'+e.type+' has no '+e.value+'.',n?{didYouMean:'Enum.'+e.type+'.'+n}:{values:API.enums[e.type].slice(0,40)});}
     }
+    // The values a script adds to a signal before it sends it, against what the signal carries: they travel by place.
+    const building=new Map();
+    const sends=(signal,adds,generic,line)=>{
+      if(!signals.has(signal)||generic)return;
+      const want=carried(signal);if(want.length===adds.length&&want.every((w,i)=>w.lua===adds[i]))return;
+      say(s.name,line,'error','SIGNAL_PARAMETERS_DIFFER','The signal "'+signal+'" carries '+(want.length?want.map(w=>w.name+' ('+w.type+')').join(', '):'nothing')+'; the script adds '+(adds.length?adds.join(', '):'nothing')+' before it sends. The graph reads the values by their place: add them in the order of the definition.',
+        {expected:want.length?'local s = game.ServerSignal("'+signal+'") '+want.map(w=>'s:'+w.lua+'('+w.name+')').join(' ')+' s:SendSignal()':'game.ServerSignal("'+signal+'"):SendSignal()'});
+    };
     for(const c of f.calls){
+      if(c.holds){building.set(c.holds.name,{signal:c.holds.signal,adds:[],generic:false});continue;}
+      if(c.name==='SendSignal'&&c.onSignal)sends(c.onSignal,[],false,c.line);
+      if(c.indexer===':'&&c.on?.length===1&&building.has(c.on[0])){const b=building.get(c.on[0]);
+        if(c.name==='AddParam')b.generic=true;else if(/^Add[A-Z]/.test(c.name))b.adds.push(c.name);
+        else if(c.name==='SendSignal'){sends(b.signal,b.adds,b.generic,c.line);building.delete(c.on[0]);}}
       const first=literal(c.args[0]),second=literal(c.args[1]),on=c.on?.join('.');
       if(c.indexer===':'&&on!=='script'&&!API.methods.includes(c.name)&&!API.script.includes(c.name)&&!LUA_METHODS.has(c.name)&&!f.own.has(c.name)){
         const n=nearest(c.name,API.methods);say(s.name,c.line,'warning','UNKNOWN_METHOD',':'+c.name+'() is not a method of anything in the client API, nor defined in this script.',n?{didYouMean:':'+n+'()'}:{});}

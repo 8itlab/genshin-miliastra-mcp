@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields} from '../src/scene/wire.mjs';
-import {signalRecords,signalType,addSignal,listSignals,clientScriptSignalHeads,SIGNAL_PARAMETER_TYPES} from '../src/scene-save.mjs';
+import {signalRecords,signalType,addSignal,listSignals,clientScriptSignalHeads,SIGNAL_PARAMETER_TYPES,signalDeclarationFaults} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-signal-'));
 const pick=prefix=>path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith(prefix)));
@@ -86,6 +86,15 @@ try{
   assert.ok(scored.next.includes("defineSignal('scored', [['points', 'int'], ['where', 'vec3'], ['who', 'entity'], ['tags', 'str_list']] as const)")&&scored.next.includes('s:AddInt(...) s:AddVector3(...) s:AddEntity(...) s:AddStringList(...) s:SendSignal()'),scored.next);
   const afterScored=addSignal({mapPath:scored.mapPath,name:'then'},workspace),numbers=definitions(afterScored.mapPath).flatMap(d=>fields(d).filter(f=>f.wire===2&&f.id>=100&&f.id<=106).map(f=>Number(fields(f.data).find(x=>x.id===8).value)));
   assert.equal(new Set(numbers).size,numbers.length,'pin numbers repeat after a signal with several parameters');
+  // What a graph source declares with defineSignal, against the save: the same types in the same order (the names are
+  // the source's own), the player first when it goes to client scripts.
+  const declares=code=>signalDeclarationFaults({mapPath:scored.mapPath,code});
+  assert.deepEqual(declares("const S=defineSignal('scored',[['p','int'],['w','vec3'],['e','entity'],['t','str_list']] as const)\nconst C=defineSignal(\"client:scored\", [\n ['player','entity'], ['p','int'], ['w','vec3'], ['e','entity'], ['t','str_list'],\n] as const)\nconst N=defineSignal('night',[] as const)"),[]);
+  const off=declares("const S=defineSignal('scored',[['p','int'],['w','vec3']] as const)\nconst C=defineSignal('client:scored',[['p','int'],['w','vec3'],['e','entity'],['t','str_list']] as const)\nconst X=defineSignal('nowhere',[['a','int']] as const)\nconst N=defineSignal('night',[['a','int']] as const)");
+  assert.deepEqual(off.map(f=>f.signal),['scored','client:scored','nowhere','night']);
+  assert.equal(off[0].declare,"defineSignal('scored', [['points', 'int'], ['where', 'vec3'], ['who', 'entity'], ['tags', 'str_list']] as const)");
+  assert.equal(off[1].declare,"defineSignal('client:scored', [['player', 'entity'], ['points', 'int'], ['where', 'vec3'], ['who', 'entity'], ['tags', 'str_list']] as const)");
+  assert.equal(off[3].declare,"defineSignal('night', [] as const)");
   assert.throws(()=>addSignal({mapPath:plain,name:'x',parameters:[{name:'a',type:'integer'},{name:'a',type:'float'}]},workspace),e=>e.code==='INVALID_SIGNAL_PARAMETERS');
   assert.throws(()=>addSignal({mapPath:plain,name:'x',parameter:'a',parameters:[{name:'b',type:'float'}]},workspace),e=>e.code==='INVALID_SIGNAL_PARAMETERS');
   assert.throws(()=>addSignal({mapPath:plain,name:'client:x'},workspace),e=>e.code==='INVALID_SIGNAL_NAME');

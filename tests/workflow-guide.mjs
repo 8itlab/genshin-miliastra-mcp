@@ -132,7 +132,7 @@ try{
  const sim=await sent('scene_import_simulator',{mapPath:path.join(root,'tests','fixtures','editor-2026-10-13-handui.gil'),save:path.join(root,'tests','fixtures','simulator-sample.save.json')});
  assert.deepEqual([sim.written.signals,sim.written.variables,sim.written.scripts,sim.written.templates.map(t=>t.name),sim.written.interface.controls,sim.written.graph.written],[['pick','picked'],['score'],['main'],['Lua实例化面板'],12,true],JSON.stringify(sim.written).slice(0,600));
  assert.equal(sim.templateNumbersChangedInLua,1);assert.equal(sim.check.errors,0,JSON.stringify(sim.check.problems));
- assert.ok(sim.notes.some(t=>/states\.normal/.test(t))&&sim.notes.some(t=>/fill/.test(t)));
+ assert.ok(sim.notes.some(t=>/states\.normal/.test(t))&&!sim.notes.some(t=>/fill/.test(t)));
  const simScripts=(await sent('scene_list_client_scripts',{mapPath:sim.mapPath,includeSource:true})).scripts.find(x=>x.name==='main');
  assert.ok(simScripts.source.includes('local PANEL = '+sim.written.templates[0].templateIndex)&&simScripts.source.includes('-- 1073742100 stays in a comment'),'only the number of the Lua itself is put to the new index');
  assert.deepEqual(simScripts.on,['容器节点']);
@@ -141,12 +141,21 @@ try{
  // The interface read back and put again in its place through the tools: the same container, the same ids, and one
  // control moved; what it was not told to change stays as it was.
  const faceRead=await sent('scene_get_client_ui',{mapPath:sim.mapPath,ui:simFace.name});
+ // The image the simulator fills (down, under the button) comes over with its fill.
+ const filled=[];(function seek(list){for(const c of list??[]){if(c.fill)filled.push([c.name,c.fill]);seek(c.children);}})(faceRead.interface.controls);
+ assert.deepEqual(filled,[['down',{shape:'horizontal',from:'left',amount:1}]],JSON.stringify(filled));
  assert.equal(faceRead.interface.controls.length,10);assert.ok(faceRead.ids['/']&&Object.keys(faceRead.ids).length>=12,JSON.stringify(faceRead.ids));
  const faceMoved=structuredClone(faceRead.interface);faceMoved.controls[0].position=[11,22];
  const facePut=await sent('scene_add_client_ui',{mapPath:sim.mapPath,...faceMoved,replace:true});
  const faceNow=await sent('scene_get_client_ui',{mapPath:facePut.mapPath,ui:simFace.name});
  assert.deepEqual(faceNow.ids,faceRead.ids);assert.deepEqual(faceNow.interface.controls[0].position,[11,22]);
  assert.deepEqual(faceNow.interface.controls.slice(1),faceRead.interface.controls.slice(1));
+ // A graph whose defineSignal does not agree with the signal in the save is not written, and is told the declaration.
+ const simSignals=await sent('scene_list_signals',{mapPath:sim.mapPath});
+ assert.deepEqual(simSignals.parameters,{picked:[{name:'value',type:'string'}]},JSON.stringify(simSignals));
+ const misdeclared=await sent('write_graphs',{mapPath:sim.mapPath,graphs:[{graphId:sim.written.graph.graphId,code:"import { g, defineSignal } from 'genshin-ts/runtime/core'\nconst S=defineSignal('picked',[['n','int']] as const)\ng.server({id:"+sim.written.graph.graphId+",name:'x'}).onSignal(S,(evt,f)=>{f.printString('x');})\n"}]});
+ assert.equal(misdeclared.failed?.code,'SIGNAL_PARAMETERS_DIFFER',JSON.stringify(misdeclared).slice(0,400));
+ assert.equal(misdeclared.failed.details.signals[0].declare,"defineSignal('picked', [['value', 'str']] as const)");
  const chests=(await sent('scene_search_assets',{query:'宝箱',group:'交互机关'})).assets;
  assert.ok(chests.some(a=>a.presetStatus?.statusId===100010060),'asset search does not show the preset status of the chest');
 }finally{await client.close();fs.rmSync(workspace,{recursive:true,force:true});}

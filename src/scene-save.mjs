@@ -1270,6 +1270,23 @@ const SIGNAL_TYPES={integer:{kind:2,server:3,client:3,ts:'int',lua:'AddInt'},flo
   vector3List:{of:'vector3',server:15,client:12},entityList:{of:'entity',server:13,client:2},guidList:{of:'guid',server:7,client:15},prefabIdList:{of:'prefabId',server:23,client:21},configIdList:{of:'configId',server:22,client:20}};
 for(const t of Object.values(SIGNAL_TYPES))if(t.of){t.ts=SIGNAL_TYPES[t.of].ts+'_list';t.lua=SIGNAL_TYPES[t.of].lua+'List';}
 export const SIGNAL_PARAMETER_TYPES=Object.keys(SIGNAL_TYPES);
+// The compiler's name of a type and the method of ServerSignal that adds a value of it.
+export const signalWords=type=>SIGNAL_TYPES[type]?{ts:SIGNAL_TYPES[type].ts,lua:SIGNAL_TYPES[type].lua}:null;
+// What a graph source declares with defineSignal, against what the save's signals carry: the values travel by their
+// place, so a declaration with other types or another count reads the wrong pins (and the compiler takes any). The
+// name client:NAME is the signal NAME sent to client scripts, whose first value is the player. Nothing when all agree.
+export function signalDeclarationFaults({mapPath,code}){
+  let have=null;const faults=[];
+  for(const m of code.matchAll(/defineSignal\s*\(\s*(['"])([^'"]+)\1\s*,\s*\[([\s\S]*?)\]\s*(?:as\s+const\s*)?\)/g)){
+    const toScripts=/^client:/.test(m[2]),name=m[2].replace(/^client:/,''),declared=[...m[3].matchAll(/\[\s*(['"])([^'"]*)\1\s*,\s*(['"])([^'"]*)\3\s*\]/g)].map(x=>({name:x[2],type:x[4]}));
+    have??=listSignals({mapPath});
+    if(!have.signals.includes(name)){faults.push({signal:m[2],problem:'The save has no signal "'+name+'": scene_add_signal defines it.',signals:have.signals});continue;}
+    const carried=have.parameters?.[name]??[],expected=[...(toScripts?['entity']:[]),...carried.map(p=>SIGNAL_TYPES[p.type]?.ts??'unknown')],got=declared.map(p=>p.type);
+    if(expected.length!==got.length||expected.some((t,i)=>t!==got[i]))faults.push({signal:m[2],problem:'The declaration gives '+(got.length?got.join(', '):'no parameters')+'; the signal in the save carries '+(carried.length?carried.map(p=>p.name+' ('+p.type+')').join(', '):'nothing')+(toScripts?', and a signal to client scripts has the player before them':'')+'. The values travel by their place: declare them in this order with these types.',
+      declare:"defineSignal('"+m[2]+"', ["+[...(toScripts?["['player', 'entity']"]:[]),...carried.map(p=>"['"+p.name+"', '"+(SIGNAL_TYPES[p.type]?.ts??'unknown')+"']")].join(', ')+"] as const)"});
+  }
+  return faults;
+}
 export function signalType(type,side){
   const t=SIGNAL_TYPES[type],code=t[side];
   return t.of?Buffer.concat([field(1,0,10002),field(3,0,code),field(4,0,code),field(102,2,field(1,2,signalType(t.of,side)))])
@@ -2092,7 +2109,7 @@ const flag=(id,on)=>on?field(id,0,1):Buffer.alloc(0);
 // - any control: active false (初始激活 off), visible false (初始可见性 off), focusable (可被手柄摇杆导航选中), scripts
 //   (the ids of the client scripts on it; rootForm: the form the root of the official sample has, {501: 1} before them);
 // - a container: isolateNavigation, blockKeys (屏蔽按键事件穿透), blockCursor (屏蔽区域内光标事件穿透), showCursor (显示常驻光标);
-// - an image: image (the picture), colour (0xAARRGGBB), mask (开启遮罩);
+// - an image: image (the picture), colour (0xAARRGGBB), mask (开启遮罩), fill, feather and invertMask (see maskBlock);
 // - a text box and a text window: text {content, fontSize, colour, background, outline, outlineColour, align, valign, autoSize};
 // - a grid: grid {itemTemplate, horizontal, itemSize, spacing, padding: [top, bottom, left, right], scrollbar, fixed, preview};
 // - a preset button: button {normal, hover, pressed, disabled: ids of controls it holds, enabled, sound};
@@ -2103,7 +2120,44 @@ const flag=(id,on)=>on?field(id,0,1):Buffer.alloc(0);
 // - navigation {left, right, up, down}: where the stick of a gamepad goes from this control, the id of a control or
 //   "none" (left out: the nearest one, as the editor has it);
 // - a text window: text.scrollable and text.scrollbar (both on unless false), and text.align.
-export function clientControlRecord({id,name,kind,parent,children,rect,script,scripts,rootForm,image,colour,mask,itemTemplate,template,slot,isTemplate,active,visible,focusable,
+// The mask of an image (遮罩设置 in the editor): the mask itself, a soft edge (边缘羽化), a fill by progress (按进度填充)
+// and the mask turned inside out (遮罩区域反转). Each setting was changed by hand in the editor and the save read after
+// every change (2026-10-13): 501 the mask, 503 horizontal from the right, 504 vertical from the top (as the editor
+// starts it), 505 clockwise, 506 the corner a quarter turn starts at, 507 the side a half or a full turn starts at,
+// 508 the progress in hundredths, 509 the soft edge, 510 its width in pixels (511) and not in hundredths of the
+// picture (512, 513), 514 the fill, 515 its shape, 516 inside out. The numbers are those of the Lua enums
+// ImageFillType, ImageFillHorizontalType, ImageFillVerticalType, ImageFillRadial90Type and ImageFillRadialType.
+const FILL_SHAPES={horizontal:{code:1,from:['left','right'],start:'left'},vertical:{code:2,from:['bottom','top'],start:'top'},radial90:{code:3,from:['bottomLeft','topLeft','topRight','bottomRight'],start:'bottomLeft'},
+  radial180:{code:4,from:['bottom','left','top','right'],start:'top'},radial360:{code:5,from:['bottom','left','top','right'],start:'top'}};
+export const CLIENT_FILL_SHAPES=Object.keys(FILL_SHAPES);
+export function maskFault({fill,feather}){
+  if(fill){const shape=FILL_SHAPES[fill.shape??'horizontal'];
+    if(!shape)return 'fill.shape is one of '+CLIENT_FILL_SHAPES.join(', ')+'.';
+    if(fill.from!==undefined&&!shape.from.includes(fill.from))return 'A fill of shape '+(fill.shape??'horizontal')+' starts from one of '+shape.from.join(', ')+'.';
+    if(fill.clockwise!==undefined&&shape.code<3)return 'fill.clockwise goes with the shapes radial90, radial180 and radial360.';}
+  if(feather&&((feather.pixels===undefined)===(feather.percent===undefined)))return 'feather is {pixels: [across, up]} or {percent: [across, up]}.';
+  return null;
+}
+export function maskBlock({mask,fill,feather,invertMask}){
+  const shape=FILL_SHAPES[fill?.shape??'horizontal'],at=fill?shape.from.indexOf(fill.from??shape.start):0,on=mask||!!fill||!!feather||!!invertMask;
+  const across=fill&&shape.code===1?at:0,up=fill&&shape.code===2?at:1,corner=fill&&shape.code===3?at:0,side=fill&&shape.code>3?at:2;
+  return Buffer.concat([flag(501,on),field(502,0,1),flag(503,across===1),flag(504,up===1),flag(505,fill?.clockwise!==false),corner?field(506,0,corner):blank,side?field(507,0,side):blank,
+    field(508,0,fill?Math.round((fill.amount??1)*100):100),flag(509,!!feather),flag(510,!feather?.percent),field(511,2,pair(...(feather?.pixels??[8,8]))),field(512,5,f32(feather?.percent?.[0]??85)),field(513,5,f32(feather?.percent?.[1]??85)),
+    flag(514,!!fill),field(515,0,fill?shape.code:1),flag(516,!!invertMask)]);
+}
+// The other way: what a mask block says, as the parameters above.
+export function maskOf(block){
+  const n=id=>{const f=fields(block).find(x=>x.id===id&&x.wire===0);return f?Number(f.value):0;},out={};
+  if(!n(501))return out;
+  if(n(514)){const name=CLIENT_FILL_SHAPES[n(515)-1]??'horizontal',shape=FILL_SHAPES[name];
+    out.fill={shape:name,from:shape.from[shape.code===1?n(503):shape.code===2?n(504):shape.code===3?n(506):n(507)],amount:n(508)/100,...(shape.code>2&&!n(505)?{clockwise:false}:{})};}
+  if(n(509)){const part=id=>{const f=fields(block).find(x=>x.id===id&&x.wire===5);return f?Math.round(f.data.readFloatLE(0)*100)/100:0;},wide=fields(block).find(x=>x.id===511&&x.wire===2)?.data??blank;
+    out.feather=n(510)?{pixels:[501,502].map(id=>{const f=fields(wide).find(x=>x.id===id&&x.wire===5);return f?Math.round(f.data.readFloatLE(0)*100)/100:0;})}:{percent:[part(512),part(513)]};}
+  if(n(516))out.invertMask=true;
+  if(!out.fill&&!out.feather&&!out.invertMask)out.mask=true;
+  return out;
+}
+export function clientControlRecord({id,name,kind,parent,children,rect,script,scripts,rootForm,image,colour,mask,fill,feather,invertMask,itemTemplate,template,slot,isTemplate,active,visible,focusable,
     isolateNavigation,blockKeys,blockCursor,showCursor,text,grid,button,keys,effect,navigation}){
   const marker=Buffer.concat([field(17,2,Buffer.alloc(0)),field(501,0,7)]);
   const shown=Buffer.concat([field(17,2,flag(503,visible===false)),field(501,0,7),flag(502,active===false)]);
@@ -2122,7 +2176,7 @@ export function clientControlRecord({id,name,kind,parent,children,rect,script,sc
   const own={
     container:[clientBlock(91,Buffer.concat([flag(501,isolateNavigation),flag(502,blockKeys),flag(503,blockCursor),flag(504,showCursor)]),id)],
     image:[clientBlock(96,Buffer.concat([field(502,0,colour??0xffffffff),image?field(503,0,image):Buffer.alloc(0)]),id),
-      clientBlock(97,Buffer.concat([flag(501,mask),field(502,0,1),field(504,0,1),field(505,0,1),field(507,0,2),field(508,0,100),field(510,0,1),field(511,2,pair(8,8)),field(512,5,f32(85)),field(513,5,f32(85)),field(515,0,1)]),id)],
+      clientBlock(97,maskBlock({mask,fill,feather,invertMask}),id)],
     text:[clientBlock(84,words(false),id)],
     cursorArea:[clientBlock(85,field(501,0,1),id)],
     textWindow:[clientBlock(94,words(true),id)],
@@ -2228,7 +2282,7 @@ function clientTrees(root,records,templatesToo=false){
 // What the client scripts of a save name, checked against what the save and the catalogues have (src/client-check.mjs).
 export function checkClientScripts({mapPath,scripts}){
   const file=resolve(mapPath);
-  return checkClient({mapPath:file,scripts},{listClientScripts,listComponents,
+  return checkClient({mapPath:file,scripts},{listClientScripts,listComponents,listSignals,signalWords,
     listInterface:a=>{const face=listInterface(a),root=container(fs.readFileSync(file));return {...face,clientTemplateTrees:clientTrees(root,uiRecords(root),true)};}});
 }
 // The problems of some scripts of a save, for the result of the call that just wrote them: nothing when there are none.
@@ -2289,7 +2343,7 @@ export function setClientScript({mapPath,name,source,sourceFile,file:asFile,vari
   const fillAlone=/\bSetFill(?:Horizontal|Vertical|Radial\d+)\s*\(|\.\s*fillAmount\s*=|\bfillAmount\s*=/.test(stripped)&&!/enableMask/.test(stripped);
   return {mapPath:out,source:file,scriptId:id,name,file:luaFile,replaced:!!had,lines:lua.split('\n').length,callbacks,...(variables?.length?{variables:variables.map(v=>v.name)}:{}),
     ...(fractions.length?{coloursLookLikeFractions:{lines:fractions,note:'Color(r, g, b, a) takes 0 to 255, not 0 to 1: these colours are next to black on the screen.'}}:{}),
-    ...(fillAlone?{fillNeedsMask:'The script fills an image (SetFill..., fillAmount) and never mentions enableMask: the fill shows only on an image whose mask is on. Give the image mask: true in scene_add_client_ui, or set control.enableMask = true before filling it.'}:{}),
+    ...(fillAlone?{fillNeedsMask:'The script fills an image (SetFill..., fillAmount) and never mentions enableMask: the fill shows only on an image whose mask is on. Give the image mask: true in scene_add_client_ui (or fill: {shape, amount}, which draws it filled from the start), or set control.enableMask = true before filling it.'}:{}),
     // Names of the API and of the save the script gets wrong (the controls are checked once an interface carries it).
     ...clientProblems(out,[name],['SCRIPT_NOT_MOUNTED','SIGNAL_NOT_HEARD','SIGNAL_NOT_SENT']),
     ...(idleUpdate?{updateNotEnabled:'The script defines OnUpdate but never calls script:EnableUpdate(true): the game does not call OnUpdate until it does (put the call in OnStart).'}:{}),
@@ -2324,7 +2378,8 @@ function clientRecords(list,parent,take,known,scripts,slots,made,paths,trail=[])
     const size=c.size??CLIENT_SIZES[c.kind]??[100,100],position=c.position??[0,0];
     if(!(Math.abs(size[0])<=3200&&Math.abs(size[1])<=1800)||Math.abs(position[0])>3200||Math.abs(position[1])>1800)fail('INVALID_RECT','position is [x, y] from the centre of the holder on a 1600 x 900 canvas, y up; size is [width, height].',{name:c.name,position,size});
     const only=(keys,kinds,what)=>{for(const key of keys)if(c[key]!==undefined&&!kinds.includes(c.kind))fail('INVALID_CONTROL',key+' goes with '+what+'.',{name:c.name,kind:c.kind});};
-    only(['image','colour','opacity','mask'],['image'],'an image');only(['itemTemplate','grid'],['grid'],'a grid');only(['template'],['reference'],'a reference');
+    only(['image','colour','opacity','mask','fill','feather','invertMask'],['image'],'an image');
+    {const wrong=maskFault(c);if(wrong)fail('INVALID_CONTROL',wrong,{name:c.name});}only(['itemTemplate','grid'],['grid'],'a grid');only(['template'],['reference'],'a reference');
     only(['text'],['text','textWindow'],'a text box or a text window');only(['states','enabled','sound'],['presetButton'],'a preset button');only(['key','padKey'],['keyHint'],'a key hint');
     only(['effect','effectSound','below'],['animation','fullscreenAnimation'],'an interface effect');only(['showCursor','blockKeys','blockCursor','isolateNavigation'],['container'],'a container');
     if(c.devices&&c.kind==='fullscreenAnimation')fail('INVALID_CONTROL','An effect that fills the screen has no rectangle to differ by device.',{name:c.name});
@@ -2346,7 +2401,7 @@ function clientRecords(list,parent,take,known,scripts,slots,made,paths,trail=[])
     // A control the stick is sent from or to has to be one the stick can stand on.
     const record={id,name:c.name,kind:c.kind,parent,rect,slot:slots?.(),rootForm:false,scripts:carried,active:c.active,visible:c.visible,focusable:c.focusable??(c.navigation?true:undefined),towards:c.navigation,
       isolateNavigation:c.isolateNavigation,blockKeys:c.blockKeys,blockCursor:c.blockCursor,showCursor:c.showCursor,
-      image:c.image,colour:c.colour!==undefined||c.opacity!==undefined?tint(c.colour,c.opacity,c.name):undefined,mask:c.mask,template:named('template'),
+      image:c.image,colour:c.colour!==undefined||c.opacity!==undefined?tint(c.colour,c.opacity,c.name):undefined,mask:c.mask,fill:c.fill,feather:c.feather,invertMask:c.invertMask,template:named('template'),
       text:t&&{content:t.content,fontSize:t.fontSize,minFontSize:t.minFontSize,autoSize:t.autoSize,align:t.align,valign:t.valign,outline:t.outline,scrollable:t.scrollable,scrollbar:t.scrollbar,
         colour:t.colour!==undefined||t.opacity!==undefined?tint(t.colour,t.opacity,c.name):undefined,
         background:t.background!==undefined?tint(t.background,t.backgroundOpacity??1,c.name):undefined,
@@ -2566,7 +2621,7 @@ function readClientControl(r,byId,scripts,templates,isRoot){
     const picture=inner(96,84),look=inner(97,85),tinted=number(picture,502)??0xffffffff;
     if(has(picture,503))out.image=number(picture,503);
     if((tinted>>>0)!==0xffffffff){out.colour=hueOf(tinted);out.opacity=solidOf(tinted);}
-    if(has(look,501))out.mask=true;
+    if(has(look,501))Object.assign(out,maskOf(look));
   }
   if(kind==='text'||kind==='textWindow'){
     const t=inner(kind==='text'?84:94,75),across=['left','centre','right'][number(t,508)??0],text={};
