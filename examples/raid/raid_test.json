@@ -1,5 +1,5 @@
 {
- "about": "A fourth kind of game built with the same tools: fight, loot, trade. Break the crate with the sword (E; it has 100 health, two hits), kill the hilichurl that appears in front of the character, pick up the apples both leave (F, twice: two and three apples), sell the five at the stall for ten coins and buy the key for eight, open the gate with it, open the chest. Everything new since the third game is in it: an animated skill with a hit box, health and a hurt box on an object, loot and drops with a wide pick-up area, items and a shop, a script that clicks on the shop screen. Won on its second run in the game, 2026-10-11 (in the first the hilichurl appeared five metres away and never came: it now appears two and a half metres in front of the character). Prints: RD_READY, RD_SWING, RD_HIT crate|brute damage, RD_DEAD, RD_HOLD coins apples keys x (every two seconds), RD_SHOP, RD_BOUGHT, RD_SOLD, RD_COIN change, RD_GATE (or RD_LOCKED), RD_CHEST, RD_VICTORY (or RD_TIME_UP). The steps on the shop screen and the walk after them were given more room on 2026-10-14: a click on a word takes a second or two to find it, and with the old spacing the walk to the gate began late in two runs of three.",
+ "about": "A fourth kind of game built with the same tools: fight, loot, trade. Break the crate with the sword (E; it has 100 health, two hits), kill the hilichurl that appears in front of the character, pick up the apples both leave (F, twice: two and three apples), sell the five at the stall for ten coins and buy the key for eight, open the gate with it, open the chest. Everything new since the third game is in it: an animated skill with a hit box, health and a hurt box on an object, loot and drops with a wide pick-up area, items and a shop, a script that clicks on the shop screen. Won on its second run in the game, 2026-10-11 (in the first the hilichurl appeared five metres away and never came: it now appears two and a half metres in front of the character). Prints: RD_READY, RD_SWING, RD_HIT crate|brute damage, RD_DEAD, RD_HOLD coins apples keys x (every two seconds), RD_SHOP, RD_BOUGHT, RD_SOLD, RD_COIN change, RD_GATE (or RD_LOCKED), RD_CHEST, RD_VICTORY (or RD_TIME_UP). The steps on the shop screen and the walk after them were given more room on 2026-10-14: a click on a word takes a second or two to find it, and with the old spacing the walk to the gate began late in two runs of three. Since 2026-10-14 the crate and the hilichurl carry nameplates (scene_add_components {nameplates}): over the crate its health in words (木箱 50 / 100 after the first hit: {2:HpCur} / {2:HpMax}) and a yellow health bar, over the hilichurl a red one; both go down as they are hit.",
  "dir": "raid",
  "namePrefix": "RD_",
  "baseName": "未分类页签_存档_3",
@@ -464,6 +464,60 @@
      "value": 0
     }
    ]
+  },
+  {
+   "prefab": "RD_crate",
+   "nameplates": [
+    {
+     "above": 1.0,
+     "radius": 20,
+     "items": [
+      {
+       "text": "木箱 {2:HpCur} / {2:HpMax}",
+       "fontSize": 20,
+       "size": [
+        240,
+        30
+       ]
+      },
+      {
+       "health": {
+        "numbers": true,
+        "colour": "yellow"
+       },
+       "size": [
+        120,
+        10
+       ],
+       "offset": [
+        0,
+        -30
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "RD_brute",
+   "nameplates": [
+    {
+     "above": 2.2,
+     "radius": 20,
+     "items": [
+      {
+       "health": {
+        "colour": "red"
+       },
+       "size": [
+        140,
+        12
+       ]
+      }
+     ]
+    }
+   ]
   }
- ]
+ ],
+ "screenshotWidth": 1600
 }

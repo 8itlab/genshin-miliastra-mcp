@@ -190,10 +190,11 @@ try{
   assert.ok(contents(pick('mhujr59z1756_'),27).some(c=>c.equals(label)),'the label differs from the official one');
   const gauge=nameplateContent([{active:false,items:[{bar:{current:'当前值',min:'最小值',max:'最大值'},size:[300,50],offset:[0,100]}]}]);
   assert.ok(contents(pick('mhll54i94vjg_'),27).some(c=>c.equals(gauge)),'the bar differs from the official one');
-  const plated=addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{offset:[0,1.5,0],items:[{text:'守卫 {2:s.HpCur}'},{icon:11044,offset:[-80,0]}]},{active:false,items:[{bar:{current:'hp',min:'zero',max:'hpMax'}}]}]},workspace);
+  const plated=addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{offset:[0,1.5,0],items:[{text:'守卫 {2:HpCur}'},{icon:11044,offset:[-80,0]}]},{active:false,items:[{bar:{current:'hp',min:'zero',max:'hpMax'}}]}]},workspace);
   assert.deepEqual(listComponents({mapPath:plated.mapPath,prefab:'t_coin'}).found[0].nameplates,[{number:1,active:true,items:2},{number:2,active:false,items:1}]);
   assert.match(plated.next,/setEntityActiveNameplate/);
   assert.throws(()=>addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{items:[{text:'a',icon:1}]}]},workspace),e=>e.code==='INVALID_NAMEPLATE');
+  assert.throws(()=>addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{items:[{text:'血 {2:s.HpCur}'}]}]},workspace),e=>e.code==='INVALID_NAMEPLATE'&&/without a prefix/.test(e.message));
   assert.throws(()=>addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{items:[{bar:{current:'a'}}]}]},workspace),e=>e.code==='INVALID_NAMEPLATE');
   console.log(JSON.stringify({ok:true,triggerBytes:record(made.mapPath,'t_coin',5).length,tabBytes:record(made.mapPath,'t_coin',17).length}));
 }finally{fs.rmSync(workspace,{recursive:true,force:true});}
