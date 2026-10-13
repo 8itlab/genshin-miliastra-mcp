@@ -93,9 +93,6 @@
   "devDependencies": {
     "@types/node": "26.4.1"
   },
-  "os": [
-    "win32"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/8itlab/genshin-miliastra-mcp.git"

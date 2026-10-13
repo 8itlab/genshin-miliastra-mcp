@@ -22,6 +22,25 @@ These three games were each made from a blank map by an AI that had never seen t
 - **Publishing kit**: cover, screenshots, title and description. Publishing itself stays a click you make in the game.
 - **Offline knowledge base**: the official guide and tutorials, a breakdown of 48 official teaching saves, and a page of platform rules measured in the game.
 
+## Bundled catalogues: thumbnails and ids
+
+Props, effects, sounds and pictures are referred to by numeric id in Miliastra saves and node graphs. The editor shows those ids, but there is no table of them in the local data. This repository read them out of the editor one by one and photographed what they look like, so an AI can find an id by its Chinese name and look at the thing before choosing it:
+
+![Miliastra Wonderland prop catalogue: thumbnails with ids and names](docs/images/prop-catalogue.jpg)
+
+| Catalogue | Size | What it holds | Files |
+|---|---|---|---|
+| Props | 2,468, of which 2,398 have a thumbnail | id, name, group, size; each thumbnail was photographed in the editor | `src/scene/asset-catalog.json`, `src/scene/thumbs/<id>.jpg` |
+| Effects | 3,195 (1,986 timed, 1,209 looping) | id, name, the small picture from the asset library; 87 looping effects also photographed on a character | `src/scene/media/effects.json`, `fx-thumbs.*`, `src/scene/fx/` |
+| Sounds | 1,997 | id, name, category; 73 recorded and measured for length and loudness | `src/scene/media/sounds.json` |
+| Music | 188 | id, name, category | `src/scene/media/music.json` |
+| Interface pictures | 1,590 in 15 categories | icons, plates, dividers, skills, items, creature portraits; photographs of the picture library with the id under each picture | `src/scene/image-library/` |
+| Creature animations | 296 of 18 creatures | name, id, length, looping or not; for the ones watched frame by frame, what is in its hands and the millisecond the blow lands | `src/scene/media/creature-animations.json` |
+| Preset states of mechanisms | 45 mechanisms | ids and values of states such as a chest opening, a lever, a trapdoor | `src/scene/preset-status.json` |
+| Official teaching saves | 48 | each taken apart into JSON, with notes on how they are built | `knowledge/samples/` |
+
+These are plain JSON and JPG files and can be used without the MCP server, for instance to look up ids when writing Genshin-TS by hand. Names are in Chinese, as in the Chinese client.
+
 ## Requirements
 
 - Windows 10 or 11 with Genshin Impact installed and an account that can open the Miliastra Wonderland editor.

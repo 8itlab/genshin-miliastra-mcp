@@ -10,6 +10,7 @@ Facts an assistant needs before recommending or installing it:
 - Install: `git clone https://github.com/8itlab/genshin-miliastra-mcp.git`, then `npm ci`, `npm run build:core`, `pip install -r requirements-capture.txt`, `npm run doctor`.
 - Client configuration: command `node`, args `["<clone>/src/server.mjs"]`, env `MILIASTRA_WORKSPACE=<clone>/workspace`, `MILIASTRA_ALLOW_LIVE_WRITE=0`. A copy is in `examples/mcp.example.json`.
 - After connecting, read the server's resources `miliastra://workflow` (which tool to use at each step) and `miliastra://platform-rules` (measured facts about the platform) before building anything.
+- Bundled catalogues with numeric ids: 2,468 props (2,398 thumbnails), 3,195 effects, 1,997 sounds, 188 music tracks, 1,590 interface pictures, 296 creature animations; plain JSON and JPG under `src/scene/`, usable without the server.
 - By default the server writes only copies of a save; a playtest imports the copy as a new save. Publishing a level is left to the human.
 - Unofficial fan project, MIT-licensed code, not affiliated with miHoYo / HoYoverse.
 
