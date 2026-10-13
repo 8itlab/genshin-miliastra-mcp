@@ -147,6 +147,14 @@ try{
     assert.match(dealt.next,/invokeDeckSelector\(player, \d+n, 30, \[1n, 2n, 3n\], \[1n, 2n, 3n\], 1n, 1n, DecisionRefreshMode\.CannotRefresh/);
     const after9=fields(fields(container(fs.readFileSync(dealt.mapPath))).find(f=>f.id===9&&f.wire===2).data),ids=after9.filter(f=>f.id===502&&f.wire===2).map(r=>Number(fields(r.data).find(f=>f.id===501&&f.wire===0).value));
     assert.equal(new Set(ids).size,ids.length);assert.ok([0,1,2,3].every(k=>ids.includes(dealt.selectorId+k)));
+    // The four switches of the window (each switched off by hand in the editor and the save read): 516 the time shown,
+    // 518 the pause, 519 folding, 520 giving up.
+    const windowOf=recs=>{const blk=fields(recs[1]).filter(f=>f.id===505&&f.wire===2).map(f=>fields(f.data)).find(l=>Number(l.find(x=>x.id===502&&x.wire===0)?.value)===30);
+      return fields(fields(blk.find(x=>x.id===503).data).find(x=>x.id===23).data).filter(f=>f.wire===0).map(f=>f.id);};
+    const base={templateId:B+1,panelTemplateId:B+2,libraryId:B+3,panelLibraryId:B+4,slot:1,library:B,name:'n',title:'t',cards:[{title:'a'}]};
+    assert.deepEqual(windowOf(cardSelectorRecords(base)).filter(id=>id>=516),[516,518,519,520]);
+    assert.deepEqual(windowOf(cardSelectorRecords({...base,closing:false,collapsible:false,pause:false,showTime:false})).filter(id=>id>=516),[]);
+    assert.deepEqual(windowOf(cardSelectorRecords({...base,closing:false})).filter(id=>id>=516),[516,518,519]);
     assert.throws(()=>addCardSelector({mapPath:dealt.mapPath,name:'升级',cards:[{title:'a'}]},workspace),e=>e.code==='DUPLICATE_CONTROL_NAME');
     assert.throws(()=>addCardSelector({mapPath:dealt.mapPath,name:'空',cards:[{description:'no title'}]},workspace),e=>e.code==='INVALID_CARDS');
   }

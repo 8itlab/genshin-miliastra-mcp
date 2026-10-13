@@ -8,7 +8,7 @@
 
 ## 这个样例是什么
 
-The card selector (卡牌选择器), the platform's own window to choose one of a few cards; seen in play on 2026-10-14. scene_add_card_selector makes the selector CD_pick with a library of four cards (three known, one that hides what it is). The stage graph opens it for the player at level second 14 with f.invokeDeckSelector: three of the cards are shown, one is to be picked, twenty seconds to do it. The script clicks the label of the second card (拿敏捷) and then 确认选择, and the graph on the player template hears whenDeckSelectorIsComplete and prints the value the graph gave that card: CD_PICKED 20. Left alone, the window closes when the time is up and the graph gets the default (10). Opened at level second 3 the window did not show at all, though the event came twenty seconds later with the default: the level clock runs some seconds before the player sees anything, so a selector is opened some seconds in, or on something the player did.
+The card selector (卡牌选择器), the platform's own window to choose one of a few cards; seen in play on 2026-10-14. scene_add_card_selector makes the selector CD_pick with a library of four cards (three known, one that hides what it is). The player cannot give up choosing (canGiveUp: false: the window has no 放弃选择). The stage graph opens it for the player at level second 14 with f.invokeDeckSelector: three of the cards are shown, one is to be picked, twenty seconds to do it. The script clicks the label of the second card (拿敏捷) and then 确认选择, and the graph on the player template hears whenDeckSelectorIsComplete and prints the value the graph gave that card: CD_PICKED 20. Left alone, the window closes when the time is up and the graph gets the default (10). Opened at level second 3 the window did not show at all, though the event came twenty seconds later with the default: the level clock runs some seconds before the player sees anything, so a selector is opened some seconds in, or on something the player did.
 
 ## 一、工具调用顺序
 
@@ -17,7 +17,7 @@ The card selector (卡牌选择器), the platform's own window to choose one of 
 3. `scene_list_entities` `{"namePrefix":"CD_"}` → `{"total":0}`
 4. `scene_add_graph` `{"name":"CdStage"}` → `{"graphId":1073741825,"name":"_GSTS_CdStage"}`
 5. `scene_add_graph` `{"name":"CdPlayer","attachToPrefab":"player"}` → `{"graphId":1073741826,"name":"_GSTS_CdPlayer"}`
-6. `scene_add_card_selector` `{"name":"CD_pick","title":"选一项升级","seconds":20,"cards":[{"title":"力量","description":"攻击提高十点","label":"拿力量","icon":91001},{"title":"敏捷","description":"跑得更快","label":"拿敏捷","icon":91011},{"title":"体魄","description":"生命上限提高","label":"拿体魄","icon":91016},{"unknown":true,"label":"碰运气"}]}` → `{"name":"CD_pick"}`
+6. `scene_add_card_selector` `{"name":"CD_pick","title":"选一项升级","seconds":20,"cards":[{"title":"力量","description":"攻击提高十点","label":"拿力量","icon":91001},{"title":"敏捷","description":"跑得更快","label":"拿敏捷","icon":91011},{"title":"体魄","description":"生命上限提高","label":"拿体魄","icon":91016},{"unknown":true,"label":"碰运气"}],"canGiveUp":false}` → `{"name":"CD_pick"}`
 7. `scene_list_prefabs` `{}`
 8. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 2 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。
 9. `scene_list_components` `{"prefab":"player"}`

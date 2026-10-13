@@ -1,5 +1,5 @@
 {
- "about": "The card selector (卡牌选择器), the platform's own window to choose one of a few cards; seen in play on 2026-10-14. scene_add_card_selector makes the selector CD_pick with a library of four cards (three known, one that hides what it is). The stage graph opens it for the player at level second 14 with f.invokeDeckSelector: three of the cards are shown, one is to be picked, twenty seconds to do it. The script clicks the label of the second card (拿敏捷) and then 确认选择, and the graph on the player template hears whenDeckSelectorIsComplete and prints the value the graph gave that card: CD_PICKED 20. Left alone, the window closes when the time is up and the graph gets the default (10). Opened at level second 3 the window did not show at all, though the event came twenty seconds later with the default: the level clock runs some seconds before the player sees anything, so a selector is opened some seconds in, or on something the player did.",
+ "about": "The card selector (卡牌选择器), the platform's own window to choose one of a few cards; seen in play on 2026-10-14. scene_add_card_selector makes the selector CD_pick with a library of four cards (three known, one that hides what it is). The player cannot give up choosing (canGiveUp: false: the window has no 放弃选择). The stage graph opens it for the player at level second 14 with f.invokeDeckSelector: three of the cards are shown, one is to be picked, twenty seconds to do it. The script clicks the label of the second card (拿敏捷) and then 确认选择, and the graph on the player template hears whenDeckSelectorIsComplete and prints the value the graph gave that card: CD_PICKED 20. Left alone, the window closes when the time is up and the graph gets the default (10). Opened at level second 3 the window did not show at all, though the event came twenty seconds later with the default: the level clock runs some seconds before the player sees anything, so a selector is opened some seconds in, or on something the player did.",
  "dir": "cards",
  "namePrefix": "CD_",
  "baseName": "未分类页签_存档_3",
@@ -54,7 +54,8 @@
      "unknown": true,
      "label": "碰运气"
     }
-   ]
+   ],
+   "canGiveUp": false
   }
  ],
  "graphs": [

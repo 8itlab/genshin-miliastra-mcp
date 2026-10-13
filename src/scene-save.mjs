@@ -1004,12 +1004,14 @@ export function listInterface({mapPath}){
 // (f.invokeDeckSelector) and answered in the player's graph (whenDeckSelectorIsComplete). It is a control group of two
 // records, the group and its panel (管理器面板), made twice: the template (which a graph names) and its copy in the
 // control library; it stands in no layout. The panel fills the screen and carries four blocks: 30 the window (502: 1 a
-// title is shown, 503: the title, 515: the seconds to choose in, 517: the seconds before the end at which the clock
-// warns, the rest as the editor leaves them), 31 what a card shows (icon, title, description), 32 what happens to a
+// title is shown, 503: the title, 515: the seconds to choose in, 516: the time left is shown, 517: the seconds before
+// the end at which the clock warns, 518: the game stands still while a lone player chooses, 519: the window can be
+// folded away, 520: the player may give up choosing (516 and 518 to 520 switched off one by one in the editor and the
+// save read after each, 2026-10-14; the rest as the editor leaves them), 31 what a card shows (icon, title, description), 32 what happens to a
 // card of unknown content once chosen ({502: 1, 503: 1}: it is turned over), 33 the cards {503: {503: n, 505: 1} for
 // each, 504: {1: a card {1: its number, 2: 1 and 3: its icon and 5: its title and 6: 1 when its content is known, 4:
 // {501: the description}, 7: its label}...}}. Written after the two selectors of the official sample 卡牌选择器.
-export function cardSelectorRecords({templateId,panelTemplateId,libraryId,panelLibraryId,slot,library,name,title,seconds=30,warnSeconds,cards,reveal=false,closing=true}){
+export function cardSelectorRecords({templateId,panelTemplateId,libraryId,panelLibraryId,slot,library,name,title,seconds=30,warnSeconds,cards,reveal=false,closing=true,collapsible=true,pause=true,showTime=true}){
   const text=v=>Buffer.from(v,'utf8'),custom=Buffer.concat([field(15,2,EMPTY),field(501,0,5)]);
   const shown=field(505,2,uiBlock(14,custom,4,23,[field(503,2,uiBlock(14,custom,5,23,[field(503,0,1)]))]));
   const grouped=field(502,2,uiBlock(16,EMPTY,6,13,[field(503,2,uiBlock(15,EMPTY,6,13,[field(503,0,1)]))]));
@@ -1019,8 +1021,8 @@ export function cardSelectorRecords({templateId,panelTemplateId,libraryId,panelL
   const state=i=>field(501,2,Buffer.concat([i?field(501,0,i):EMPTY,field(502,2,Buffer.concat([field(501,2,Buffer.concat([field(1,5,f32(1)),field(2,5,f32(1)),field(3,5,f32(1))])),field(502,2,EMPTY),field(503,2,pair(1,1)),field(504,2,EMPTY),field(505,2,EMPTY),field(506,2,pair(0.5,0.5))]))]));
   const rect=Buffer.concat([state(0),state(1),state(2),state(3),field(502,0,7)]);
   const block=(wrap,type,inner,at)=>field(505,2,uiBlock(wrap,EMPTY,at,type,[field(503,2,uiBlock(wrap,inner,at+1,type,[field(503,0,1)]))]));
-  const windowed=Buffer.concat([field(502,0,1),field(503,2,text(title)),field(505,0,1),field(506,0,1),field(507,0,3),field(508,0,1),field(510,0,1),field(511,0,1),field(512,0,3),field(513,0,1),field(514,0,1),field(515,0,seconds),field(516,0,1),
-    ...(warnSeconds?[field(517,0,warnSeconds)]:[]),field(518,0,1),field(519,0,1),...(closing?[field(520,0,1)]:[])]);
+  const windowed=Buffer.concat([field(502,0,1),field(503,2,text(title)),field(505,0,1),field(506,0,1),field(507,0,3),field(508,0,1),field(510,0,1),field(511,0,1),field(512,0,3),field(513,0,1),field(514,0,1),field(515,0,seconds),...(showTime?[field(516,0,1)]:[]),
+    ...(warnSeconds?[field(517,0,warnSeconds)]:[]),...(pause?[field(518,0,1)]:[]),...(collapsible?[field(519,0,1)]:[]),...(closing?[field(520,0,1)]:[])]);
   const card=(c,i)=>field(1,2,c.unknown?Buffer.concat([field(1,0,i+1),field(4,2,EMPTY),field(7,2,text(c.label??''))])
     :Buffer.concat([field(1,0,i+1),field(2,0,1),field(3,0,c.icon??91001),field(4,2,field(501,2,text(c.description??''))),field(5,2,text(c.title)),field(6,0,1),field(7,2,text(c.label??''))]));
   const library_=Buffer.concat([...cards.map((c,i)=>field(503,2,Buffer.concat([field(503,0,i+1),field(505,0,1)]))),field(504,2,Buffer.concat(cards.map(card)))]);
@@ -1030,13 +1032,13 @@ export function cardSelectorRecords({templateId,panelTemplateId,libraryId,panelL
     block(23,30,windowed,13),block(24,31,Buffer.concat([field(502,0,1),field(503,0,1),field(504,0,1)]),14),block(25,32,reveal?Buffer.concat([field(502,0,1),field(503,0,1)]):EMPTY,15),block(26,33,library_,16)]);
   return [group(templateId,panelTemplateId,0),panel(panelTemplateId,templateId),group(libraryId,panelLibraryId,templateId),panel(panelLibraryId,libraryId)];
 }
-export function addCardSelector({mapPath,name,title,cards,seconds=30,warnSeconds,revealUnknown=false,outputName},workspace){
+export function addCardSelector({mapPath,name,title,cards,seconds=30,warnSeconds,revealUnknown=false,canGiveUp=true,canFold=true,pauseWhenAlone=true,showTime=true,outputName},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file),root=container(bytes),records=uiRecords(root),library=records.find(r=>r.structure.includes(14));
   if(!library)fail('UNSUPPORTED_SAVE','The save has no control library to add to.');
   if(records.some(r=>r.name===name))fail('DUPLICATE_CONTROL_NAME','The interface already has a control with this name.',{name});
   if(!Array.isArray(cards)||cards.length<1||cards.length>30||cards.some(c=>!c.unknown&&(typeof c.title!=='string'||!c.title)))fail('INVALID_CARDS','cards is a list of one to thirty cards: {title, description, icon, label}, or {unknown: true, label} for one whose content is hidden.');
   const next=Math.max(...records.map(r=>r.id))+1,slot=Math.max(0,...records.map(r=>r.slot))+1;
-  const fresh=cardSelectorRecords({templateId:next,panelTemplateId:next+1,libraryId:next+2,panelLibraryId:next+3,slot,library:library.id,name,title:title??name,seconds,warnSeconds,cards,reveal:revealUnknown});
+  const fresh=cardSelectorRecords({templateId:next,panelTemplateId:next+1,libraryId:next+2,panelLibraryId:next+3,slot,library:library.id,name,title:title??name,seconds,warnSeconds,cards,reveal:revealUnknown,closing:canGiveUp,collapsible:canFold,pause:pauseWhenAlone,showTime});
   const adopt=(data,child)=>{const parts=fields(data),list=parts.find(f=>f.id===503&&f.wire===2);
     if(list)return Buffer.concat(parts.map(f=>f===list?field(503,2,Buffer.concat([f.data,varint(child)])):f.raw));
     let last=-1;parts.forEach((f,i)=>{if(f.id===502&&f.wire===2)last=i;});

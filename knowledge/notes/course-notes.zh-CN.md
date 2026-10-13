@@ -31,7 +31,7 @@
 | 3.9 | 能力单元 | ✅ 直接攻击上机验证过（`abilityUnits`；`examples/kingdom4` 的弓铺射怪）；✅ 恢复生命也上机验证过（`f.recoverHp`，屏幕上的生命值 8492 → 9992） | 攻击盒攻击型 |
 | 3.10 | 命中检测、受击盒 | ✅ 受击盒上机验证过（`hurtBox`；`examples/strike`：带受击盒的箱子被技能的攻击盒打碎）；✅ 玩家技能打攻击盒（客户端节点【特定位置打攻击盒】，照官方普攻的参数） | 给物件配防御等其它战斗属性 |
 | 3.11 | 铭牌、文本气泡 | ✅ 都上机验证过（`scene_add_components` 的 `nameplates`、`textBubbles`、`attachPoints`；`examples/talk`，2026-10-14）：文本、图标、跟变量走的进度条、血条、导航指示器，气泡的循环和结束事件，图里切换 | 铭牌里的计时器和受打断值内容项 |
-| 3.12 | 卡牌选择器 | ✅ 上机验证过（`scene_add_card_selector`；`examples/cards`，2026-10-14）：唤起、点卡、确认、超时默认值 | 界面布局（列表 / 网格）等面板上的其它开关照官方样例的默认值写，没逐个量；刷新没试 |
+| 3.12 | 卡牌选择器 | ✅ 上机验证过（`scene_add_card_selector`；`examples/cards`，2026-10-14）：唤起、点卡、确认、超时默认值 | 四个开关（显示时间、单人暂停、可收起、可放弃）量过并能设；界面布局（列表 / 网格）、显示已选数量等照官方样例的默认值写；刷新没试 |
 | 3.14 | 掉落物、道具、背包 | ✅ 道具、掉落物、战利品、可使用的道具都上机验证过（`scene_add_item`、`scene_add_prefab` 的 `drop`、`scene_add_components` 的 `loot`、`scene_add_graph` 的 `kind:"item"`；`examples/shop`、`examples/drops`、`examples/potion`、`examples/raid`） | 掉落物的拾取方式只有按 F 这一种；道具的事件只在道具自己的图里收（见 PLATFORM_RULES） |
 | 3.15 | 装备 | 📖 🔧 | 装备栏、词条 |
 | 3.16 | 货币与商店 | ✅ 货币和商店都上机验证过（`scene_add_currency`、`scene_add_shop`；`examples/shop`：买、卖、库存、售罄，事件都对） | 背包商店（卖摊主自己背包里的东西）那种没做；运行时增删商品的节点没试 |
