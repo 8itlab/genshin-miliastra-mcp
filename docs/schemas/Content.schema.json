@@ -1,0 +1,287 @@
+{
+  "$ref": "#/definitions/Content",
+  "definitions": {
+    "Content": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "contentId": {
+          "type": "string",
+          "pattern": "^cnt_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "kind": {
+          "$ref": "#/definitions/Content/properties/displayName"
+        },
+        "authoringMode": {
+          "type": "string",
+          "enum": [
+            "recipe",
+            "custom-source"
+          ]
+        },
+        "recipe": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/Content/properties/displayName"
+                },
+                "version": {
+                  "$ref": "#/definitions/Content/properties/displayName"
+                }
+              },
+              "required": [
+                "id",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Content/properties/parameters/additionalProperties"
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/Content/properties/parameters/additionalProperties"
+                }
+              }
+            ]
+          }
+        },
+        "backend": {
+          "type": "object",
+          "properties": {
+            "adapterId": {
+              "$ref": "#/definitions/Content/properties/displayName"
+            },
+            "versionLockRef": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "adapterId",
+            "versionLockRef"
+          ],
+          "additionalProperties": false
+        },
+        "managedObjectIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "lockedFields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "objectId": {
+                "type": "string",
+                "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Content/properties/displayName"
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "objectId",
+              "paths"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Content/properties/backend/properties/versionLockRef"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fromId": {
+                "$ref": "#/definitions/Content/properties/displayName"
+              },
+              "toId": {
+                "$ref": "#/definitions/Content/properties/displayName"
+              },
+              "relation": {
+                "type": "string",
+                "enum": [
+                  "contains",
+                  "references",
+                  "mounts_graph",
+                  "requires_component",
+                  "binds_variable",
+                  "binds_signal",
+                  "binds_ui"
+                ]
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "scope": {
+                "$ref": "#/definitions/Content/properties/displayName"
+              },
+              "resolution": {
+                "type": "string",
+                "enum": [
+                  "resolved",
+                  "external_required",
+                  "unknown",
+                  "unsupported"
+                ]
+              }
+            },
+            "required": [
+              "fromId",
+              "toId",
+              "relation",
+              "required",
+              "scope",
+              "resolution"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Content/properties/displayName"
+          }
+        },
+        "externalBindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "internalObjectId": {
+                "type": "string",
+                "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "namespace": {
+                "$ref": "#/definitions/Content/properties/displayName"
+              },
+              "sourceGameId": {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              "importedGameId": {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              "importSessionId": {
+                "type": "string",
+                "pattern": "^imp_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "observedArtifactHash": {
+                "$ref": "#/definitions/Content/properties/backend/properties/versionLockRef"
+              },
+              "matchMethod": {
+                "$ref": "#/definitions/Content/properties/displayName"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "unresolved",
+                  "candidate",
+                  "confirmed",
+                  "conflict"
+                ]
+              }
+            },
+            "required": [
+              "internalObjectId",
+              "namespace",
+              "matchMethod",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "ownership": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "generated",
+                "adopted"
+              ]
+            },
+            "originRevisionId": {
+              "type": "string",
+              "pattern": "^rev_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "required": [
+            "mode",
+            "originRevisionId"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "contentId",
+        "displayName",
+        "kind",
+        "authoringMode",
+        "recipe",
+        "parameters",
+        "backend",
+        "managedObjectIds",
+        "lockedFields",
+        "sourceRefs",
+        "dependencies",
+        "requiredCapabilities",
+        "externalBindings",
+        "ownership"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

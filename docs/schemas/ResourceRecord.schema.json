@@ -1,0 +1,216 @@
+{
+  "$ref": "#/definitions/ResourceRecord",
+  "definitions": {
+    "ResourceRecord": {
+      "type": "object",
+      "properties": {
+        "resourceRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "namespace": {
+          "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+        },
+        "gameId": {
+          "type": "string",
+          "pattern": "^\\d+$"
+        },
+        "name": {
+          "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+        },
+        "resourceType": {
+          "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+        },
+        "entityClass": {
+          "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+        },
+        "targetProfile": {
+          "type": "object",
+          "properties": {
+            "gameBuild": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "editorBuild": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mode": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locale": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "coordinateProfile": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "gameBuildSource": {
+              "type": "string",
+              "enum": [
+                "observed",
+                "user_reported",
+                "unknown"
+              ]
+            }
+          },
+          "required": [
+            "gameBuild",
+            "editorBuild",
+            "mode",
+            "locale",
+            "coordinateProfile",
+            "gameBuildSource"
+          ],
+          "additionalProperties": false
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "sourceId": {
+              "type": "string",
+              "pattern": "^src_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "artifactHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "sourceId",
+            "artifactHash"
+          ],
+          "additionalProperties": false
+        },
+        "dimensions": {
+          "type": "object",
+          "properties": {
+            "unit": {
+              "type": "string",
+              "const": "meter"
+            },
+            "bounds": {
+              "type": "object",
+              "properties": {
+                "min": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "max": {
+                  "$ref": "#/definitions/ResourceRecord/properties/dimensions/properties/bounds/properties/min"
+                }
+              },
+              "required": [
+                "min",
+                "max"
+              ],
+              "additionalProperties": false
+            },
+            "source": {
+              "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+            },
+            "confidence": {
+              "type": "string",
+              "enum": [
+                "measured",
+                "declared",
+                "unknown"
+              ]
+            }
+          },
+          "required": [
+            "unit",
+            "bounds",
+            "source",
+            "confidence"
+          ],
+          "additionalProperties": false
+        },
+        "collisionEvidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^evd_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "supportedComponents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+          }
+        },
+        "licenseNote": {
+          "$ref": "#/definitions/ResourceRecord/properties/resourceRef"
+        },
+        "verifiedEvidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^evd_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        }
+      },
+      "required": [
+        "resourceRef",
+        "namespace",
+        "gameId",
+        "name",
+        "resourceType",
+        "entityClass",
+        "targetProfile",
+        "source",
+        "collisionEvidenceRefs",
+        "supportedComponents",
+        "verifiedEvidenceRefs"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

@@ -1,0 +1,223 @@
+{
+ "about": "The tools added on the night of 2026-10-12, tried together on the events example. The player is put on spots by teleport inputs and its place is sampled twice a second; the level has a respawn point at the start and takes one player; the class has a base health of 300 and may not climb; the coins are twice their size (scene_update_prefab); two stone fences of 1.56 m stand across the lane, the one at x=12 as the importer makes it and the one at x=14.5 with solid true; the stall flings whoever comes near 7 m/s straight up (launcher); the Game Bar records seconds 5 to 15. Expect: EV_COIN at play second 4 (the coin at x=4) and 6 (x=10); the walk of 2.5 s from x=10 passes the first fence if it has no collision, takes the coin at x=13 and stops at the solid fence near x=14.3 (the coin at x=16 stays); after the teleport to x=21 at second 11 the track rises a few metres and comes down; EV_TAB 1 and EV_PAID after F at 14; probe.teleportsDone 3; a health bar that no longer says 10000; video.file.",
+ "dir": "events",
+ "namePrefix": "EV_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 22,
+ "screenshotsAt": [
+  3,
+  5,
+  8,
+  9.5,
+  12,
+  13,
+  15,
+  18
+ ],
+ "inputs": [
+  {
+   "at": 4,
+   "teleport": [
+    4,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 6,
+   "teleport": [
+    10,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 7,
+   "key": "d",
+   "holdMs": 2500
+  },
+  {
+   "at": 11,
+   "teleport": [
+    21,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 14,
+   "key": "f"
+  },
+  {
+   "at": 16,
+   "key": "d",
+   "holdMs": 1000
+  }
+ ],
+ "scenes": [
+  "events_probe_scene.json"
+ ],
+ "camera": {
+  "distance": 12
+ },
+ "generator": "gen_events.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "EV_coin",
+   "scale": 1
+  },
+  {
+   "asset": 20001125,
+   "name": "EV_stall",
+   "scale": 1
+  }
+ ],
+ "components": [
+  {
+   "prefab": "EV_coin",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "size": [
+        2,
+        2,
+        2
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ],
+   "solid": false
+  },
+  {
+   "prefab": "EV_stall",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       6,
+       4,
+       6
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "付一枚币"
+     },
+     {
+      "text": "看看"
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "score",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "EV_stall",
+   "launcher": {
+    "areas": [
+     {
+      "radius": 1.5,
+      "offset": [
+       0,
+       0.5,
+       0
+      ]
+     }
+    ],
+    "speed": 7
+   }
+  }
+ ],
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "EvStage"
+  },
+  {
+   "key": "coin",
+   "name": "EvCoin",
+   "attachToPrefab": "EV_coin"
+  },
+  {
+   "key": "stall",
+   "name": "EvStall",
+   "attachToPrefab": "EV_stall"
+  },
+  {
+   "key": "player",
+   "name": "EvPlayer",
+   "attachToPrefab": "player"
+  }
+ ],
+ "bars": [
+  {
+   "name": "purse",
+   "variable": "score",
+   "max": 5,
+   "position": [
+    0,
+    380
+   ],
+   "size": [
+    260,
+    40
+   ]
+  }
+ ],
+ "trackPlayer": 0.5,
+ "respawnPoints": [
+  {
+   "position": [
+    0,
+    0.4,
+    0
+   ]
+  }
+ ],
+ "playerCount": {
+  "max": 1
+ },
+ "recordVideo": {
+  "from": 5,
+  "to": 15
+ },
+ "classes": [
+  {
+   "health": 300,
+   "allowClimb": false
+  }
+ ],
+ "prefabUpdates": [
+  {
+   "prefab": "EV_coin",
+   "scale": 2
+  }
+ ],
+ "readTextAt": [
+  3
+ ]
+}

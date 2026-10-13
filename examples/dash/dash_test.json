@@ -1,0 +1,117 @@
+{
+ "about": "Coin Dash, a second small game on a blank map (baseName is a blank save made in the game and saved once). The script walks right, left, up and down across the field. Expect DS_GO, several DS_COIN, DS_LAMP every ten seconds, and DS_HIT / DS_BACK when a slime catches the player.",
+ "dir": "dash",
+ "namePrefix": "DS_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 44,
+ "screenshotsAt": [
+  4,
+  7,
+  10,
+  13,
+  16,
+  20,
+  24,
+  28,
+  34,
+  40
+ ],
+ "inputs": [
+  {
+   "at": 4,
+   "key": "d",
+   "holdMs": 1400
+  },
+  {
+   "at": 7,
+   "key": "w",
+   "holdMs": 900
+  },
+  {
+   "at": 9,
+   "key": "a",
+   "holdMs": 2800
+  },
+  {
+   "at": 13,
+   "key": "s",
+   "holdMs": 1800
+  },
+  {
+   "at": 16,
+   "key": "d",
+   "holdMs": 2800
+  },
+  {
+   "at": 20,
+   "key": "w",
+   "holdMs": 1000
+  },
+  {
+   "at": 23,
+   "key": "a",
+   "holdMs": 1400
+  },
+  {
+   "at": 27,
+   "key": "s",
+   "holdMs": 600
+  },
+  {
+   "at": 30,
+   "key": "d",
+   "holdMs": 1200
+  }
+ ],
+ "scenes": [
+  "dash_scene.json"
+ ],
+ "camera": {
+  "distance": 18,
+  "yawRange": [
+   0,
+   0
+  ],
+  "pitchRange": [
+   55,
+   55
+  ]
+ },
+ "generator": "gen_dash.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "DS_coin",
+   "scale": 0.6
+  },
+  {
+   "asset": 10005009,
+   "name": "DS_count",
+   "scale": 0.35
+  },
+  {
+   "asset": 20002570,
+   "name": "DS_pip",
+   "scale": 0.5
+  },
+  {
+   "fromEntity": "DS_unit_slime",
+   "name": "DS_slime"
+  }
+ ],
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "level": {
+  "aggroMode": "custom"
+ },
+ "addGraph": {
+  "name": "CoinDash"
+ }
+}

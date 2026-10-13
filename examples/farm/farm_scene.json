@@ -1,0 +1,150 @@
+{
+ "name": "Farm_Demo",
+ "blocks": [
+  {
+   "template": 20002056,
+   "name": "FM_floor_0",
+   "position": [
+    -8,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_1",
+   "position": [
+    -4,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_2",
+   "position": [
+    0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_3",
+   "position": [
+    4,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_4",
+   "position": [
+    8,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_5",
+   "position": [
+    12,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_6",
+   "position": [
+    16,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_7",
+   "position": [
+    20,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_8",
+   "position": [
+    24,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_9",
+   "position": [
+    28,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "FM_floor_10",
+   "position": [
+    32,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "FM_wall_left",
+   "position": [
+    -2.8,
+    0,
+    0
+   ],
+   "size": [
+    0.3,
+    3,
+    6
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "FM_wall_right",
+   "position": [
+    24.5,
+    0,
+    0
+   ],
+   "size": [
+    0.3,
+    3,
+    6
+   ]
+  },
+  {
+   "template": 20001271,
+   "name": "FM_scarecrow",
+   "position": [
+    12.5,
+    0,
+    5
+   ]
+  },
+  {
+   "template": 20002275,
+   "name": "FM_hay",
+   "position": [
+    6,
+    0,
+    4
+   ]
+  }
+ ]
+}

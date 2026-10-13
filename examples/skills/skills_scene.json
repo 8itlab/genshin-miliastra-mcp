@@ -1,0 +1,33 @@
+{
+ "name": "Skills_Probe",
+ "blocks": [
+  {
+   "template": "石质墙体（灰）",
+   "name": "SK_floor",
+   "position": [
+    14,
+    -0.4,
+    0
+   ],
+   "size": [
+    60,
+    0.4,
+    10
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "SK_post",
+   "position": [
+    -4,
+    0,
+    3
+   ],
+   "size": [
+    0.4,
+    2,
+    0.4
+   ]
+  }
+ ]
+}

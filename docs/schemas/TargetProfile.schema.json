@@ -1,0 +1,81 @@
+{
+  "$ref": "#/definitions/TargetProfile",
+  "definitions": {
+    "TargetProfile": {
+      "type": "object",
+      "properties": {
+        "gameBuild": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "editorBuild": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TargetProfile/properties/gameBuild/anyOf/0"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TargetProfile/properties/gameBuild/anyOf/0"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locale": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TargetProfile/properties/gameBuild/anyOf/0"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coordinateProfile": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TargetProfile/properties/gameBuild/anyOf/0"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "gameBuildSource": {
+          "type": "string",
+          "enum": [
+            "observed",
+            "user_reported",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "gameBuild",
+        "editorBuild",
+        "mode",
+        "locale",
+        "coordinateProfile",
+        "gameBuildSource"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

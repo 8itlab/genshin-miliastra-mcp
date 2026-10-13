@@ -1,0 +1,76 @@
+{
+ "name": "Raid_Demo",
+ "blocks": [
+  {
+   "template": "石质墙体（灰）",
+   "name": "RD_wall_left",
+   "position": [
+    -2.8,
+    0,
+    0
+   ],
+   "size": [
+    0.3,
+    3,
+    6
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "RD_wall_a",
+   "position": [
+    19,
+    0,
+    5.5
+   ],
+   "size": [
+    0.4,
+    3,
+    7
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "RD_wall_b",
+   "position": [
+    19,
+    0,
+    -5.5
+   ],
+   "size": [
+    0.4,
+    3,
+    7
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "RD_wall_right",
+   "position": [
+    27,
+    0,
+    0
+   ],
+   "size": [
+    0.3,
+    3,
+    18
+   ]
+  },
+  {
+   "template": 30002003,
+   "name": "RD_enemy",
+   "position": [
+    40,
+    0.3,
+    30
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ],
+   "createAtStart": false
+  }
+ ]
+}

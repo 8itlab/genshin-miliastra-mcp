@@ -1,0 +1,24 @@
+{
+ "about": "Does a text control bound to level variables show them? Runs on the map the first Kingdom was built on (no baseName), which has such a control. The graph writes the clock into KINGDOM_COINS and, times a hundred, into KINGDOM_DAY; the screenshots should show the numbers changing.",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 16,
+ "screenshotsAt": [
+  5,
+  9,
+  13
+ ],
+ "inputs": [],
+ "scenes": [
+  "kingdom_v3_scene.json"
+ ],
+ "camera": {
+  "distance": 14,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_hud_probe.py"
+}

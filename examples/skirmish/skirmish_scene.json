@@ -1,0 +1,87 @@
+{
+ "name": "Skirmish",
+ "blocks": [
+  {
+   "template": "石质墙体（灰）",
+   "name": "SK_house",
+   "position": [
+    1.5,
+    0,
+    5.5
+   ],
+   "size": [
+    2.2,
+    2.2,
+    2.2
+   ]
+  },
+  {
+   "template": 20001954,
+   "name": "SK_wheat_0",
+   "position": [
+    7.6,
+    0,
+    5.6
+   ]
+  },
+  {
+   "template": 20001954,
+   "name": "SK_wheat_1",
+   "position": [
+    6.2,
+    0,
+    6.0
+   ]
+  },
+  {
+   "template": 20002586,
+   "name": "SK_gate",
+   "position": [
+    28,
+    0,
+    4.6
+   ],
+   "scale": 1.1
+  },
+  {
+   "template": 30006009,
+   "name": "SK_farmer_src",
+   "position": [
+    0,
+    0,
+    16
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30006009,
+   "name": "SK_thrower_src",
+   "position": [
+    3,
+    0,
+    16
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30008001,
+   "name": "SK_soldier_src",
+   "position": [
+    6,
+    0,
+    16
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30007001,
+   "name": "SK_foe_src",
+   "position": [
+    9,
+    0,
+    16
+   ],
+   "createAtStart": false
+  }
+ ]
+}

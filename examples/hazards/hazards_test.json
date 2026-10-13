@@ -1,0 +1,180 @@
+{
+ "about": "What pickups and hazards do to a character, tried on one lane. The player starts at x = -15 and is held on D from second 3 to 15: a coin at x = -11 gives the status boots (speed +40 % for six seconds: the track should show about 7 m/s instead of 5.2), one at x = -3 gives snare (rooted for two seconds: the track stands still, then goes on), a big coin at x = 4 is a bumper (launcher, direction away, 10 m/s: the walk is thrown back). At 16 the player is put at x = 6 and walks into an unseen wall at x = 10 (a prefab of the empty model with extra collision): it should stop near x = 9.7. At level second 26 the stage graph knocks the player down; with revive set to two seconds, by itself, without the screen, the track should jump back to the respawn point at x = -15. Expect HZ_GO, HZ_BOOTS, HZ_SNARE, HZ_DOWN, and read playerTrack.",
+ "dir": "hazards",
+ "namePrefix": "HZ_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 28,
+ "screenshotsAt": [
+  2.5,
+  5,
+  8,
+  11,
+  14,
+  18,
+  21,
+  23,
+  26
+ ],
+ "trackPlayer": 0.25,
+ "inputs": [
+  {
+   "at": 3,
+   "key": "d",
+   "holdMs": 12000
+  },
+  {
+   "at": 16,
+   "teleport": [
+    6,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 17,
+   "key": "d",
+   "holdMs": 2000
+  }
+ ],
+ "scenes": [
+  "hazards_scene.json"
+ ],
+ "camera": {
+  "distance": 16
+ },
+ "generator": "gen_hazards.py",
+ "prefabs": [
+  {
+   "asset": 10005018,
+   "name": "HZ_pane"
+  },
+  {
+   "asset": 10005009,
+   "name": "HZ_bumper",
+   "scale": 2.5
+  },
+  {
+   "asset": 10005009,
+   "name": "HZ_boots",
+   "scale": 1
+  },
+  {
+   "asset": 10005009,
+   "name": "HZ_snare",
+   "scale": 1
+  }
+ ],
+ "statuses": [
+  {
+   "name": "HZ_fast",
+   "speedPercent": 40,
+   "seconds": 6
+  },
+  {
+   "name": "HZ_held",
+   "rooted": true,
+   "seconds": 2
+  }
+ ],
+ "components": [
+  {
+   "prefab": "HZ_pane",
+   "extraCollision": {
+    "areas": [
+     {
+      "size": [
+       0.5,
+       4,
+       8
+      ],
+      "offset": [
+       0,
+       2,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "HZ_bumper",
+   "launcher": {
+    "areas": [
+     {
+      "radius": 1.6,
+      "offset": [
+       0,
+       0.5,
+       0
+      ]
+     }
+    ],
+    "speed": 10,
+    "direction": "away",
+    "holdSeconds": 0.3
+   }
+  },
+  {
+   "prefab": "HZ_boots",
+   "solid": false,
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 1.5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "HZ_snare",
+   "solid": false,
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 1.5
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "respawnPoints": [
+  {
+   "position": [
+    -15,
+    0.4,
+    0
+   ]
+  }
+ ],
+ "revive": {
+  "seconds": 2,
+  "auto": true,
+  "showScreen": false
+ },
+ "playerCount": {
+  "max": 1
+ },
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "HzStage"
+  },
+  {
+   "key": "boots",
+   "name": "HzBoots",
+   "attachToPrefab": "HZ_boots"
+  },
+  {
+   "key": "snare",
+   "name": "HzSnare",
+   "attachToPrefab": "HZ_snare"
+  }
+ ]
+}

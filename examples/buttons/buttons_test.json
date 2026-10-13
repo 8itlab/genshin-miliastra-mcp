@@ -1,0 +1,116 @@
+{
+ "about": "Interaction buttons on the screen (scene_add_button): two buttons at the lower right with the keys 1 and 2, a graph on the player template that hears whenUiControlGroupIsTriggered, a progress bar that counts the presses. The script presses 1, 2, 1, 1: the bar ends at four of five. Played as written on 2026-10-11 (a first run showed that mouse clicks do not reach the buttons during play: the cursor belongs to the camera). Prints: BT_READY, BT_PRESS index compositeIndex (both are the control id scene_add_button returned).",
+ "dir": "buttons",
+ "namePrefix": "BT_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 14,
+ "screenshotsAt": [
+  2,
+  4.5,
+  7,
+  9.5,
+  12.5
+ ],
+ "readTextAt": [
+  2.1
+ ],
+ "inputs": [
+  {
+   "at": 3.5,
+   "key": "1"
+  },
+  {
+   "at": 6,
+   "key": "2"
+  },
+  {
+   "at": 8.5,
+   "key": "1"
+  },
+  {
+   "at": 10.5,
+   "key": "1"
+  }
+ ],
+ "scenes": [
+  "buttons_scene.json"
+ ],
+ "camera": {
+  "distance": 8,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_buttons.py",
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "bars": [
+  {
+   "name": "BT_score",
+   "variable": "score",
+   "max": 5,
+   "position": [
+    0,
+    330
+   ],
+   "size": [
+    260,
+    40
+   ]
+  }
+ ],
+ "buttons": [
+  {
+   "name": "BT_one",
+   "position": [
+    450,
+    -250
+   ]
+  },
+  {
+   "name": "BT_two",
+   "position": [
+    620,
+    -250
+   ],
+   "key": 2
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "BtStage"
+  },
+  {
+   "key": "player",
+   "name": "BtPlayer",
+   "attachToPrefab": "player"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "score",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  }
+ ]
+}

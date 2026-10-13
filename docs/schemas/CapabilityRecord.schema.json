@@ -1,0 +1,164 @@
+{
+  "$ref": "#/definitions/CapabilityRecord",
+  "definitions": {
+    "CapabilityRecord": {
+      "type": "object",
+      "properties": {
+        "capabilityId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "adapterId": {
+          "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+        },
+        "versionLockRef": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "targetProfile": {
+          "type": "object",
+          "properties": {
+            "gameBuild": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "editorBuild": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mode": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locale": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "coordinateProfile": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "gameBuildSource": {
+              "type": "string",
+              "enum": [
+                "observed",
+                "user_reported",
+                "unknown"
+              ]
+            }
+          },
+          "required": [
+            "gameBuild",
+            "editorBuild",
+            "mode",
+            "locale",
+            "coordinateProfile",
+            "gameBuildSource"
+          ],
+          "additionalProperties": false
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/CapabilityRecord/properties/scope"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/CapabilityRecord/properties/scope"
+              }
+            }
+          ]
+        },
+        "implementationStatus": {
+          "type": "string",
+          "enum": [
+            "unavailable",
+            "experimental",
+            "supported",
+            "disabled"
+          ]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^evd_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CapabilityRecord/properties/capabilityId"
+          }
+        }
+      },
+      "required": [
+        "capabilityId",
+        "adapterId",
+        "versionLockRef",
+        "targetProfile",
+        "scope",
+        "implementationStatus",
+        "evidenceRefs",
+        "limitations",
+        "prerequisites"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

@@ -1,0 +1,160 @@
+{
+ "about": "A ranged attack: a bolt prefab with projectile motion, hit detection (hurt boxes only) and an ability unit (scene_add_components {projectile, hitDetection, abilityUnits}), launched by the character's graph with f.createProjectile when E is pressed. A crate with 50 health and a hurt box stands seven metres ahead. Three shots: the first takes 30.65 off the crate (the unit's 1 x attack + 60, less the crate's defence), the second breaks it, the third meets nothing and is removed after three seconds. Played as written on its third run, 2026-10-11 (first the bolt was removed on touching the crate's own collision, then in the very moment it hit, before its attack counted). Prints: SH_READY, SH_FIRE, SH_TOUCH, SH_HURT damage, SH_DEAD.",
+ "dir": "shoot",
+ "namePrefix": "SH_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 14,
+ "screenshotsAt": [
+  2.5,
+  4.2,
+  4.4,
+  4.6,
+  5,
+  6.2,
+  6.4,
+  6.6,
+  8.3,
+  10,
+  12
+ ],
+ "inputs": [
+  {
+   "at": 4,
+   "key": "e"
+  },
+  {
+   "at": 6,
+   "key": "e"
+  },
+  {
+   "at": 8,
+   "key": "e"
+  }
+ ],
+ "scenes": [
+  "shoot_scene.json"
+ ],
+ "camera": {
+  "distance": 10,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_shoot.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "SH_bolt",
+   "scale": 0.6
+  },
+  {
+   "asset": 10005008,
+   "name": "SH_crate",
+   "scale": 1.5,
+   "health": 50
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "ShtStage"
+  },
+  {
+   "key": "hero",
+   "name": "ShtHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "bolt",
+   "name": "ShtBolt",
+   "attachToPrefab": "SH_bolt"
+  },
+  {
+   "key": "crate",
+   "name": "ShtCrate",
+   "attachToPrefab": "SH_crate"
+  },
+  {
+   "key": "fire",
+   "name": "ShtFire",
+   "kind": "characterSkill"
+  }
+ ],
+ "skills": [
+  {
+   "name": "SH_fire",
+   "graph": "fire"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "SH_bolt",
+   "solid": false,
+   "projectile": {
+    "type": "straight",
+    "velocity": [
+     0,
+     0,
+     12
+    ]
+   },
+   "hitDetection": {
+    "areas": [
+     {
+      "radius": 0.5
+     }
+    ],
+    "trigger": "oncePerEntity",
+    "delaySeconds": 0.15,
+    "abilityUnit": "SH_strike",
+    "layers": [
+     "hurtBox"
+    ]
+   },
+   "abilityUnits": [
+    {
+     "name": "SH_strike",
+     "attack": {
+      "coefficient": 1,
+      "added": 60
+     }
+    }
+   ]
+  },
+  {
+   "prefab": "SH_crate",
+   "hurtBox": {
+    "areas": [
+     {
+      "size": [
+       1.6,
+       1.2,
+       1.4
+      ],
+      "offset": [
+       0,
+       0.6,
+       0
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

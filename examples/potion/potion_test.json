@@ -1,0 +1,101 @@
+{
+ "about": "An item the player uses from the backpack: an item graph (scene_add_graph {kind: item}) and a consumable that names it (scene_add_item {category: consumable, useGraph}). The character starts with two potions; the script presses B (the backpack), clicks the potion, clicks 使用 and 确认: the item graph runs and puts seven coins into the purse, one potion is left, and the item shows the seconds until it can be used again. The item graph also hears the item's other events, each shown as coins of its own (100: it came into the backpack; 1000: its number changed). Played as written on 2026-10-11: PT_COIN 100 and 1000 when the potions are handed out, 1000 and 7 when one is used, 2107 coins in the end. Prints: PT_READY, PT_HOLD coins potions (every two seconds), PT_COIN change.",
+ "dir": "potion",
+ "namePrefix": "PT_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 16,
+ "screenshotsAt": [
+  2,
+  4.5,
+  7,
+  9.5,
+  12,
+  14.5
+ ],
+ "readTextAt": [
+  4.6,
+  7.1,
+  9.6,
+  12.1
+ ],
+ "inputs": [
+  {
+   "at": 3.5,
+   "key": "b"
+  },
+  {
+   "at": 6,
+   "click": [
+    0.72,
+    0.355
+   ]
+  },
+  {
+   "at": 8.5,
+   "clickText": "使用"
+  },
+  {
+   "at": 11,
+   "clickText": "确认"
+  }
+ ],
+ "scenes": [
+  "potion_scene.json"
+ ],
+ "camera": {
+  "distance": 8,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_potion.py",
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "currencies": [
+  {
+   "name": "PT_coin",
+   "icon": 100007,
+   "startAmount": 0
+  }
+ ],
+ "items": [
+  {
+   "name": "PT_potion",
+   "icon": 90015,
+   "category": "consumable",
+   "useGraph": "drink",
+   "description": "喝下去得七枚币"
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "PtStage"
+  },
+  {
+   "key": "hero",
+   "name": "PtHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "drink",
+   "name": "PtDrink",
+   "kind": "item",
+   "log": false
+  }
+ ]
+}

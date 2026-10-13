@@ -1,0 +1,104 @@
+{
+  "$ref": "#/definitions/SourceRegistration",
+  "definitions": {
+    "SourceRegistration": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "sourceId": {
+          "type": "string",
+          "pattern": "^src_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "projectId": {
+          "type": "string",
+          "pattern": "^prj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "localPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "gil",
+            "gia"
+          ]
+        },
+        "blobHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "registeredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "reference",
+            "import-observation"
+          ]
+        },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "type": "string",
+              "enum": [
+                "real-editor-save",
+                "real-editor-export",
+                "synthetic-binary"
+              ]
+            },
+            "licenseNote": {
+              "$ref": "#/definitions/SourceRegistration/properties/localPath"
+            },
+            "gameBuild": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/SourceRegistration/properties/localPath"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "gameBuildSource": {
+              "type": "string",
+              "enum": [
+                "observed",
+                "user_reported",
+                "unknown"
+              ]
+            }
+          },
+          "required": [
+            "origin",
+            "licenseNote",
+            "gameBuild",
+            "gameBuildSource"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "sourceId",
+        "projectId",
+        "localPath",
+        "format",
+        "blobHash",
+        "registeredAt",
+        "purpose",
+        "provenance"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

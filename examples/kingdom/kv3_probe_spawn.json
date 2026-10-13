@@ -1,0 +1,33 @@
+{
+ "about": "A creature prefab made from a placed creature (scene_add_prefab fromEntity): the graph creates two near the player, one in the player's faction and one hostile. Expect SP_COUNT 2 and the two fighting each other or the player. Runs on the map the first Kingdom was built on (no baseName).",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 36,
+ "screenshotsAt": [
+  9,
+  13,
+  18,
+  24,
+  32
+ ],
+ "inputs": [],
+ "scenes": [
+  "kingdom_v3_scene.json",
+  "kingdom_v3_scenery.json"
+ ],
+ "camera": {
+  "distance": 14,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_spawn_probe.py",
+ "prefabs": [
+  {
+   "fromEntity": "KV_enemy_00",
+   "name": "KV_guard"
+  }
+ ]
+}

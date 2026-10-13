@@ -1,0 +1,218 @@
+{
+ "name": "Hop_Demo",
+ "blocks": [
+  {
+   "template": 20002056,
+   "name": "HP_floor_0",
+   "position": [
+    -8,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_1",
+   "position": [
+    -4,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_2",
+   "position": [
+    0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_3",
+   "position": [
+    4,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_4",
+   "position": [
+    8,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_5",
+   "position": [
+    12,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_6",
+   "position": [
+    16,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_7",
+   "position": [
+    20,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_8",
+   "position": [
+    24,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_9",
+   "position": [
+    28,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_10",
+   "position": [
+    32,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_11",
+   "position": [
+    36,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_12",
+   "position": [
+    40,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_13",
+   "position": [
+    44,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_14",
+   "position": [
+    48,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_15",
+   "position": [
+    52,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_16",
+   "position": [
+    56,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_17",
+   "position": [
+    60,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HP_floor_18",
+   "position": [
+    64,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "HP_ledge",
+   "position": [
+    9,
+    0,
+    0
+   ],
+   "size": [
+    6,
+    0.6,
+    4
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "HP_far",
+   "position": [
+    43,
+    0,
+    0
+   ],
+   "size": [
+    30,
+    0.6,
+    4
+   ]
+  },
+  {
+   "template": "火质立方体",
+   "name": "HP_lava",
+   "position": [
+    41.5,
+    0.6,
+    0
+   ],
+   "size": [
+    3,
+    0.06,
+    4
+   ]
+  }
+ ]
+}

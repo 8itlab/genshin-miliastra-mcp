@@ -1,0 +1,41 @@
+{
+ "name": "Hazards_Check",
+ "blocks": [
+  {
+   "template": 20002056,
+   "name": "HZ_floor_0",
+   "position": [
+    -16.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HZ_floor_1",
+   "position": [
+    -6.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HZ_floor_2",
+   "position": [
+    4.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "HZ_floor_3",
+   "position": [
+    14.0,
+    -0.2,
+    0
+   ]
+  }
+ ]
+}

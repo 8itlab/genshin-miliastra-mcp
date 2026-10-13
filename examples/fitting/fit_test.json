@@ -1,0 +1,151 @@
+{
+ "about": "The fitting room: complex creatures stand in front of the camera, as their models come and with tools in the hand, and play one animation each, booth after booth (fit_spec.py says which). It is how an attack is made to match its animation before it goes into a game: what the model holds, what a mounted weapon looks like in the hand, at which millisecond the stroke lands, how far it carries the creature. The whole play is photographed eight times a second (bursts): playtest_frames {runId, fromSeconds, toSeconds, crop} puts a booth's frames side by side, each labelled with its play second to a hundredth. Prints: FT <booth> when a booth opens (the log's clock runs five to six seconds ahead of the play seconds of the frames), FT_S every time a skill's graph runs: at the moment given as graphAtMs, and once for every moment when a list was given (a triple stroke with three moments prints three times each time it plays). To look at other creatures or animations, change SHOWS and MOMENTS in fit_spec.py and run make_fit.py; creature_animations lists the animations of a creature and what was already seen of them.",
+ "dir": "fitting",
+ "namePrefix": "FT_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 32,
+ "screenshotsAt": [
+  4,
+  30
+ ],
+ "inputs": [],
+ "bursts": [
+  {
+   "from": 1,
+   "to": 31,
+   "everyMs": 125
+  }
+ ],
+ "burstWidth": 1600,
+ "scenes": [
+  "fit_scene.json"
+ ],
+ "camera": {
+  "distance": 3.5
+ },
+ "generator": "gen_fitting.py",
+ "batch": true,
+ "spawn": {
+  "position": [
+   -25,
+   0.4,
+   -26
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "prefabs": [
+  {
+   "fromEntity": "FT_hili_src",
+   "name": "FT_hili"
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "FtStage"
+  },
+  {
+   "key": "unit",
+   "name": "FtUnit",
+   "attachToPrefab": [
+    "FT_hili"
+   ]
+  },
+  {
+   "key": "skill",
+   "name": "FtSkill",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "mind",
+   "name": "FtMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "show",
+   "name": "FtShow",
+   "kind": "creatureStatus"
+  }
+ ],
+ "creatureSkills": [
+  {
+   "name": "FT_hili_1",
+   "creature": 30007001,
+   "graph": "skill",
+   "animation": "攻击",
+   "graphAtMs": 1050
+  },
+  {
+   "name": "FT_hili_2",
+   "creature": 30007001,
+   "graph": "skill",
+   "animation": "单手武器_三连击",
+   "graphAtMs": [
+    350,
+    900,
+    1700
+   ]
+  }
+ ],
+ "creatureLogic": [
+  {
+   "prefab": "FT_hili",
+   "decisionGraph": "mind",
+   "skills": [
+    {
+     "skill": "FT_hili_1",
+     "cooldownSeconds": [
+      0.6,
+      0.6
+     ]
+    },
+    {
+     "skill": "FT_hili_2",
+     "cooldownSeconds": [
+      0.6,
+      0.6
+     ]
+    }
+   ]
+  }
+ ],
+ "components": [
+  {
+   "entity": "关卡实体",
+   "variables": [
+    {
+     "name": "booth",
+     "type": "integer",
+     "value": -1
+    },
+    {
+     "name": "t",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "FT_hili",
+   "variables": [
+    {
+     "name": "k",
+     "type": "integer",
+     "value": -2
+    },
+    {
+     "name": "s",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  }
+ ]
+}

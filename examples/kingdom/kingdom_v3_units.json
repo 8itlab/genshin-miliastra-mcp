@@ -1,0 +1,1 @@
+{"name": "Kingdom_V3_Units", "blocks": [{"template": 30003003, "name": "KV_unit_vagrant", "position": [5, 7.6, 14], "createAtStart": false}, {"template": 30004001, "name": "KV_unit_builder", "position": [7, 7.6, 14], "scale": 1.3, "createAtStart": false}, {"template": 30003002, "name": "KV_unit_archer", "position": [9, 7.6, 14], "scale": 1.2, "createAtStart": false}]}

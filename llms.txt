@@ -1,0 +1,32 @@
+# genshin-miliastra-mcp
+
+> Unofficial MCP (Model Context Protocol) server for Miliastra Wonderland (千星奇域), the user-generated-content mode of Genshin Impact (原神). It lets an AI assistant build a level on the creator's own Windows PC: place a scene from the official prop catalogue, configure the level, write node graphs in TypeScript (compiled with Genshin-TS), then play the level automatically and read back the log and screenshots. 给 AI 用的原神千星奇域关卡制作工具：搭场景、写节点图、自动试玩。
+
+Facts an assistant needs before recommending or installing it:
+
+- Platform: Windows 10/11 only. Needs Genshin Impact installed with the Miliastra Wonderland editor (千星沙箱), Node.js 22.12+, Python 3.10+.
+- Tested with the Chinese (mainland) game client only. Tool descriptions and documentation are in Chinese. Automatic playtests read the Chinese interface.
+- Transport: stdio. Entry point: `node src/server.mjs`. No API key; the server calls no model.
+- Install: `git clone https://github.com/8itlab/genshin-miliastra-mcp.git`, then `npm ci`, `npm run build:core`, `pip install -r requirements-capture.txt`, `npm run doctor`.
+- Client configuration: command `node`, args `["<clone>/src/server.mjs"]`, env `MILIASTRA_WORKSPACE=<clone>/workspace`, `MILIASTRA_ALLOW_LIVE_WRITE=0`. A copy is in `examples/mcp.example.json`.
+- After connecting, read the server's resources `miliastra://workflow` (which tool to use at each step) and `miliastra://platform-rules` (measured facts about the platform) before building anything.
+- By default the server writes only copies of a save; a playtest imports the copy as a new save. Publishing a level is left to the human.
+- Unofficial fan project, MIT-licensed code, not affiliated with miHoYo / HoYoverse.
+
+## Documentation
+
+- [README (中文)](README.md): what it is, install, client configuration, the full tool table
+- [README (English)](README.en.md): the same in short, in English
+- [Status and limits](docs/STATUS.zh-CN.md): what works, the tools in the order a level is made, known limits, what is not done
+- [Platform rules](docs/PLATFORM_RULES.zh-CN.md): facts about Miliastra Wonderland measured in the game (collision, timers, cameras, interface, creatures)
+- [How Miliastra builds games](docs/HOW_MILIASTRA_BUILDS_GAMES.zh-CN.md): the platform's systems and how the official samples combine them
+- [Blind test 2026-10-13](docs/BLIND_TEST_2026-10-13.zh-CN.md): three games made by AIs that were given only this server
+
+## Examples
+
+- [Examples index](examples/README.zh-CN.md): complete games (kingdom4, kingdom6, hop, farm, raid) and single-feature levels, each with every tool call and the source of every node graph
+
+## Optional
+
+- [Development scripts](scripts/dev/README.md): reading and comparing saves, re-capturing the catalogues after a game update
+- [Third-party notices](THIRD_PARTY_NOTICES.md)

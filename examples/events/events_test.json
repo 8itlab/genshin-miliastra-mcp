@@ -1,0 +1,151 @@
+{
+ "about": "The platform's own way of building, checked end to end on a blank map: five coins are a prefab with a collision trigger and their own graph (walk in: the player's custom variable score goes up, the coin destroys itself); the stall is a prefab with an option tab and its own graph (choose 付一枚币: one coin is taken); the player template holds the variable score and a graph that hears it change; the stage entity only sets the scene and hears things being destroyed. A bar at the top of the screen follows score (the purse). Nothing polls positions. Expect EV_READY, EV_GO, EV_COIN x5, EV_SCORE after each change, EV_GONE x5 on the stage graph, then EV_TAB 1 and EV_PAID at the stall.",
+ "dir": "events",
+ "namePrefix": "EV_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 34,
+ "screenshotsAt": [
+  5,
+  8,
+  10,
+  12,
+  15,
+  17,
+  20,
+  24,
+  28
+ ],
+ "inputs": [
+  {
+   "at": 7,
+   "key": "d",
+   "holdMs": 4300
+  },
+  {
+   "at": 14,
+   "key": "f"
+  },
+  {
+   "at": 19,
+   "key": "f"
+  }
+ ],
+ "scenes": [
+  "events_scene.json"
+ ],
+ "camera": {
+  "distance": 12
+ },
+ "generator": "gen_events.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "EV_coin",
+   "scale": 1
+  },
+  {
+   "asset": 20001125,
+   "name": "EV_stall",
+   "scale": 1
+  }
+ ],
+ "components": [
+  {
+   "prefab": "EV_coin",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "size": [
+        2,
+        2,
+        2
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ],
+   "solid": false
+  },
+  {
+   "prefab": "EV_stall",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       6,
+       4,
+       6
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "付一枚币"
+     },
+     {
+      "text": "看看"
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "score",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  }
+ ],
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "EvStage"
+  },
+  {
+   "key": "coin",
+   "name": "EvCoin",
+   "attachToPrefab": "EV_coin"
+  },
+  {
+   "key": "stall",
+   "name": "EvStall",
+   "attachToPrefab": "EV_stall"
+  },
+  {
+   "key": "player",
+   "name": "EvPlayer",
+   "attachToPrefab": "player"
+  }
+ ],
+ "bars": [
+  {
+   "name": "purse",
+   "variable": "score",
+   "max": 5,
+   "position": [
+    0,
+    380
+   ],
+   "size": [
+    260,
+    40
+   ]
+  }
+ ]
+}

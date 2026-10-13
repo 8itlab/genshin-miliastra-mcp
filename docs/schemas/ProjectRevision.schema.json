@@ -1,0 +1,673 @@
+{
+  "$ref": "#/definitions/ProjectRevision",
+  "definitions": {
+    "ProjectRevision": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "projectId": {
+          "type": "string",
+          "pattern": "^prj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "revisionId": {
+          "type": "string",
+          "pattern": "^rev_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "parentRevisionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^rev_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "transactionId": {
+          "type": "string",
+          "pattern": "^txn_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "targetProfile": {
+          "type": "object",
+          "properties": {
+            "gameBuild": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "editorBuild": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mode": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locale": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "coordinateProfile": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "gameBuildSource": {
+              "type": "string",
+              "enum": [
+                "observed",
+                "user_reported",
+                "unknown"
+              ]
+            }
+          },
+          "required": [
+            "gameBuild",
+            "editorBuild",
+            "mode",
+            "locale",
+            "coordinateProfile",
+            "gameBuildSource"
+          ],
+          "additionalProperties": false
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "schemaVersion": {
+                "type": "string",
+                "const": "1.0"
+              },
+              "contentId": {
+                "type": "string",
+                "pattern": "^cnt_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "displayName": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "kind": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "authoringMode": {
+                "type": "string",
+                "enum": [
+                  "recipe",
+                  "custom-source"
+                ]
+              },
+              "recipe": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                      },
+                      "version": {
+                        "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "version"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/parameters/additionalProperties"
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": {
+                        "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/parameters/additionalProperties"
+                      }
+                    }
+                  ]
+                }
+              },
+              "backend": {
+                "type": "object",
+                "properties": {
+                  "adapterId": {
+                    "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                  },
+                  "versionLockRef": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "adapterId",
+                  "versionLockRef"
+                ],
+                "additionalProperties": false
+              },
+              "managedObjectIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              },
+              "lockedFields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "objectId": {
+                      "type": "string",
+                      "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    },
+                    "paths": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "objectId",
+                    "paths"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "sourceRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+                }
+              },
+              "dependencies": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "fromId": {
+                      "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                    },
+                    "toId": {
+                      "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                    },
+                    "relation": {
+                      "type": "string",
+                      "enum": [
+                        "contains",
+                        "references",
+                        "mounts_graph",
+                        "requires_component",
+                        "binds_variable",
+                        "binds_signal",
+                        "binds_ui"
+                      ]
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "scope": {
+                      "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                    },
+                    "resolution": {
+                      "type": "string",
+                      "enum": [
+                        "resolved",
+                        "external_required",
+                        "unknown",
+                        "unsupported"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "fromId",
+                    "toId",
+                    "relation",
+                    "required",
+                    "scope",
+                    "resolution"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "requiredCapabilities": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                }
+              },
+              "externalBindings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "internalObjectId": {
+                      "type": "string",
+                      "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    },
+                    "namespace": {
+                      "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                    },
+                    "sourceGameId": {
+                      "type": "string",
+                      "pattern": "^\\d+$"
+                    },
+                    "importedGameId": {
+                      "type": "string",
+                      "pattern": "^\\d+$"
+                    },
+                    "importSessionId": {
+                      "type": "string",
+                      "pattern": "^imp_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    },
+                    "observedArtifactHash": {
+                      "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+                    },
+                    "matchMethod": {
+                      "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "unresolved",
+                        "candidate",
+                        "confirmed",
+                        "conflict"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "internalObjectId",
+                    "namespace",
+                    "matchMethod",
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "ownership": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "generated",
+                      "adopted"
+                    ]
+                  },
+                  "originRevisionId": {
+                    "type": "string",
+                    "pattern": "^rev_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "required": [
+                  "mode",
+                  "originRevisionId"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "contentId",
+              "displayName",
+              "kind",
+              "authoringMode",
+              "recipe",
+              "parameters",
+              "backend",
+              "managedObjectIds",
+              "lockedFields",
+              "sourceRefs",
+              "dependencies",
+              "requiredCapabilities",
+              "externalBindings",
+              "ownership"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "objectId": {
+                "type": "string",
+                "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "contentId": {
+                "type": "string",
+                "pattern": "^cnt_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "roleKey": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "objectKind": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "templateRef": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "transform": {
+                "type": "object",
+                "properties": {
+                  "position": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "rotationQuaternion": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "scale": {
+                    "$ref": "#/definitions/ProjectRevision/properties/objects/items/properties/transform/properties/position"
+                  }
+                },
+                "required": [
+                  "position",
+                  "rotationQuaternion",
+                  "scale"
+                ],
+                "additionalProperties": false
+              },
+              "componentRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+                }
+              },
+              "sourceRef": {
+                "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+              },
+              "ownership": {
+                "type": "string",
+                "enum": [
+                  "generated",
+                  "adopted",
+                  "external"
+                ]
+              },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "pattern": "^src_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "artifactHash": {
+                    "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+                  },
+                  "notes": {
+                    "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                  }
+                },
+                "required": [
+                  "sourceId",
+                  "artifactHash",
+                  "notes"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "objectId",
+              "contentId",
+              "roleKey",
+              "objectKind",
+              "templateRef",
+              "componentRefs",
+              "ownership",
+              "provenance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "resourceRefs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "resourceRef": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "namespace": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "gameId": {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              "name": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "resourceType": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "entityClass": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "targetProfile": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile"
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "pattern": "^src_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "artifactHash": {
+                    "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+                  }
+                },
+                "required": [
+                  "sourceId",
+                  "artifactHash"
+                ],
+                "additionalProperties": false
+              },
+              "dimensions": {
+                "type": "object",
+                "properties": {
+                  "unit": {
+                    "type": "string",
+                    "const": "meter"
+                  },
+                  "bounds": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "$ref": "#/definitions/ProjectRevision/properties/objects/items/properties/transform/properties/position"
+                      },
+                      "max": {
+                        "$ref": "#/definitions/ProjectRevision/properties/objects/items/properties/transform/properties/position"
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "source": {
+                    "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                  },
+                  "confidence": {
+                    "type": "string",
+                    "enum": [
+                      "measured",
+                      "declared",
+                      "unknown"
+                    ]
+                  }
+                },
+                "required": [
+                  "unit",
+                  "bounds",
+                  "source",
+                  "confidence"
+                ],
+                "additionalProperties": false
+              },
+              "collisionEvidenceRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^evd_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              },
+              "supportedComponents": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+                }
+              },
+              "licenseNote": {
+                "$ref": "#/definitions/ProjectRevision/properties/targetProfile/properties/gameBuild/anyOf/0"
+              },
+              "verifiedEvidenceRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^evd_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              }
+            },
+            "required": [
+              "resourceRef",
+              "namespace",
+              "gameId",
+              "name",
+              "resourceType",
+              "entityClass",
+              "targetProfile",
+              "source",
+              "collisionEvidenceRefs",
+              "supportedComponents",
+              "verifiedEvidenceRefs"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "bindingMapRef": {
+          "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+        },
+        "inputDigestVersion": {
+          "type": "string",
+          "const": "1"
+        },
+        "inputManifestHash": {
+          "$ref": "#/definitions/ProjectRevision/properties/contents/items/properties/backend/properties/versionLockRef"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "projectId",
+        "revisionId",
+        "parentRevisionId",
+        "transactionId",
+        "createdAt",
+        "targetProfile",
+        "contents",
+        "objects",
+        "resourceRefs",
+        "inputDigestVersion",
+        "inputManifestHash"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

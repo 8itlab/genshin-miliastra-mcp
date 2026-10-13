@@ -1,0 +1,238 @@
+{
+ "about": "A sword attack that really hits: a normal skill (animation 1001, a sword in the hand) whose graph triggers the official sector hit box 250 ms into the swing. In front of the start stand a crate (an object with a hurt box and loot) and a creature (with loot). The script swings five times: the crate breaks at the first hit, the creature falls at the second or third (50 damage a hit, shown as numbers over the target); each leaves a drop, and the stage then puts the character beside the two drops to pick them up with F (two apples, then three more). Played as written on 2026-10-11: the apples held go 0, 2, 5. Prints: ST_READY, ST_SWING, ST_HIT slime damage, ST_DEAD place, ST_HOLD apples.",
+ "dir": "strike",
+ "namePrefix": "ST_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 27,
+ "screenshotsAt": [
+  2.5,
+  4.4,
+  4.8,
+  7,
+  9.4,
+  9.8,
+  12,
+  16,
+  17.8,
+  20,
+  21.8,
+  25
+ ],
+ "readTextAt": [
+  17.9,
+  21.9
+ ],
+ "inputs": [
+  {
+   "at": 4,
+   "key": "e"
+  },
+  {
+   "at": 6.5,
+   "key": "e"
+  },
+  {
+   "at": 9,
+   "key": "e"
+  },
+  {
+   "at": 11.5,
+   "key": "e"
+  },
+  {
+   "at": 14,
+   "key": "e"
+  },
+  {
+   "at": 18.6,
+   "key": "f"
+  },
+  {
+   "at": 22.6,
+   "key": "f"
+  }
+ ],
+ "scenes": [
+  "strike_scene.json"
+ ],
+ "camera": {
+  "distance": 8,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_strike.py",
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "prefabs": [
+  {
+   "asset": 10005008,
+   "name": "ST_crate",
+   "scale": 1.5
+  },
+  {
+   "fromEntity": "ST_enemy",
+   "name": "ST_slime",
+   "dryAsset": 10005009
+  }
+ ],
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "currencies": [
+  {
+   "name": "ST_coin",
+   "startAmount": 0
+  }
+ ],
+ "items": [
+  {
+   "name": "ST_apple",
+   "icon": 90001
+  }
+ ],
+ "drops": [
+  {
+   "asset": 20001554,
+   "name": "ST_fallen",
+   "drop": {
+    "item": "ST_apple",
+    "amount": 1
+   }
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "StStage"
+  },
+  {
+   "key": "crate",
+   "name": "StCrate",
+   "attachToPrefab": "ST_crate"
+  },
+  {
+   "key": "slime",
+   "name": "StSlime",
+   "attachToPrefab": "ST_slime"
+  },
+  {
+   "key": "hero",
+   "name": "StHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "swing",
+   "name": "StSwing",
+   "kind": "characterSkill"
+  }
+ ],
+ "skills": [
+  {
+   "name": "ST_swing",
+   "graph": "swing",
+   "type": "normal",
+   "animation": 1001,
+   "graphAtMs": 250,
+   "effect": {
+    "asset": 10002152,
+    "attachPoint": "GI_WeaponR",
+    "ms": 1833.333
+   }
+  }
+ ],
+ "components": [
+  {
+   "prefab": "ST_crate",
+   "hurtBox": {
+    "areas": [
+     {
+      "size": [
+       1.6,
+       1.2,
+       1.4
+      ],
+      "offset": [
+       0,
+       0.6,
+       0
+      ]
+     }
+    ]
+   },
+   "loot": {
+    "dropPrefab": "ST_fallen",
+    "items": [
+     {
+      "item": "ST_apple",
+      "amount": 2
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "ST_slime",
+   "loot": {
+    "dropPrefab": "ST_fallen",
+    "items": [
+     {
+      "item": "ST_apple",
+      "amount": 3
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "dead",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "ax",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "az",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "bx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "bz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  }
+ ]
+}

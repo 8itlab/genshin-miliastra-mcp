@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {inspectFile} from '../src/adapter.mjs';
+const before='workspace/construction/build-003/platform-saved.gil';
+const after='workspace/construction/build-004/stage-bound.gil';
+assert.ok(fs.existsSync(before)&&fs.existsSync(after),'Requires the local official fixtures; do not replace with synthetic evidence.');
+const a=inspectFile(before),b=inspectFile(after);
+const stage=x=>x.entities.find(e=>e.id===1094713345);
+assert.deepEqual(stage(a).graphMounts,[]);
+assert.deepEqual(stage(b).graphMounts,[{graphId:1073741826,category:20000,enabled:1}]);
+assert.deepEqual(a.entities.filter(e=>e.id!==1094713345),b.entities.filter(e=>e.id!==1094713345));
+console.log(JSON.stringify({passed:true,before:a.sha256,after:b.sha256,stage:stage(b),scope:'Observed entity identifiers and mount locators; not all unknown fields or gameplay.'},null,2));

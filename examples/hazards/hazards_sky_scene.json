@@ -1,0 +1,50 @@
+{
+ "name": "Hazards_Sky",
+ "blocks": [
+  {
+   "template": 20002067,
+   "name": "HZ_skywall_0",
+   "position": [
+    -4,
+    0,
+    4
+   ]
+  },
+  {
+   "template": 20002067,
+   "name": "HZ_skywall_1",
+   "position": [
+    0,
+    0,
+    4
+   ]
+  },
+  {
+   "template": 20002067,
+   "name": "HZ_skywall_2",
+   "position": [
+    4,
+    0,
+    4
+   ]
+  },
+  {
+   "template": 20001872,
+   "name": "HZ_skybase",
+   "position": [
+    -8,
+    0,
+    2
+   ]
+  },
+  {
+   "template": 20002068,
+   "name": "HZ_skyrail",
+   "position": [
+    4,
+    0,
+    -2
+   ]
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+  "scope": "stage-entity-custom-variables",
+  "runtimeVerified": false,
+  "notes": "Definitions must exist on the level entity. Graph-private variables are a different namespace. Stop other graphs writing MCP_HUD during the isolated kingdom test.",
+  "variables": [
+    {"name":"MCP_HUD","type":"str","default":"白天"},
+    {"name":"KINGDOM_DAY","type":"int","default":"1"},
+    {"name":"KINGDOM_REMAINING","type":"int","default":"60"},
+    {"name":"KINGDOM_COINS","type":"int","default":"12"},
+    {"name":"KINGDOM_BANK","type":"int","default":"0"},
+    {"name":"KINGDOM_CROWN","type":"int","default":"3"},
+    {"name":"KINGDOM_IDLE","type":"int","default":"0"},
+    {"name":"KINGDOM_WORKERS","type":"int","default":"0"},
+    {"name":"KINGDOM_ARCHERS","type":"int","default":"0"},
+    {"name":"KINGDOM_WALL","type":"int","default":"0"},
+    {"name":"KINGDOM_WALL_HP","type":"int","default":"0"}
+  ]
+}

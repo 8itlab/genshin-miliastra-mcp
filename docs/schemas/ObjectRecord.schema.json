@@ -1,0 +1,130 @@
+{
+  "$ref": "#/definitions/ObjectRecord",
+  "definitions": {
+    "ObjectRecord": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "contentId": {
+          "type": "string",
+          "pattern": "^cnt_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "roleKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "objectKind": {
+          "$ref": "#/definitions/ObjectRecord/properties/roleKey"
+        },
+        "templateRef": {
+          "$ref": "#/definitions/ObjectRecord/properties/roleKey"
+        },
+        "transform": {
+          "type": "object",
+          "properties": {
+            "position": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "rotationQuaternion": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "scale": {
+              "$ref": "#/definitions/ObjectRecord/properties/transform/properties/position"
+            }
+          },
+          "required": [
+            "position",
+            "rotationQuaternion",
+            "scale"
+          ],
+          "additionalProperties": false
+        },
+        "componentRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/ObjectRecord/properties/componentRefs/items"
+        },
+        "ownership": {
+          "type": "string",
+          "enum": [
+            "generated",
+            "adopted",
+            "external"
+          ]
+        },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "sourceId": {
+              "type": "string",
+              "pattern": "^src_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "artifactHash": {
+              "$ref": "#/definitions/ObjectRecord/properties/componentRefs/items"
+            },
+            "notes": {
+              "$ref": "#/definitions/ObjectRecord/properties/roleKey"
+            }
+          },
+          "required": [
+            "sourceId",
+            "artifactHash",
+            "notes"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "objectId",
+        "contentId",
+        "roleKey",
+        "objectKind",
+        "templateRef",
+        "componentRefs",
+        "ownership",
+        "provenance"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

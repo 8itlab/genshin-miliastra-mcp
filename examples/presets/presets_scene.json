@@ -1,0 +1,19 @@
+{
+ "name": "Presets_Probe",
+ "blocks": [
+  {
+   "template": "石质墙体（灰）",
+   "name": "PS_floor",
+   "position": [
+    0,
+    -0.4,
+    3
+   ],
+   "size": [
+    34,
+    0.4,
+    18
+   ]
+  }
+ ]
+}

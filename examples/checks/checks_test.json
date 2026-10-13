@@ -1,0 +1,389 @@
+{
+ "about": "One round that checks, in the game, the tools that were written offline against the official samples. Walking right along the strip: (1) a coin with a follow device flies to the player once inside its wide trigger and is picked up by its narrow one: CK_PULL then CK_COIN; (2) a post gets a green outline while the player is near it and loses it when the player leaves: CK_GLOW_ON, CK_GLOW_OFF, and it has a minimap marker; (3) a stall has two options, 开门 behind a boolean filter (shown only once the player holds the key the coin gives) and 没有钥匙 always shown: choosing 开门 prints CK_OPEN and starts the gate's motion, the gate should rise 4 m in 2 s; (4) twelve seconds in the stage switches every player to the night sky (CK_NIGHT) and at twenty-two back (CK_DAY); a lamp above the post belongs to the night sky and should be lit only then. (6) when night falls the stage also sends the signal CK_dusk and the post, which only listens, prints CK_HEARD and the string the signal carries (night); (9) nobody is teleported: the spawn point puts the player at x = -3 facing +z, and CK_AT prints that x two seconds in; the gate is created at a preset point read by the graph, so it should stand right of the stall as before; (8) the post owns an attack ability unit and stings whoever walks up to it (CK_STING): the health bar at the bottom should drop from 10000 by about 3000; (7) a thirty-second countdown held by the stage starts at CK_GO, shows as a clock at the top of the screen and prints CK_TIME_UP when it ends; (5) the class has jumping switched off: space is pressed at second 4 and the character should stay on the ground in the shots of seconds 4 and 5; if it jumps, the order of the four class switches is not the one assumed. (10) money: the currency CK_gold is defined and every character starts with 7 of it in a backpack; two seconds in the stage prints CK_PURSE and the amount (7), then adds 5, and the character graph, which hears the amount change, prints CK_MONEY and the new amount (12). (11) preset status: a chest (asset 10005006) stands left of the post, closed; when night falls at second 12 the stage sets its preset status to 1 and prints CK_CHEST and the value read back (1): the chest should be shut in the shot of second 11 and open in the shot of second 13. (12) path motion: a wooden platform (asset 10005015) behind the lane goes up three metres and down again for ever, two seconds each way, from the moment it appears; at second 12 the stage prints CK_LIFT and its height, which should be near 3 (0 means it never moved), and the shots should show it at different heights. (13) skill: an instant skill CK_ping is given to the character on the E key two seconds in; E is pressed at second 8.5, its client graph notifies the server and the character graph prints CK_SKILL and the word CK_ping. (14) a filter that is false: a second stall stands at the start, where the player has no key; F there at second 2 should print CK_LOCKED (the filtered option hidden, the other one picked), not CK_OPEN. (15) no jumping: CK_Y prints the character's height eleven times around the press of space; it should not rise. Look at the screenshots for: the coin moving, the outline, the marker on the minimap, which options show, the gate up, the dark sky.",
+ "dir": "checks",
+ "namePrefix": "CK_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 45,
+ "screenshotsAt": [
+  5,
+  8,
+  10,
+  11,
+  13,
+  15,
+  17,
+  19,
+  21,
+  24,
+  26,
+  28,
+  30,
+  32,
+  34,
+  37,
+  40,
+  43
+ ],
+ "inputs": [
+  {
+   "at": 2,
+   "key": "f"
+  },
+  {
+   "at": 6,
+   "key": "d",
+   "holdMs": 1500
+  },
+  {
+   "at": 8.5,
+   "key": "e"
+  },
+  {
+   "at": 9.6,
+   "key": "space"
+  },
+  {
+   "at": 10,
+   "key": "d",
+   "holdMs": 1700
+  },
+  {
+   "at": 15,
+   "key": "d",
+   "holdMs": 1900
+  },
+  {
+   "at": 19,
+   "key": "f"
+  },
+  {
+   "at": 25,
+   "key": "a",
+   "holdMs": 1500
+  }
+ ],
+ "scenes": [
+  "checks_scene.json"
+ ],
+ "camera": {
+  "distance": 13
+ },
+ "generator": "gen_checks.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "CK_coin",
+   "scale": 1
+  },
+  {
+   "asset": 20001454,
+   "name": "CK_post",
+   "scale": 1.5
+  },
+  {
+   "asset": 20001125,
+   "name": "CK_stall",
+   "scale": 1
+  },
+  {
+   "asset": 20001310,
+   "name": "CK_gate",
+   "scale": [
+    0.6,
+    2,
+    2
+   ]
+  },
+  {
+   "asset": 10005006,
+   "name": "CK_chest",
+   "scale": 1
+  },
+  {
+   "asset": 10005015,
+   "name": "CK_lift",
+   "scale": 1
+  }
+ ],
+ "statuses": [
+  {
+   "name": "CK_glow",
+   "outline": "green"
+  },
+  {
+   "name": "CK_glow2",
+   "outline": "white"
+  }
+ ],
+ "environments": [
+  {
+   "name": "CK_night",
+   "hour": 0
+  },
+  {
+   "name": "CK_env21",
+   "hour": 21,
+   "clouds": false
+  },
+  {
+   "name": "CK_env3",
+   "hour": 3,
+   "stars": false,
+   "milkyWay": false
+  }
+ ],
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CkStage"
+  },
+  {
+   "key": "coin",
+   "name": "CkCoin",
+   "attachToPrefab": "CK_coin"
+  },
+  {
+   "key": "post",
+   "name": "CkPost",
+   "attachToPrefab": "CK_post"
+  },
+  {
+   "key": "stall",
+   "name": "CkStall",
+   "attachToPrefab": "CK_stall"
+  },
+  {
+   "key": "haskey",
+   "name": "CkHasKey",
+   "kind": "boolFilter"
+  },
+  {
+   "key": "hero",
+   "name": "CkHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "ping",
+   "name": "CkPing",
+   "kind": "characterSkill"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "CK_coin",
+   "solid": false,
+   "follow": "chase",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 6
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    },
+    {
+     "areas": [
+      {
+       "size": [
+        1.6,
+        2,
+        1.6
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "CK_post",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "size": [
+        5,
+        4,
+        5
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ],
+   "minimapMarker": {
+    "name": "post",
+    "description": "check"
+   },
+   "abilityUnits": [
+    {
+     "name": "CK_sting",
+     "attack": {
+      "coefficient": 1,
+      "added": 3000
+     }
+    }
+   ]
+  },
+  {
+   "prefab": "CK_stall",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       6,
+       4,
+       6
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "开门",
+      "icon": 2,
+      "filterGraph": "haskey"
+     },
+     {
+      "text": "没有钥匙",
+      "icon": 12
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "CK_gate",
+   "motions": [
+    {
+     "name": "rise",
+     "move": [
+      0,
+      4,
+      0
+     ],
+     "seconds": 2
+    }
+   ]
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "hasKey",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "CK_lift",
+   "motions": [
+    {
+     "name": "updown",
+     "path": [
+      {
+       "position": [
+        0,
+        3,
+        0
+       ],
+       "seconds": 2
+      }
+     ],
+     "loop": "backAndForth",
+     "active": true
+    }
+   ]
+  }
+ ],
+ "lights": [
+  {
+   "name": "CK_lamp",
+   "environment": "CK_night",
+   "position": [
+    14,
+    3,
+    2.5
+   ],
+   "radius": 8,
+   "intensity": 3
+  }
+ ],
+ "classes": [
+  {
+   "allowJump": false
+  }
+ ],
+ "signals": [
+  {
+   "name": "CK_dusk",
+   "parameter": "phase"
+  }
+ ],
+ "timers": [
+  {
+   "name": "CK_round",
+   "seconds": 30,
+   "holder": "stage"
+  }
+ ],
+ "clocks": [
+  {
+   "name": "CK_clock",
+   "timer": "CK_round",
+   "position": [
+    0,
+    380
+   ]
+  }
+ ],
+ "spawn": {
+  "position": [
+   -3,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "points": [
+  {
+   "name": "CK_gate_at",
+   "position": [
+    28,
+    1,
+    2
+   ]
+  }
+ ],
+ "currencies": [
+  {
+   "name": "CK_gold",
+   "startAmount": 7
+  }
+ ],
+ "skills": [
+  {
+   "name": "CK_ping",
+   "graph": "ping"
+  }
+ ]
+}

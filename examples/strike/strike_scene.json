@@ -1,0 +1,48 @@
+{
+ "name": "Strike_Probe",
+ "blocks": [
+  {
+   "template": "石质墙体（灰）",
+   "name": "ST_post_a",
+   "position": [
+    -6,
+    0,
+    5
+   ],
+   "size": [
+    0.4,
+    2,
+    0.4
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "ST_post_b",
+   "position": [
+    6,
+    0,
+    5
+   ],
+   "size": [
+    0.4,
+    2,
+    0.4
+   ]
+  },
+  {
+   "template": 30002003,
+   "name": "ST_enemy",
+   "position": [
+    20,
+    0.3,
+    20
+   ],
+   "rotation": [
+    0,
+    180,
+    0
+   ],
+   "createAtStart": false
+  }
+ ]
+}

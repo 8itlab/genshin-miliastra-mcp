@@ -1,0 +1,107 @@
+{
+  "name": "miliastra-mcp",
+  "version": "0.1.0",
+  "description": "Unofficial MCP server for Genshin Impact's Miliastra Wonderland (千星奇域) UGC editor: an AI assistant builds the scene, writes node graphs in TypeScript (Genshin-TS) and playtests the level automatically.",
+  "type": "module",
+  "bin": {
+    "miliastra-mcp": "src/server.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSE",
+    "examples",
+    "requirements-capture.txt",
+    "docs/PLATFORM_RULES.zh-CN.md",
+    "docs/HOW_MILIASTRA_BUILDS_GAMES.zh-CN.md",
+    "knowledge",
+    "dist",
+    "npm-shrinkwrap.json",
+    "scripts/doctor.mjs",
+    "docs",
+    "README.en.md",
+    "llms.txt"
+  ],
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node tests/synthetic.mjs",
+    "test:local": "node tests/mcp-smoke.mjs",
+    "test:assets": "node tests/scene-assets.mjs",
+    "test:camera": "node tests/scene-camera.mjs",
+    "test:prefab": "node tests/scene-prefab.mjs",
+    "test:components": "node tests/scene-components.mjs",
+    "test:interface": "node tests/scene-interface.mjs",
+    "test:status": "node tests/scene-status.mjs",
+    "test:environment": "node tests/scene-environment.mjs",
+    "test:class": "node tests/scene-class.mjs",
+    "test:signal": "node tests/scene-signal.mjs",
+    "test:points": "node tests/scene-points.mjs",
+    "test:guide": "node tests/workflow-guide.mjs",
+    "test:count": "node tests/editor-count.mjs",
+    "test:docs": "node tests/node-docs.mjs",
+    "test:capture": "node tests/capture-smoke.mjs",
+    "test:frames": "node tests/playtest-frames.mjs",
+    "test:input-guards": "node tests/input-guards.mjs",
+    "test:input-offline": "node tests/input-guards.mjs --offline",
+    "test:baseline": "node scripts/baseline.mjs",
+    "build:core": "tsc -p tsconfig.core.json",
+    "test:core": "npm run build:core && node --test tests/core/*.test.mjs",
+    "schemas:core": "npm run build:core && node scripts/export-schemas.mjs",
+    "prepack": "npm run build:core",
+    "test:host": "npm run build:core && node --test tests/host/*.test.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "test:probe": "node tests/playtest-probe.mjs",
+    "test:respawn": "node tests/scene-respawn.mjs",
+    "test:publish": "node tests/publish-kit.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "genshin-impact",
+    "genshin",
+    "miliastra-wonderland",
+    "miliastra",
+    "ugc",
+    "level-editor",
+    "game-development",
+    "node-graph",
+    "genshin-ts",
+    "ai-agent",
+    "claude",
+    "原神",
+    "千星奇域",
+    "千星沙箱",
+    "节点图"
+  ],
+  "author": "miliastra-mcp contributors",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "genshin-ts": "0.2.2",
+    "typescript": "5.9.3",
+    "zod": "3.25.76",
+    "zod-to-json-schema": "3.25.2"
+  },
+  "devDependencies": {
+    "@types/node": "26.4.1"
+  },
+  "os": [
+    "win32"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8itlab/genshin-miliastra-mcp.git"
+  },
+  "homepage": "https://github.com/8itlab/genshin-miliastra-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/8itlab/genshin-miliastra-mcp/issues"
+  }
+}

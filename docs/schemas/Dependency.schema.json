@@ -1,0 +1,56 @@
+{
+  "$ref": "#/definitions/Dependency",
+  "definitions": {
+    "Dependency": {
+      "type": "object",
+      "properties": {
+        "fromId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "toId": {
+          "$ref": "#/definitions/Dependency/properties/fromId"
+        },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "contains",
+            "references",
+            "mounts_graph",
+            "requires_component",
+            "binds_variable",
+            "binds_signal",
+            "binds_ui"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "scope": {
+          "$ref": "#/definitions/Dependency/properties/fromId"
+        },
+        "resolution": {
+          "type": "string",
+          "enum": [
+            "resolved",
+            "external_required",
+            "unknown",
+            "unsupported"
+          ]
+        }
+      },
+      "required": [
+        "fromId",
+        "toId",
+        "relation",
+        "required",
+        "scope",
+        "resolution"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

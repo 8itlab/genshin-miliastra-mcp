@@ -1,0 +1,1542 @@
+{
+ "about": "Kingdom v6, the short run a script can check: two nights of 26 seconds, days of 34. The villagers and the Greed are complex creatures and the fighting is the platform's (health, hit boxes, a projectile). The script picks up the ten starting coins, recruits two citizens, makes one the builder and one a knife thrower, builds the wooden wall and stands behind it. The horn: the citizens' places empty, the thrower walks to its post behind the wall. Night 1, two single Greed, a crude cleaver in the hand: they walk to the wall, are given it and hack at it from their line before it, hopping back after every blow (KG_PUNCH 25, KG_WALL_HP going down from 200), while the thrower's knives hit them (KG_THROW, KG_KNIFE, KG_KILL). Dawn: the builder walks to the wall and hammers it whole (KG_MEND, KG_WALL_HP going up, KG_MENDED); the script collects the morning's four coins, recruits a citizen and makes it a soldier at the barracks. Night 2 (bursts of 2, 2 and 1): the soldier stands in front of the wall and leaps at the Greed it notices (KG_SLASH 40); it may fall (KG_DOWN soldier). The second dawn wins. Prints to expect, in order: KG_READY, KG_DAY, KG_COINS 1..10, KG_CITIZEN x2, KG_BUILDER, KG_THROWER, KG_WALL 1, KG_WARN, KG_DUSK 1, KG_GREED x2, KG_AT_WALL, KG_PUNCH / KG_WALL_HP, KG_THROW / KG_KNIFE / KG_KILL, KG_DAWN, KG_INCOME 4, KG_MEND ... KG_MENDED, KG_COINS, KG_CITIZEN, KG_SOLDIER, KG_WARN, KG_DUSK 2, KG_GREED x3, KG_SLASH, KG_DAWN, KG_VICTORY. KG_POOR / KG_NEED mean a station refused. Whether it is fun is for a person to say; this run only shows that every part works. During both nights it takes two screenshots a second, 2560 wide: playtest_frames over seconds 39-55 and 93-118, cropped to the wall, shows every blow frame by frame (what is in the hands, when it lands). The full game is kg6_play.json: day 60, night 45, five nights. An option shows no text on an account of 奇匠 level 1, only its icon, so prices are rows of small coins above the stations.",
+ "dir": "kingdom6",
+ "namePrefix": "KV_",
+ "baseName": "未分类页签_存档_3",
+ "day": 34,
+ "night": 26,
+ "coins": 10,
+ "generatorArgs": [
+  2
+ ],
+ "durationSeconds": 134,
+ "screenshotsAt": [
+  4,
+  12,
+  20,
+  28,
+  34,
+  39.0,
+  39.5,
+  40.0,
+  40.5,
+  41.0,
+  41.5,
+  42.0,
+  42.5,
+  43.0,
+  43.5,
+  44.0,
+  44.5,
+  45.0,
+  45.5,
+  46.0,
+  46.5,
+  47.0,
+  47.5,
+  48.0,
+  48.5,
+  49.0,
+  49.5,
+  50.0,
+  50.5,
+  51.0,
+  51.5,
+  52.0,
+  52.5,
+  53.0,
+  53.5,
+  54.0,
+  54.5,
+  60,
+  64,
+  70,
+  76,
+  82,
+  88,
+  93.0,
+  93.5,
+  94.0,
+  94.5,
+  95.0,
+  95.5,
+  96.0,
+  96.5,
+  97.0,
+  97.5,
+  98.0,
+  98.5,
+  99.0,
+  99.5,
+  100.0,
+  100.5,
+  101.0,
+  101.5,
+  102.0,
+  102.5,
+  103.0,
+  103.5,
+  104.0,
+  104.5,
+  105.0,
+  105.5,
+  106.0,
+  106.5,
+  107.0,
+  107.5,
+  108.0,
+  108.5,
+  109.0,
+  109.5,
+  110.0,
+  110.5,
+  111.0,
+  111.5,
+  112.0,
+  112.5,
+  113.0,
+  113.5,
+  114.0,
+  114.5,
+  115.0,
+  115.5,
+  116.0,
+  116.5,
+  117.0,
+  117.5,
+  120,
+  124,
+  128
+ ],
+ "inputs": [
+  {
+   "at": 5,
+   "key": "d",
+   "holdMs": 600
+  },
+  {
+   "at": 7,
+   "key": "f"
+  },
+  {
+   "at": 8.5,
+   "key": "f"
+  },
+  {
+   "at": 10,
+   "key": "d",
+   "holdMs": 950
+  },
+  {
+   "at": 12,
+   "key": "f"
+  },
+  {
+   "at": 14,
+   "key": "d",
+   "holdMs": 800
+  },
+  {
+   "at": 16,
+   "key": "f"
+  },
+  {
+   "at": 18,
+   "key": "d",
+   "holdMs": 1650
+  },
+  {
+   "at": 21,
+   "key": "f"
+  },
+  {
+   "at": 23,
+   "key": "d",
+   "holdMs": 600
+  },
+  {
+   "at": 62,
+   "key": "a",
+   "holdMs": 4700
+  },
+  {
+   "at": 69,
+   "key": "d",
+   "holdMs": 700
+  },
+  {
+   "at": 71,
+   "key": "f"
+  },
+  {
+   "at": 72.5,
+   "key": "d",
+   "holdMs": 2550
+  },
+  {
+   "at": 76.5,
+   "key": "f"
+  },
+  {
+   "at": 78,
+   "key": "d",
+   "holdMs": 1450
+  }
+ ],
+ "scenes": [
+  "kingdom6_scene.json",
+  "../kingdom/kingdom_v3_scenery.json"
+ ],
+ "sceneOffset": [
+  -9,
+  -7.6,
+  0
+ ],
+ "camera": {
+  "distance": 17,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_kingdom6.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "KV_coin",
+   "scale": 0.5
+  },
+  {
+   "asset": 10005009,
+   "name": "KV_tag_keep",
+   "scale": 0.3
+  },
+  {
+   "asset": 10005009,
+   "name": "KV_tag_site",
+   "scale": 0.3
+  },
+  {
+   "asset": 10005009,
+   "name": "KV_tag",
+   "scale": 0.3
+  },
+  {
+   "asset": 20002336,
+   "name": "KV_keep",
+   "scale": 1
+  },
+  {
+   "asset": 20002087,
+   "name": "KV_camp",
+   "scale": 0.55
+  },
+  {
+   "asset": 20001613,
+   "name": "KV_smith",
+   "scale": 0.8
+  },
+  {
+   "asset": 20002764,
+   "name": "KV_range",
+   "scale": 1
+  },
+  {
+   "asset": 20001965,
+   "name": "KV_farm",
+   "scale": 0.8
+  },
+  {
+   "asset": 20002275,
+   "name": "KV_site",
+   "scale": 1
+  },
+  {
+   "asset": 20002863,
+   "name": "KV_crown",
+   "scale": 0.45
+  },
+  {
+   "asset": 20002261,
+   "name": "KV_barracks",
+   "scale": 1
+  },
+  {
+   "asset": 20003092,
+   "name": "KV_wall_wood",
+   "scale": [
+    0.55,
+    1.2,
+    1
+   ],
+   "health": 200
+  },
+  {
+   "asset": 20002893,
+   "name": "KV_wall_stone",
+   "scale": [
+    1,
+    0.6,
+    1
+   ],
+   "health": 500
+  },
+  {
+   "asset": 20001929,
+   "name": "KV_knife",
+   "scale": 0.2
+  },
+  {
+   "fromEntity": "KV_enemy_00",
+   "name": "KV_greed",
+   "health": 12
+  },
+  {
+   "fromEntity": "KV_enemy_big",
+   "name": "KV_brute",
+   "health": 36
+  },
+  {
+   "fromEntity": "KV_unit_vagrant",
+   "name": "KV_vagrant",
+   "health": 15
+  },
+  {
+   "fromEntity": "KV_unit_farmer",
+   "name": "KV_farmer",
+   "health": 15
+  },
+  {
+   "fromEntity": "KV_unit_builder",
+   "name": "KV_builder",
+   "health": 15
+  },
+  {
+   "fromEntity": "KV_unit_thrower",
+   "name": "KV_thrower",
+   "health": 15
+  },
+  {
+   "fromEntity": "KV_unit_soldier",
+   "name": "KV_soldier",
+   "health": 30
+  }
+ ],
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "level": {
+  "aggroMode": "custom"
+ },
+ "classes": [
+  {
+   "allowJump": false
+  }
+ ],
+ "signals": [
+  "KG_state",
+  "KG_warn",
+  "KG_dusk",
+  "KG_dawn",
+  "KG_wall_down",
+  "KG_mend",
+  "KG_mended"
+ ],
+ "spawn": {
+  "position": [
+   -7,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "timers": [
+  {
+   "name": "KG_clock",
+   "seconds": 34,
+   "holder": "stage"
+  }
+ ],
+ "clocks": [
+  {
+   "name": "KG_clock",
+   "timer": "KG_clock",
+   "position": [
+    0,
+    380
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "name": "KG_purse",
+   "variable": "coins",
+   "max": 10,
+   "position": [
+    -300,
+    384
+   ],
+   "size": [
+    260,
+    34
+   ]
+  },
+  {
+   "name": "KG_wall",
+   "variable": "wall",
+   "max": 100,
+   "position": [
+    -300,
+    348
+   ],
+   "size": [
+    260,
+    22
+   ]
+  },
+  {
+   "name": "KG_nights",
+   "variable": "night",
+   "max": 2,
+   "position": [
+    300,
+    384
+   ],
+   "size": [
+    260,
+    34
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "KgStage"
+  },
+  {
+   "key": "coin",
+   "name": "KgCoin",
+   "attachToPrefab": "KV_coin",
+   "log": false
+  },
+  {
+   "key": "camp",
+   "name": "KgCamp",
+   "attachToPrefab": "KV_camp"
+  },
+  {
+   "key": "farm",
+   "name": "KgFarm",
+   "attachToPrefab": "KV_farm"
+  },
+  {
+   "key": "smith",
+   "name": "KgSmith",
+   "attachToPrefab": "KV_smith",
+   "log": false
+  },
+  {
+   "key": "site",
+   "name": "KgSite",
+   "attachToPrefab": "KV_site"
+  },
+  {
+   "key": "keep",
+   "name": "KgKeep",
+   "attachToPrefab": "KV_keep",
+   "log": false
+  },
+  {
+   "key": "range",
+   "name": "KgRange",
+   "attachToPrefab": "KV_range"
+  },
+  {
+   "key": "barracks",
+   "name": "KgBarracks",
+   "attachToPrefab": "KV_barracks",
+   "log": false
+  },
+  {
+   "key": "unit",
+   "name": "KgUnit",
+   "attachToPrefab": [
+    "KV_vagrant",
+    "KV_farmer",
+    "KV_builder",
+    "KV_thrower",
+    "KV_soldier"
+   ]
+  },
+  {
+   "key": "knife",
+   "name": "KgKnife",
+   "attachToPrefab": "KV_knife"
+  },
+  {
+   "key": "wall",
+   "name": "KgWall",
+   "attachToPrefab": [
+    "KV_wall_wood",
+    "KV_wall_stone"
+   ]
+  },
+  {
+   "key": "greed",
+   "name": "KgGreed",
+   "attachToPrefab": [
+    "KV_greed",
+    "KV_brute"
+   ]
+  },
+  {
+   "key": "player",
+   "name": "KgPlayer",
+   "attachToPrefab": "player"
+  },
+  {
+   "key": "dig",
+   "name": "KgDig",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "hammer",
+   "name": "KgHammer",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "throw",
+   "name": "KgThrow",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "slash",
+   "name": "KgSlash",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "punch",
+   "name": "KgPunch",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "smash",
+   "name": "KgSmash",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "citizenMind",
+   "name": "KgCitizenMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "farmerMind",
+   "name": "KgFarmerMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "builderMind",
+   "name": "KgBuilderMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "throwerMind",
+   "name": "KgThrowerMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "soldierMind",
+   "name": "KgSoldierMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "greedMind",
+   "name": "KgGreedMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "home",
+   "name": "KgDoHome",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "post",
+   "name": "KgDoPost",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "stroll",
+   "name": "KgDoStroll",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "toil",
+   "name": "KgDoToil",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "mend",
+   "name": "KgDoMend",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "shoot",
+   "name": "KgDoShoot",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "fight",
+   "name": "KgDoFight",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "advance",
+   "name": "KgDoAdvance",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "bash",
+   "name": "KgDoBash",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "siege",
+   "name": "KgDoSiege",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "retreat",
+   "name": "KgDoRetreat",
+   "kind": "creatureStatus"
+  }
+ ],
+ "components": [
+  {
+   "entity": "关卡实体",
+   "variables": [
+    {
+     "name": "dark",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "mend",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_coin",
+   "solid": false,
+   "follow": "chase",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 5
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    },
+    {
+     "areas": [
+      {
+       "size": [
+        1.6,
+        2,
+        1.6
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "KV_tag_keep",
+   "solid": false
+  },
+  {
+   "prefab": "KV_tag_site",
+   "solid": false
+  },
+  {
+   "prefab": "KV_tag",
+   "solid": false
+  },
+  {
+   "prefab": "KV_crown",
+   "solid": false,
+   "follow": "attach"
+  },
+  {
+   "prefab": "KV_keep",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       5,
+       5,
+       14
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "升级主堡 5金币 · 每早多2金币",
+      "icon": 20
+     },
+     {
+      "text": "再升主堡 8金币 · 每早多2金币",
+      "icon": 20,
+      "active": false
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "lit",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "KV_camp",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       5,
+       6,
+       30
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "招募村民 1金币",
+      "icon": 1
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "lit",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "KV_farm",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       5,
+       5,
+       16
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "农夫 2金币 · 每早多2金币",
+      "icon": 5
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "lit",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "KV_smith",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       4,
+       5,
+       16
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "工匠 3金币 · 筑墙修墙",
+      "icon": 3
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "lit",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "KV_site",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       4,
+       5,
+       14
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "筑木墙 3金币",
+      "icon": 15
+     },
+     {
+      "text": "升石墙 6金币 · 要主堡1级",
+      "icon": 15,
+      "active": false
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "lit",
+     "type": "boolean",
+     "value": false
+    },
+    {
+     "name": "level",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_range",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       4,
+       5,
+       14
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "飞刀手 2金币 · 夜里在墙后掷刀",
+      "icon": 10
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "lit",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "KV_barracks",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       4,
+       5,
+       14
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "士兵 3金币 · 夜里在墙前迎敌",
+      "icon": 12
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "lit",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "KV_wall_wood",
+   "solid": false,
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 8
+    }
+   ],
+   "hurtBox": {
+    "areas": [
+     {
+      "size": [
+       4,
+       1.1,
+       1.6
+      ],
+      "offset": [
+       0,
+       0.55,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "KV_wall_stone",
+   "solid": false,
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 9
+    }
+   ],
+   "hurtBox": {
+    "areas": [
+     {
+      "size": [
+       4.5,
+       1.8,
+       1.8
+      ],
+      "offset": [
+       0,
+       0.9,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "KV_knife",
+   "solid": false,
+   "projectile": {
+    "type": "tracking",
+    "velocity": [
+     0,
+     0,
+     16
+    ],
+    "turnDegreesPerSecond": 720
+   },
+   "hitDetection": {
+    "areas": [
+     {
+      "radius": 0.5
+     }
+    ],
+    "trigger": "oncePerEntity",
+    "delaySeconds": 0.05,
+    "abilityUnit": "KV_pierce",
+    "layers": [
+     "hurtBox"
+    ],
+    "factions": "hostile",
+    "continuous": {
+     "speedAbove": 5,
+     "radius": 0.5
+    }
+   },
+   "abilityUnits": [
+    {
+     "name": "KV_pierce",
+     "attack": {
+      "coefficient": 0,
+      "added": 80
+     }
+    }
+   ]
+  },
+  {
+   "prefab": "KV_vagrant",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 1
+    },
+    {
+     "name": "hx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "hz",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_farmer",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 2
+    },
+    {
+     "name": "hx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "hz",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_builder",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 3
+    },
+    {
+     "name": "hx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "hz",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_thrower",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 4
+    },
+    {
+     "name": "hx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "hz",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_soldier",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 5
+    },
+    {
+     "name": "hx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "hz",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_greed",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 6
+    },
+    {
+     "name": "dmg",
+     "type": "integer",
+     "value": 1
+    },
+    {
+     "name": "sated",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "grabbing",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "siege",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "near",
+     "type": "float",
+     "value": 2.4
+    },
+    {
+     "name": "stand",
+     "type": "float",
+     "value": 2.8
+    },
+    {
+     "name": "hack",
+     "type": "integer",
+     "value": 1
+    },
+    {
+     "name": "lane",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "KV_brute",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 7
+    },
+    {
+     "name": "dmg",
+     "type": "integer",
+     "value": 2
+    },
+    {
+     "name": "sated",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "grabbing",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "siege",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "near",
+     "type": "float",
+     "value": 3.6
+    },
+    {
+     "name": "stand",
+     "type": "float",
+     "value": 3.6
+    },
+    {
+     "name": "hack",
+     "type": "integer",
+     "value": 2
+    },
+    {
+     "name": "lane",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "coins",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "citizens",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "farmers",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "builders",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "throwers",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "soldiers",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "keep",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "night",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "wall",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  }
+ ],
+ "environments": [
+  {
+   "name": "KV_night",
+   "hour": 0
+  },
+  {
+   "name": "KV_day",
+   "hour": 11,
+   "stars": false,
+   "milkyWay": false
+  }
+ ],
+ "lights": [
+  {
+   "name": "KV_lamp_0",
+   "environment": "KV_night",
+   "position": [
+    -12.9,
+    2.2,
+    4.3
+   ],
+   "radius": 9,
+   "intensity": 3
+  },
+  {
+   "name": "KV_lamp_1",
+   "environment": "KV_night",
+   "position": [
+    -1.7,
+    2.2,
+    4.3
+   ],
+   "radius": 9,
+   "intensity": 3
+  },
+  {
+   "name": "KV_lamp_2",
+   "environment": "KV_night",
+   "position": [
+    12.4,
+    2.2,
+    4.3
+   ],
+   "radius": 9,
+   "intensity": 3
+  },
+  {
+   "name": "KV_lamp_3",
+   "environment": "KV_night",
+   "position": [
+    21.5,
+    2.2,
+    4.3
+   ],
+   "radius": 9,
+   "intensity": 3
+  },
+  {
+   "name": "KV_lamp_4",
+   "environment": "KV_night",
+   "position": [
+    -20.5,
+    2.2,
+    4.3
+   ],
+   "radius": 9,
+   "intensity": 3
+  }
+ ],
+ "recordAudio": false,
+ "batch": true,
+ "bakeNavigation": true,
+ "creatureSkills": [
+  {
+   "name": "KV_dig",
+   "creature": 30006009,
+   "graph": "dig",
+   "animation": "挖矿01",
+   "graphAtMs": 700,
+   "effect": {
+    "asset": 10006070,
+    "attachPoint": "GI_WeaponR",
+    "ms": 4400
+   }
+  },
+  {
+   "name": "KV_hammer",
+   "creature": 30006009,
+   "graph": "hammer",
+   "animation": "挖矿01",
+   "graphAtMs": 700,
+   "effect": {
+    "asset": 10006070,
+    "attachPoint": "GI_WeaponR",
+    "ms": 4400
+   }
+  },
+  {
+   "name": "KV_throw",
+   "creature": 30006009,
+   "graph": "throw",
+   "animation": "远程攻击_01",
+   "animationPortion": 0.62,
+   "graphAtMs": 2050,
+   "faceTarget": true,
+   "effect": {
+    "asset": 10006069,
+    "attachPoint": "GI_WeaponR",
+    "ms": 2000
+   }
+  },
+  {
+   "name": "KV_slash",
+   "creature": 30008001,
+   "graph": "slash",
+   "animation": "近战攻击_02",
+   "graphAtMs": 750,
+   "faceTarget": true
+  },
+  {
+   "name": "KV_punch",
+   "creature": 30007001,
+   "graph": "punch",
+   "animations": [
+    "攻击",
+    "闪避"
+   ],
+   "graphAtMs": 1050,
+   "faceTarget": true
+  },
+  {
+   "name": "KV_smash",
+   "creature": 30005002,
+   "graph": "smash",
+   "animation": "近战攻击_01",
+   "animationPortion": 0.65,
+   "graphAtMs": 1300,
+   "faceTarget": true
+  },
+  {
+   "name": "KV_sweep",
+   "creature": 30005002,
+   "graph": "smash",
+   "animation": "近战攻击_01",
+   "animationPortion": 0.37,
+   "graphAtMs": 1300,
+   "faceTarget": true
+  }
+ ],
+ "creatureLogic": [
+  {
+   "prefab": "KV_vagrant",
+   "decisionGraph": "citizenMind"
+  },
+  {
+   "prefab": "KV_farmer",
+   "decisionGraph": "farmerMind",
+   "skills": [
+    {
+     "skill": "KV_dig",
+     "cooldownSeconds": [
+      0.5,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "KV_builder",
+   "decisionGraph": "builderMind",
+   "skills": [
+    {
+     "skill": "KV_hammer",
+     "cooldownSeconds": [
+      0.2,
+      0.5
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "KV_thrower",
+   "decisionGraph": "throwerMind",
+   "skills": [
+    {
+     "skill": "KV_throw",
+     "cooldownSeconds": [
+      0.4,
+      0.9
+     ]
+    }
+   ],
+   "logic": {
+    "noticeRadius": 13,
+    "leaveCombatDistance": 20
+   }
+  },
+  {
+   "prefab": "KV_soldier",
+   "decisionGraph": "soldierMind",
+   "skills": [
+    {
+     "skill": "KV_slash",
+     "cooldownSeconds": [
+      0.5,
+      1
+     ]
+    }
+   ],
+   "logic": {
+    "noticeRadius": 8,
+    "leaveCombatDistance": 14
+   }
+  },
+  {
+   "prefab": "KV_greed",
+   "decisionGraph": "greedMind",
+   "skills": [
+    {
+     "skill": "KV_punch",
+     "cooldownSeconds": [
+      1,
+      2
+     ]
+    }
+   ],
+   "logic": {
+    "noticeRadius": 4,
+    "leaveCombatDistance": 12,
+    "territoryRadius": 100
+   }
+  },
+  {
+   "prefab": "KV_brute",
+   "decisionGraph": "greedMind",
+   "skills": [
+    {
+     "skill": "KV_smash",
+     "cooldownSeconds": [
+      1.5,
+      2.5
+     ]
+    },
+    {
+     "skill": "KV_sweep",
+     "cooldownSeconds": [
+      2.5,
+      3.5
+     ]
+    }
+   ],
+   "logic": {
+    "noticeRadius": 4,
+    "leaveCombatDistance": 12,
+    "territoryRadius": 100
+   }
+  }
+ ],
+ "screenshotWidth": 2560
+}

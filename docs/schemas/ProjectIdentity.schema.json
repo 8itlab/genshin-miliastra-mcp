@@ -1,0 +1,61 @@
+{
+  "$ref": "#/definitions/ProjectIdentity",
+  "definitions": {
+    "ProjectIdentity": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "projectId": {
+          "type": "string",
+          "pattern": "^prj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "initialSourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^src_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "legacyRef": {
+          "type": "object",
+          "properties": {
+            "relativePath": {
+              "$ref": "#/definitions/ProjectIdentity/properties/displayName"
+            },
+            "migrationReportHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "relativePath",
+            "migrationReportHash"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "projectId",
+        "displayName",
+        "createdAt",
+        "initialSourceIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

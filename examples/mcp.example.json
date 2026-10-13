@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "miliastra": {
+      "command": "node",
+      "args": [
+        "C:/path/to/miliastra-mcp/src/server.mjs"
+      ],
+      "env": {
+        "MILIASTRA_WORKSPACE": "C:/path/to/miliastra-mcp/workspace",
+        "MILIASTRA_ALLOW_LIVE_WRITE": "0"
+      }
+    }
+  }
+}

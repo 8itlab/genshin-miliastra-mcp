@@ -1,0 +1,158 @@
+{
+ "about": "A row of lives without words: three discs on a dark panel, each an image control; a graph switches them off and on (f.modifyUiControlStatusWithinTheInterfaceLayout with the control id scene_add_image returned). The level clock starts five or six seconds before the play: the first disc goes at level second 9, the second at 12, the first comes back at 15. Beside them four bars on one variable (6 of 10 from second 9): a red one that shows the value, a blue ring that says nothing, an upright one that shows the ratio on blue, and one as it comes; and a picture that starts hidden and is switched on at 12. Screenshots at play seconds 2, 5, 8 and 11. The places of a timer sequence count from 0 (IM_STEP 0, 1, 2).",
+ "dir": "images",
+ "namePrefix": "IM_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 13,
+ "screenshotsAt": [
+  2,
+  5,
+  8,
+  11
+ ],
+ "inputs": [],
+ "scenes": [],
+ "generator": "gen_images.py",
+ "images": [
+  {
+   "name": "IM_back",
+   "colour": "#000000",
+   "opacity": 0.5,
+   "position": [
+    -400,
+    360
+   ],
+   "size": [
+    480,
+    80
+   ]
+  },
+  {
+   "name": "IM_life1",
+   "image": 106025,
+   "colour": "#e03030",
+   "position": [
+    -380,
+    360
+   ],
+   "size": [
+    56,
+    56
+   ]
+  },
+  {
+   "name": "IM_life2",
+   "image": 106025,
+   "colour": "#e03030",
+   "position": [
+    -300,
+    360
+   ],
+   "size": [
+    56,
+    56
+   ]
+  },
+  {
+   "name": "IM_life3",
+   "image": 106025,
+   "colour": "#e03030",
+   "position": [
+    -220,
+    360
+   ],
+   "size": [
+    56,
+    56
+   ]
+  },
+  {
+   "name": "IM_late",
+   "image": 109069,
+   "position": [
+    320,
+    340
+   ],
+   "size": [
+    80,
+    80
+   ],
+   "hidden": true
+  }
+ ],
+ "graphs": [
+  {
+   "key": "lives",
+   "name": "ImLives"
+  }
+ ],
+ "bars": [
+  {
+   "name": "IM_bar",
+   "variable": "IM_hp",
+   "min": 0,
+   "max": 10,
+   "position": [
+    -540,
+    360
+   ],
+   "size": [
+    160,
+    40
+   ],
+   "shows": "value",
+   "colour": "#e03030"
+  },
+  {
+   "name": "IM_ring",
+   "variable": "IM_hp",
+   "min": 0,
+   "max": 10,
+   "position": [
+    -100,
+    360
+   ],
+   "size": [
+    70,
+    70
+   ],
+   "shape": "ring",
+   "shows": "nothing",
+   "colour": "#40a0ff"
+  },
+  {
+   "name": "IM_tall",
+   "variable": "IM_hp",
+   "min": 0,
+   "max": 10,
+   "position": [
+    0,
+    340
+   ],
+   "size": [
+    40,
+    110
+   ],
+   "shape": "vertical",
+   "shows": "ratio",
+   "backColour": "#2040c0"
+  },
+  {
+   "name": "IM_plain",
+   "variable": "IM_hp",
+   "min": 0,
+   "max": 10,
+   "position": [
+    160,
+    360
+   ],
+   "size": [
+    160,
+    40
+   ]
+  }
+ ]
+}

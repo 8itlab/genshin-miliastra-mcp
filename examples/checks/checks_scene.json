@@ -1,0 +1,95 @@
+{
+ "name": "Checks_Demo",
+ "blocks": [
+  {
+   "template": 20002056,
+   "name": "CK_floor_-1",
+   "position": [
+    -4.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_0",
+   "position": [
+    0.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_1",
+   "position": [
+    4.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_2",
+   "position": [
+    8.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_3",
+   "position": [
+    12.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_4",
+   "position": [
+    16.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_5",
+   "position": [
+    20.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_6",
+   "position": [
+    24.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_7",
+   "position": [
+    28.0,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "CK_floor_8",
+   "position": [
+    32.0,
+    -0.2,
+    0
+   ]
+  }
+ ]
+}

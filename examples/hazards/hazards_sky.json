@@ -1,0 +1,43 @@
+{
+ "about": "A day sky and a night sky made by scene_add_environment, beside the sky of the map. The level clock starts five or six seconds before the play: the graph switches to the day sky (10:00) nine seconds into the level and to the night sky (0:00) at fifteen. Screenshots: the sky of the map (play second 1.5), the day sky (7), the night sky (13). The day sky must look like the sky of the map and not brighter (pale stone stays stone-coloured); the night is dark, with stars.",
+ "dir": "hazards",
+ "namePrefix": "HZ_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 15,
+ "screenshotsAt": [
+  1.5,
+  7,
+  13
+ ],
+ "screenshotWidth": 2400,
+ "inputs": [],
+ "scenes": [
+  "hazards_scene.json",
+  "hazards_sky_scene.json"
+ ],
+ "camera": {
+  "distance": 16
+ },
+ "generator": "gen_hazards.py",
+ "environments": [
+  {
+   "name": "HZ_day",
+   "hour": 10,
+   "stars": false,
+   "milkyWay": false
+  },
+  {
+   "name": "HZ_night",
+   "hour": 0
+  }
+ ],
+ "graphs": [
+  {
+   "key": "sky",
+   "name": "HzSky"
+  }
+ ]
+}

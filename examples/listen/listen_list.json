@@ -1,0 +1,358 @@
+{
+ "about": "What examples/listen plays, in order, one entry every gapSeconds. kind: sound (sound_catalog id), effect (a timed effect of effect_catalog, played with its own sound), music (music_catalog id and its length), quiet (the music volume goes to 0).",
+ "gapSeconds": 3,
+ "entries": [
+  {
+   "kind": "sound",
+   "id": 50915
+  },
+  {
+   "kind": "sound",
+   "id": 50916
+  },
+  {
+   "kind": "sound",
+   "id": 50917
+  },
+  {
+   "kind": "sound",
+   "id": 50862
+  },
+  {
+   "kind": "sound",
+   "id": 50863
+  },
+  {
+   "kind": "sound",
+   "id": 50864
+  },
+  {
+   "kind": "sound",
+   "id": 50918
+  },
+  {
+   "kind": "sound",
+   "id": 50919
+  },
+  {
+   "kind": "sound",
+   "id": 50920
+  },
+  {
+   "kind": "sound",
+   "id": 50921
+  },
+  {
+   "kind": "sound",
+   "id": 50926
+  },
+  {
+   "kind": "sound",
+   "id": 50927
+  },
+  {
+   "kind": "sound",
+   "id": 50928
+  },
+  {
+   "kind": "sound",
+   "id": 50931
+  },
+  {
+   "kind": "sound",
+   "id": 50932
+  },
+  {
+   "kind": "sound",
+   "id": 50933
+  },
+  {
+   "kind": "sound",
+   "id": 50934
+  },
+  {
+   "kind": "sound",
+   "id": 50935
+  },
+  {
+   "kind": "sound",
+   "id": 50936
+  },
+  {
+   "kind": "sound",
+   "id": 50937
+  },
+  {
+   "kind": "sound",
+   "id": 50940
+  },
+  {
+   "kind": "sound",
+   "id": 50941
+  },
+  {
+   "kind": "sound",
+   "id": 50882
+  },
+  {
+   "kind": "sound",
+   "id": 50883
+  },
+  {
+   "kind": "sound",
+   "id": 50884
+  },
+  {
+   "kind": "sound",
+   "id": 50885
+  },
+  {
+   "kind": "sound",
+   "id": 50900
+  },
+  {
+   "kind": "sound",
+   "id": 50901
+  },
+  {
+   "kind": "sound",
+   "id": 50902
+  },
+  {
+   "kind": "sound",
+   "id": 50214
+  },
+  {
+   "kind": "sound",
+   "id": 50215
+  },
+  {
+   "kind": "sound",
+   "id": 50216
+  },
+  {
+   "kind": "sound",
+   "id": 50217
+  },
+  {
+   "kind": "sound",
+   "id": 50218
+  },
+  {
+   "kind": "sound",
+   "id": 50219
+  },
+  {
+   "kind": "sound",
+   "id": 50220
+  },
+  {
+   "kind": "sound",
+   "id": 50221
+  },
+  {
+   "kind": "sound",
+   "id": 50222
+  },
+  {
+   "kind": "sound",
+   "id": 50223
+  },
+  {
+   "kind": "sound",
+   "id": 50224
+  },
+  {
+   "kind": "sound",
+   "id": 50225
+  },
+  {
+   "kind": "sound",
+   "id": 50226
+  },
+  {
+   "kind": "sound",
+   "id": 50227
+  },
+  {
+   "kind": "sound",
+   "id": 50228
+  },
+  {
+   "kind": "sound",
+   "id": 50055
+  },
+  {
+   "kind": "sound",
+   "id": 50056
+  },
+  {
+   "kind": "sound",
+   "id": 50057
+  },
+  {
+   "kind": "sound",
+   "id": 50058
+  },
+  {
+   "kind": "sound",
+   "id": 50059
+  },
+  {
+   "kind": "sound",
+   "id": 50060
+  },
+  {
+   "kind": "sound",
+   "id": 51063
+  },
+  {
+   "kind": "sound",
+   "id": 51064
+  },
+  {
+   "kind": "sound",
+   "id": 51067
+  },
+  {
+   "kind": "sound",
+   "id": 51068
+  },
+  {
+   "kind": "sound",
+   "id": 51071
+  },
+  {
+   "kind": "sound",
+   "id": 51072
+  },
+  {
+   "kind": "sound",
+   "id": 51073
+  },
+  {
+   "kind": "sound",
+   "id": 51074
+  },
+  {
+   "kind": "sound",
+   "id": 40026
+  },
+  {
+   "kind": "sound",
+   "id": 40027
+  },
+  {
+   "kind": "sound",
+   "id": 40028
+  },
+  {
+   "kind": "sound",
+   "id": 40203
+  },
+  {
+   "kind": "sound",
+   "id": 40204
+  },
+  {
+   "kind": "sound",
+   "id": 20024
+  },
+  {
+   "kind": "sound",
+   "id": 20025
+  },
+  {
+   "kind": "sound",
+   "id": 20176
+  },
+  {
+   "kind": "sound",
+   "id": 20155
+  },
+  {
+   "kind": "sound",
+   "id": 40001
+  },
+  {
+   "kind": "sound",
+   "id": 50424
+  },
+  {
+   "kind": "sound",
+   "id": 50425
+  },
+  {
+   "kind": "sound",
+   "id": 50426
+  },
+  {
+   "kind": "sound",
+   "id": 50467
+  },
+  {
+   "kind": "sound",
+   "id": 50468
+  },
+  {
+   "kind": "sound",
+   "id": 50469
+  },
+  {
+   "kind": "sound",
+   "id": 50146
+  },
+  {
+   "kind": "sound",
+   "id": 50147
+  },
+  {
+   "kind": "sound",
+   "id": 50509
+  },
+  {
+   "kind": "sound",
+   "id": 51085
+  },
+  {
+   "kind": "sound",
+   "id": 51087
+  },
+  {
+   "kind": "sound",
+   "id": 10071
+  },
+  {
+   "kind": "sound",
+   "id": 10044
+  },
+  {
+   "kind": "effect",
+   "id": 10004163
+  },
+  {
+   "kind": "effect",
+   "id": 10002057
+  },
+  {
+   "kind": "effect",
+   "id": 10001031
+  },
+  {
+   "kind": "music",
+   "id": 10012,
+   "seconds": 194
+  },
+  {
+   "kind": "quiet"
+  },
+  {
+   "kind": "music",
+   "id": 10117,
+   "seconds": 246
+  },
+  {
+   "kind": "quiet"
+  }
+ ]
+}

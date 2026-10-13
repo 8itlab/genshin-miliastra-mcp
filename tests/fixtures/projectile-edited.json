@@ -1,0 +1,5 @@
+{
+ "about": "The general components 11 (投射运动器) and 12 (命中检测) of a prefab as the editor saved them on 2026-10-11 after they were set by hand on a save built with the tools (examples/skirmish): 追踪投射 with velocity z 22, 加速率 3, 加速时长 0.5, 追踪角速度 720, 吸附追踪 with 吸附范围 1.5 and 吸附时间 0.25; a sphere of 0.6 m, 不重复触发, 检测延迟 0.05, 连续碰撞检测 above 5 m/s with radius 0.6, 阵营筛选 敌对阵营, 命中层 受击盒.",
+ "projectile": "080b1001aa014a0a4508036a320a051d0000b04115000040401d0000003f2d00003444420b47495f526f6f744e6f64654d0000c03f550000803e5802d03e01b21f0ce8bfbde8b8aae68a95e5b084a81f03",
+ "hitDetection": "080c1001b2014a0a18080162070a00159a99193fb21f07e58cbae59f9f31b81f0118b61025cdcc4c3d32003a0c08011d0000a0402d9a99193f40d20f4a06fd0afc0afa0a6a02a914a81f01b81f0dd03e01"
+}

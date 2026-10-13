@@ -1,0 +1,29 @@
+{
+ "about": "Custom aggro mode: can a graph send creatures after a far target? Six creatures, six different orders (see gen_aggro_probe.py); PP_AT lines give x, z, state, what it aims at and its aggro target every three seconds. Runs on the map the first Kingdom was built on (no baseName).",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 70,
+ "screenshotsAt": [
+  20,
+  35,
+  50,
+  66
+ ],
+ "inputs": [],
+ "scenes": [
+  "kingdom_v3_scene.json",
+  "kingdom_v3_scenery.json"
+ ],
+ "camera": {
+  "distance": 14,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_aggro_probe.py",
+ "level": {
+  "aggroMode": "custom"
+ }
+}

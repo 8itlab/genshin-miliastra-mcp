@@ -1,0 +1,99 @@
+{
+ "about": "Stand by the portal with one coin. Expect KV_NIGHT, KV_GREED_OUT, KV_COIN_STOLEN, KV_CROWN_LOST and the Defeat screen. Runs on a blank map: baseName is the name of a save made in the game with 我的奇域 → 新建存档 (超限模式) and saved once; everything else is made by tools.",
+ "day": 10,
+ "night": 45,
+ "coins": 1,
+ "durationSeconds": 58,
+ "screenshotsAt": [
+  12,
+  22,
+  30,
+  38,
+  46,
+  54
+ ],
+ "inputs": [
+  {
+   "at": 4,
+   "key": "d",
+   "holdMs": 4600
+  }
+ ],
+ "scenes": [
+  "kingdom_v3_scene.json",
+  "kingdom_v3_scenery.json",
+  "kingdom_v3_units.json"
+ ],
+ "camera": {
+  "distance": 14,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_kingdom_v3.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "KV_coin",
+   "scale": 0.5
+  },
+  {
+   "asset": 10005009,
+   "name": "KV_purse_coin",
+   "scale": 0.3
+  },
+  {
+   "asset": 20003092,
+   "name": "KV_wall_wood",
+   "scale": [
+    0.55,
+    1.2,
+    1
+   ]
+  },
+  {
+   "asset": 20002893,
+   "name": "KV_wall_stone",
+   "scale": [
+    1,
+    0.6,
+    1
+   ]
+  },
+  {
+   "fromEntity": "KV_unit_vagrant",
+   "name": "KV_vagrant"
+  },
+  {
+   "fromEntity": "KV_unit_builder",
+   "name": "KV_builder"
+  },
+  {
+   "fromEntity": "KV_unit_archer",
+   "name": "KV_archer"
+  }
+ ],
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "level": {
+  "aggroMode": "custom"
+ },
+ "baseName": "未分类页签_存档_3",
+ "sceneOffset": [
+  0,
+  -7.6,
+  0
+ ],
+ "addGraph": {
+  "name": "KingdomEconomy"
+ },
+ "generatorData": {
+  "ground": 0,
+  "ui:hide": 0
+ }
+}

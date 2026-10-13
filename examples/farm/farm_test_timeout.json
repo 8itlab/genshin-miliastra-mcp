@@ -1,0 +1,319 @@
+{
+ "about": "The same level with nobody playing: the script presses nothing and waits for the clock to run out. Played on 2026-10-11: FM_TIME_UP is printed when the global timer of 70 seconds ends, the level shows 失败 and reaches the official result screen with a defeat 72.2 seconds after play starts.",
+ "dir": "farm",
+ "namePrefix": "FM_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "generatorArgs": [
+  1
+ ],
+ "durationSeconds": 82,
+ "screenshotsAt": [
+  5,
+  62,
+  67,
+  72,
+  78
+ ],
+ "inputs": [],
+ "scenes": [
+  "farm_scene.json"
+ ],
+ "camera": {
+  "distance": 14,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_farm.py",
+ "prefabs": [
+  {
+   "asset": 20001939,
+   "name": "FM_rake",
+   "scale": 1
+  },
+  {
+   "asset": 20001483,
+   "name": "FM_seeds",
+   "scale": 1
+  },
+  {
+   "asset": 20001966,
+   "name": "FM_plot",
+   "scale": 1
+  },
+  {
+   "asset": 20001952,
+   "name": "FM_seedling",
+   "scale": 0.8
+  },
+  {
+   "asset": 20001954,
+   "name": "FM_sprout",
+   "scale": 0.6
+  },
+  {
+   "asset": 20003094,
+   "name": "FM_ripe",
+   "scale": 0.8
+  },
+  {
+   "asset": 20001809,
+   "name": "FM_stall",
+   "scale": 1
+  }
+ ],
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ],
+ "spawn": {
+  "position": [
+   2,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "currencies": [
+  {
+   "name": "FM_fruit",
+   "startAmount": 0
+  }
+ ],
+ "signals": [
+  {
+   "name": "FM_use",
+   "parameter": "tool"
+  }
+ ],
+ "timers": [
+  {
+   "name": "FM_round",
+   "seconds": 70,
+   "holder": "stage"
+  }
+ ],
+ "clocks": [
+  {
+   "name": "FM_clock",
+   "timer": "FM_round",
+   "position": [
+    0,
+    330
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "name": "FM_points",
+   "variable": "score",
+   "max": 3,
+   "position": [
+    0,
+    380
+   ],
+   "size": [
+    260,
+    40
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "FmStage"
+  },
+  {
+   "key": "rake",
+   "name": "FmRake",
+   "attachToPrefab": "FM_rake"
+  },
+  {
+   "key": "seeds",
+   "name": "FmSeeds",
+   "attachToPrefab": "FM_seeds"
+  },
+  {
+   "key": "plot",
+   "name": "FmPlot",
+   "attachToPrefab": "FM_plot"
+  },
+  {
+   "key": "ripe",
+   "name": "FmRipe",
+   "attachToPrefab": "FM_ripe"
+  },
+  {
+   "key": "stall",
+   "name": "FmStall",
+   "attachToPrefab": "FM_stall"
+  },
+  {
+   "key": "hero",
+   "name": "FmHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "player",
+   "name": "FmPlayer",
+   "attachToPrefab": "player"
+  },
+  {
+   "key": "use",
+   "name": "FmUse",
+   "kind": "characterSkill"
+  }
+ ],
+ "skills": [
+  {
+   "name": "FM_use",
+   "graph": "use"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "FM_rake",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       5,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "拿耙子",
+      "icon": 3
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "FM_seeds",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       3,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "拿种子",
+      "icon": 1
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "FM_plot",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "size": [
+        4,
+        4,
+        8
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ],
+   "variables": [
+    {
+     "name": "stage",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "here",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "FM_seedling",
+   "solid": false
+  },
+  {
+   "prefab": "FM_sprout",
+   "solid": false
+  },
+  {
+   "prefab": "FM_ripe",
+   "solid": false,
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       6,
+       4,
+       10
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "收获",
+      "icon": 2
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "FM_stall",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       8,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "交货",
+      "icon": 20
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "tool",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "score",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  }
+ ]
+}

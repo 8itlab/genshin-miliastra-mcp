@@ -1,0 +1,7 @@
+node_modules/
+workspace/
+vendor/
+dist/
+*.log
+__pycache__/
+examples/_*/ 

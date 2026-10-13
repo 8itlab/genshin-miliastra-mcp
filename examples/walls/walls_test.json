@@ -1,0 +1,104 @@
+{
+ "about": "What stops a character, and a pad that flings one. Four walls of building blocks stand across a lane at x = 5, 9, 13 and 17, 1.3, 1.6, 2.0 and 2.4 m high, and a fifth of 3 m at x = 25 whose model the stage graph switches off (f.activateDisableModelDisplay): an invisible wall. The class may neither jump nor climb. The player walks into the first wall from second 3 (measured 2026-10-12: it stops at x = 4.6, in front of the 1.3 m wall, for as long as the key is held); at 7 it is put at x = 21 and walks on: it stops at x = 24.65 with nothing to be seen there. At 12 it is put at x = -13 and walks over a flat pad at x = -8 that flings 14 m/s straight up (launcher). Expect WL_GO, and read playerTrack.",
+ "dir": "walls",
+ "namePrefix": "WL_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 19,
+ "screenshotsAt": [
+  2.5,
+  5,
+  10,
+  10.5,
+  13.6,
+  14,
+  14.4,
+  14.8,
+  15.5,
+  17
+ ],
+ "trackPlayer": 0.25,
+ "inputs": [
+  {
+   "at": 3,
+   "key": "d",
+   "holdMs": 3000
+  },
+  {
+   "at": 7,
+   "teleport": [
+    21,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 8,
+   "key": "d",
+   "holdMs": 2500
+  },
+  {
+   "at": 12,
+   "teleport": [
+    -13,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 13,
+   "key": "d",
+   "holdMs": 1300
+  }
+ ],
+ "scenes": [
+  "walls_scene.json"
+ ],
+ "camera": {
+  "distance": 16
+ },
+ "generator": "gen_walls.py",
+ "classes": [
+  {
+   "allowJump": false,
+   "allowClimb": false
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "WlStage"
+  }
+ ],
+ "prefabs": [
+  {
+   "asset": 20002056,
+   "name": "WL_pad",
+   "scale": [
+    0.2,
+    0.4,
+    0.2
+   ]
+  }
+ ],
+ "components": [
+  {
+   "prefab": "WL_pad",
+   "launcher": {
+    "areas": [
+     {
+      "radius": 1.2,
+      "offset": [
+       0,
+       0.5,
+       0
+      ]
+     }
+    ],
+    "speed": 14
+   }
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+{
+ "about": "One piece that opens, closes and opens again. A wall piece is a prefab with two motion devices, open (4 m up in a second) and close (4 m down). Its own graph starts them in turn 3, 6, 9 and 12 seconds after it appears and prints how high the piece stands before each start (DR_STEP n y) and once more at 15. If a motion can be started again after it has run, the heights read 0, 4, 0, 4, 0 and the screenshots show the gate up at play seconds 3.5 and 9.5 and down at 6.5 and 12.5 (the level clock runs five or six seconds ahead of the play).",
+ "dir": "doors",
+ "namePrefix": "DR_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 14,
+ "screenshotsAt": [
+  1,
+  3.5,
+  6.5,
+  9.5,
+  12.5
+ ],
+ "inputs": [],
+ "scenes": [
+  "doors_scene.json"
+ ],
+ "camera": {
+  "distance": 16
+ },
+ "generator": "gen_doors.py",
+ "prefabs": [
+  {
+   "asset": 20002067,
+   "name": "DR_gate",
+   "scale": 1
+  }
+ ],
+ "components": [
+  {
+   "prefab": "DR_gate",
+   "motions": [
+    {
+     "name": "open",
+     "move": [
+      0,
+      4,
+      0
+     ],
+     "seconds": 1
+    },
+    {
+     "name": "close",
+     "move": [
+      0,
+      -4,
+      0
+     ],
+     "seconds": 1
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "DrStage"
+  },
+  {
+   "key": "gate",
+   "name": "DrGate",
+   "attachToPrefab": "DR_gate"
+  }
+ ]
+}

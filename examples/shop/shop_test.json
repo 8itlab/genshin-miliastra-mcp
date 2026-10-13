@@ -1,0 +1,206 @@
+{
+ "about": "The platform's own shop on a stall, the whole resource loop without a graph doing the trade: scene_add_currency, scene_add_item (twice) and scene_add_shop; F at the stall opens the shop screen (the stall's graph calls f.openShop). The stall has four apples at five coins and one pear at eight, and buys apples for three; the character starts with twelve coins and two apples. The script clicks the apple on the shelf and 购买 (coins 12 to 7, apples 2 to 3, SH_SOLD 1), closes the 获得 notice, then 批量出售, the apple in the backpack and 出售 (coins 7 to 10, apples 3 to 2, SH_BOUGHT). Played as written on 2026-10-11. Prints: SH_READY, SH_HOLD coins apples pears (every three seconds), SH_OPEN, SH_COIN change, SH_ITEM amount, SH_SOLD n, SH_BOUGHT.",
+ "dir": "shop",
+ "namePrefix": "SH_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 28,
+ "screenshotsAt": [
+  4.5,
+  7.5,
+  10,
+  12,
+  14.2,
+  16.5,
+  19.5,
+  22.5,
+  25.5
+ ],
+ "readTextAt": [
+  7.6,
+  10.1,
+  16.6,
+  19.6,
+  22.6,
+  25.6
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "key": "f"
+  },
+  {
+   "at": 6,
+   "click": [
+    0.198,
+    0.26
+   ]
+  },
+  {
+   "at": 9,
+   "clickText": "购买"
+  },
+  {
+   "at": 11,
+   "click": [
+    0.5,
+    0.92
+   ]
+  },
+  {
+   "at": 13,
+   "clickText": "批量出售"
+  },
+  {
+   "at": 15.5,
+   "click": [
+    0.567,
+    0.333
+   ]
+  },
+  {
+   "at": 18.5,
+   "click": [
+    0.91,
+    0.953
+   ]
+  },
+  {
+   "at": 21,
+   "clickText": "确认"
+  },
+  {
+   "at": 24,
+   "click": [
+    0.5,
+    0.92
+   ]
+  }
+ ],
+ "scenes": [
+  "shop_scene.json"
+ ],
+ "camera": {
+  "distance": 8,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_shop.py",
+ "prefabs": [
+  {
+   "asset": 20001809,
+   "name": "SH_stall",
+   "scale": 1
+  }
+ ],
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "currencies": [
+  {
+   "name": "SH_coin",
+   "icon": 100007,
+   "startAmount": 12
+  }
+ ],
+ "items": [
+  {
+   "name": "SH_apple",
+   "icon": 90001,
+   "value": {
+    "currency": "SH_coin",
+    "amount": 5
+   }
+  },
+  {
+   "name": "SH_pear",
+   "icon": 90015,
+   "value": {
+    "currency": "SH_coin",
+    "amount": 8
+   }
+  }
+ ],
+ "shops": [
+  {
+   "name": "SH_fruit",
+   "prefab": "SH_stall",
+   "sell": [
+    {
+     "item": "SH_apple",
+     "currency": "SH_coin",
+     "price": 5,
+     "stock": 4
+    },
+    {
+     "item": "SH_pear",
+     "currency": "SH_coin",
+     "price": 8
+    }
+   ],
+   "buy": [
+    {
+     "item": "SH_apple",
+     "currency": "SH_coin",
+     "price": 3
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "ShStage"
+  },
+  {
+   "key": "stall",
+   "name": "ShStall",
+   "attachToPrefab": "SH_stall"
+  },
+  {
+   "key": "hero",
+   "name": "ShHero",
+   "attachToPrefab": "character"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "SH_stall",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       8,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "开店",
+      "icon": 20
+     }
+    ]
+   }
+  }
+ ]
+}

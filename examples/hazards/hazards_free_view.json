@@ -1,0 +1,50 @@
+{
+ "about": "The same level and the same mouse and keys with the camera as it comes (no fixedView): the comparison for hazards_fixed_view.json. Here the view turns with the mouse.",
+ "dir": "hazards",
+ "namePrefix": "HZ_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 12,
+ "screenshotsAt": [
+  2,
+  4.5,
+  7.5,
+  11
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "look": [
+    900,
+    0
+   ]
+  },
+  {
+   "at": 5,
+   "key": "d",
+   "holdMs": 1500
+  },
+  {
+   "at": 8,
+   "look": [
+    -1400,
+    300
+   ]
+  },
+  {
+   "at": 9.5,
+   "key": "s",
+   "holdMs": 1000
+  }
+ ],
+ "scenes": [
+  "hazards_scene.json",
+  "hazards_sky_scene.json"
+ ],
+ "camera": {
+  "distance": 16
+ },
+ "graphs": []
+}

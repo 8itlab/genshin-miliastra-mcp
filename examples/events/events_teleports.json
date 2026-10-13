@@ -1,0 +1,247 @@
+{
+ "about": "How close two teleports of a playtest may follow each other. On the events level the player is put on eight spots: at 4 and 5 (one second apart), at 8 and 9.5, at 12 and 14, and at 16 and 17 (a second apart again, far from each other). probe.teleports of playtest_status says for each where the player was half a second later; the track shows the same.",
+ "dir": "events",
+ "namePrefix": "EV_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 21,
+ "screenshotsAt": [
+  4.7,
+  5.7,
+  8.7,
+  10.2,
+  14.7,
+  17.7
+ ],
+ "inputs": [
+  {
+   "at": 4,
+   "teleport": [
+    4,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 5,
+   "teleport": [
+    10,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 8,
+   "teleport": [
+    -4,
+    0.4,
+    3
+   ]
+  },
+  {
+   "at": 9.5,
+   "teleport": [
+    6,
+    0.4,
+    -3
+   ]
+  },
+  {
+   "at": 12,
+   "teleport": [
+    14,
+    0.4,
+    2
+   ]
+  },
+  {
+   "at": 14,
+   "teleport": [
+    0,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 16,
+   "teleport": [
+    18,
+    0.4,
+    -2
+   ]
+  },
+  {
+   "at": 17,
+   "teleport": [
+    -6,
+    0.4,
+    0
+   ]
+  }
+ ],
+ "scenes": [
+  "events_probe_scene.json"
+ ],
+ "camera": {
+  "distance": 12
+ },
+ "generator": "gen_events.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "EV_coin",
+   "scale": 1
+  },
+  {
+   "asset": 20001125,
+   "name": "EV_stall",
+   "scale": 1
+  }
+ ],
+ "components": [
+  {
+   "prefab": "EV_coin",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "size": [
+        2,
+        2,
+        2
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ],
+   "solid": false
+  },
+  {
+   "prefab": "EV_stall",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       6,
+       4,
+       6
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "付一枚币"
+     },
+     {
+      "text": "看看"
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "score",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "EV_stall",
+   "launcher": {
+    "areas": [
+     {
+      "radius": 1.5,
+      "offset": [
+       0,
+       0.5,
+       0
+      ]
+     }
+    ],
+    "speed": 7
+   }
+  }
+ ],
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "EvStage"
+  },
+  {
+   "key": "coin",
+   "name": "EvCoin",
+   "attachToPrefab": "EV_coin"
+  },
+  {
+   "key": "stall",
+   "name": "EvStall",
+   "attachToPrefab": "EV_stall"
+  },
+  {
+   "key": "player",
+   "name": "EvPlayer",
+   "attachToPrefab": "player"
+  }
+ ],
+ "bars": [
+  {
+   "name": "purse",
+   "variable": "score",
+   "max": 5,
+   "position": [
+    0,
+    380
+   ],
+   "size": [
+    260,
+    40
+   ]
+  }
+ ],
+ "trackPlayer": 0.5,
+ "respawnPoints": [
+  {
+   "position": [
+    0,
+    0.4,
+    0
+   ]
+  }
+ ],
+ "playerCount": {
+  "max": 1
+ },
+ "recordVideo": {
+  "from": 5,
+  "to": 15
+ },
+ "classes": [
+  {
+   "health": 300,
+   "allowClimb": false
+  }
+ ],
+ "prefabUpdates": [
+  {
+   "prefab": "EV_coin",
+   "scale": 2
+  }
+ ],
+ "readTextAt": [
+  3
+ ]
+}

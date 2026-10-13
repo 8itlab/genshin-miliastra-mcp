@@ -1,0 +1,57 @@
+{
+ "about": "Plays the entries of listen_list.json one every three seconds and records the sound of the playtest; scripts/dev/measure_sounds.py reads the recording. A dev probe for choosing sounds and for checking that sounds, music and the sound of effects play at all.",
+ "dir": "listen",
+ "namePrefix": "LS_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 278,
+ "screenshotsAt": [
+  5,
+  224
+ ],
+ "recordAudio": true,
+ "inputs": [],
+ "scenes": [
+  "listen_scene.json"
+ ],
+ "camera": {
+  "distance": 8,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_listen.py",
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "LsStage"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "n",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  }
+ ]
+}

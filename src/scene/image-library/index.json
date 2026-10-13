@@ -1,0 +1,226 @@
+{
+ "capturedOn": "2026-10-13",
+ "categories": [
+  {
+   "category": "shape",
+   "zh": "基础形状",
+   "about": "plain shapes to colour: a rectangle, rounded ones, a disc",
+   "firstId": 100001,
+   "lastId": 100006,
+   "count": 6,
+   "read": 6,
+   "files": [
+    "shape_00.jpg"
+   ]
+  },
+  {
+   "category": "function-mono",
+   "zh": "功能图标-单色",
+   "about": "white icons of what a button or a state does (arrows, marks, tools, signs)",
+   "firstId": 100101,
+   "lastId": 100213,
+   "count": 113,
+   "read": 113,
+   "files": [
+    "function-mono_00.jpg",
+    "function-mono_01.jpg",
+    "function-mono_02.jpg",
+    "function-mono_03.jpg",
+    "function-mono_04.jpg"
+   ]
+  },
+  {
+   "category": "function-colour",
+   "zh": "功能图标-彩色",
+   "about": "the same kind of icons in colour",
+   "firstId": 101001,
+   "lastId": 101080,
+   "count": 80,
+   "read": 80,
+   "files": [
+    "function-colour_00.jpg",
+    "function-colour_01.jpg"
+   ]
+  },
+  {
+   "category": "play-mono",
+   "zh": "玩法图标-单色",
+   "about": "white icons of play: weapons, shields, hearts, effects on a character",
+   "firstId": 102001,
+   "lastId": 102052,
+   "count": 52,
+   "read": 52,
+   "files": [
+    "play-mono_00.jpg"
+   ]
+  },
+  {
+   "category": "play-colour",
+   "zh": "玩法图标-彩色",
+   "about": "icons of play in colour: the seven elements and their pairs, flags, attack and defence marks, buffs",
+   "firstId": 103001,
+   "lastId": 103148,
+   "count": 148,
+   "read": 148,
+   "files": [
+    "play-colour_00.jpg",
+    "play-colour_01.jpg",
+    "play-colour_02.jpg",
+    "play-colour_03.jpg",
+    "play-colour_04.jpg"
+   ]
+  },
+  {
+   "category": "decor-mono",
+   "zh": "装饰图案-单色",
+   "about": "a few white ornaments",
+   "firstId": 104001,
+   "lastId": 104010,
+   "count": 10,
+   "read": 10,
+   "files": [
+    "decor-mono_00.jpg"
+   ]
+  },
+  {
+   "category": "decor-colour",
+   "zh": "装饰图案-彩色",
+   "about": "decorations in colour: stars, crowns, balloons, coins, fruit, chests, little animals, clouds, ribbons, arrows",
+   "firstId": 105001,
+   "lastId": 105317,
+   "count": 317,
+   "read": 317,
+   "files": [
+    "decor-colour_00.jpg",
+    "decor-colour_01.jpg",
+    "decor-colour_02.jpg",
+    "decor-colour_03.jpg",
+    "decor-colour_04.jpg",
+    "decor-colour_05.jpg",
+    "decor-colour_06.jpg",
+    "decor-colour_07.jpg",
+    "decor-colour_08.jpg",
+    "decor-colour_09.jpg",
+    "decor-colour_10.jpg",
+    "decor-colour_11.jpg"
+   ]
+  },
+  {
+   "category": "plate-mono",
+   "zh": "底板-单色",
+   "about": "white plates to put things on and to tint: discs, rings, frames, panels, soft glows, half moons",
+   "firstId": 106001,
+   "lastId": 106096,
+   "count": 96,
+   "read": 96,
+   "files": [
+    "plate-mono_00.jpg",
+    "plate-mono_01.jpg",
+    "plate-mono_02.jpg"
+   ]
+  },
+  {
+   "category": "plate-colour",
+   "zh": "底板-彩色",
+   "about": "plates and frames in colour, the bases of bars among them",
+   "firstId": 107001,
+   "lastId": 107402,
+   "count": 402,
+   "read": 392,
+   "files": [
+    "plate-colour_00.jpg",
+    "plate-colour_01.jpg",
+    "plate-colour_02.jpg",
+    "plate-colour_03.jpg",
+    "plate-colour_04.jpg",
+    "plate-colour_05.jpg",
+    "plate-colour_06.jpg",
+    "plate-colour_07.jpg",
+    "plate-colour_08.jpg",
+    "plate-colour_09.jpg",
+    "plate-colour_10.jpg",
+    "plate-colour_11.jpg",
+    "plate-colour_12.jpg",
+    "plate-colour_13.jpg"
+   ]
+  },
+  {
+   "category": "divider",
+   "zh": "分隔线",
+   "about": "lines that divide a panel",
+   "firstId": 108001,
+   "lastId": 108020,
+   "count": 20,
+   "read": 20,
+   "files": [
+    "divider_00.jpg"
+   ]
+  },
+  {
+   "category": "glyph",
+   "zh": "特殊字符",
+   "about": "letters of ranks, signs and other single characters drawn as pictures",
+   "firstId": 109001,
+   "lastId": 109075,
+   "count": 75,
+   "read": 75,
+   "files": [
+    "glyph_00.jpg",
+    "glyph_01.jpg"
+   ]
+  },
+  {
+   "category": "skill",
+   "zh": "技能天赋",
+   "about": "icons of skills and talents",
+   "firstId": 110001,
+   "lastId": 110053,
+   "count": 53,
+   "read": 53,
+   "files": [
+    "skill_00.jpg"
+   ]
+  },
+  {
+   "category": "item",
+   "zh": "道具",
+   "about": "things: crystals, wood, potions, letters, books, keys, a chest, swords, spears, bows, rings and armour",
+   "firstId": 111001,
+   "lastId": 111139,
+   "count": 139,
+   "read": 139,
+   "files": [
+    "item_00.jpg",
+    "item_01.jpg",
+    "item_02.jpg",
+    "item_03.jpg",
+    "item_04.jpg"
+   ]
+  },
+  {
+   "category": "creature",
+   "zh": "造物",
+   "about": "portraits of creatures: slimes, hilichurls, machines, animals, birds",
+   "firstId": 112001,
+   "lastId": 112077,
+   "count": 77,
+   "read": 74,
+   "files": [
+    "creature_00.jpg",
+    "creature_01.jpg"
+   ]
+  },
+  {
+   "category": "pad-focus",
+   "zh": "手柄焦点提示",
+   "about": "the frames a gamepad shows around what is chosen",
+   "firstId": 113001,
+   "lastId": 113002,
+   "count": 2,
+   "read": 2,
+   "files": [
+    "pad-focus_00.jpg"
+   ]
+  }
+ ]
+}

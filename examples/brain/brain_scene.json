@@ -1,0 +1,63 @@
+{
+ "name": "Brain_Probe",
+ "blocks": [
+  {
+   "template": "石质墙体（灰）",
+   "name": "BR_post_a",
+   "position": [
+    0,
+    0,
+    5.5
+   ],
+   "size": [
+    0.4,
+    2,
+    0.4
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "BR_post_b",
+   "position": [
+    12,
+    0,
+    5.5
+   ],
+   "size": [
+    0.4,
+    3,
+    0.4
+   ]
+  },
+  {
+   "template": 30006009,
+   "name": "BR_scout_src",
+   "position": [
+    5,
+    0,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30006001,
+   "name": "BR_archer_src",
+   "position": [
+    8,
+    0,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30007001,
+   "name": "BR_foe_src",
+   "position": [
+    11,
+    0,
+    14
+   ],
+   "createAtStart": false
+  }
+ ]
+}

@@ -1,0 +1,56 @@
+{
+  "$ref": "#/definitions/Binding",
+  "definitions": {
+    "Binding": {
+      "type": "object",
+      "properties": {
+        "internalObjectId": {
+          "type": "string",
+          "pattern": "^obj_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sourceGameId": {
+          "type": "string",
+          "pattern": "^\\d+$"
+        },
+        "importedGameId": {
+          "type": "string",
+          "pattern": "^\\d+$"
+        },
+        "importSessionId": {
+          "type": "string",
+          "pattern": "^imp_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "observedArtifactHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "matchMethod": {
+          "$ref": "#/definitions/Binding/properties/namespace"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "unresolved",
+            "candidate",
+            "confirmed",
+            "conflict"
+          ]
+        }
+      },
+      "required": [
+        "internalObjectId",
+        "namespace",
+        "matchMethod",
+        "status"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Structural schema only. Runtime refinements additionally enforce reference integrity, digest equality and quaternion canonicalization."
+}

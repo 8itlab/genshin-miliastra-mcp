@@ -1,0 +1,217 @@
+{
+ "about": "The rest of what a thing can do to a character, on a second lane. The player starts at x = -17, jumps once at second 3 (a jump to compare with), and is held on D from 5 to 11: a coin at x = -14 hits it (an ability unit of 2000: the health bar read at second 7 is below 10000), a coin at x = -10 gives the status star (invincible), the same hitting coin at x = -6 should now do nothing (the bar read at 9.5 says what it said at 7), a wind at x = -1 blows towards +z (forceField, 6 m/s: the track drifts in z), a big coin at x = 7 pulls (launcher towards the piece, 8 m/s). At 13 the player is put at x = 11, walks through a coin at x = 13 that gives spring (superJump 1 and 2.5) and jumps at 15: the track should rise two and a half times as high as the first jump. Expect HZ_GO, HZ_STING twice, HZ_STAR, HZ_SPRING, and read playerTrack and screenTexts.",
+ "dir": "hazards",
+ "namePrefix": "HZ_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 19,
+ "screenshotsAt": [
+  2.5,
+  3.4,
+  6,
+  8,
+  10,
+  12,
+  14,
+  15.4,
+  16,
+  17.5
+ ],
+ "trackPlayer": 0.25,
+ "readTextAt": [
+  4.5,
+  7.2,
+  9.6
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "key": "SPACE"
+  },
+  {
+   "at": 5,
+   "key": "d",
+   "holdMs": 6000
+  },
+  {
+   "at": 13,
+   "teleport": [
+    11,
+    0.4,
+    0
+   ]
+  },
+  {
+   "at": 14,
+   "key": "d",
+   "holdMs": 700
+  },
+  {
+   "at": 15.2,
+   "key": "SPACE"
+  }
+ ],
+ "scenes": [
+  "hazards_scene.json"
+ ],
+ "camera": {
+  "distance": 16
+ },
+ "generator": "gen_hazards.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "HZ_sting",
+   "scale": 1
+  },
+  {
+   "asset": 10005009,
+   "name": "HZ_starcoin",
+   "scale": 1
+  },
+  {
+   "asset": 10005009,
+   "name": "HZ_springcoin",
+   "scale": 1
+  },
+  {
+   "asset": 10005018,
+   "name": "HZ_wind"
+  },
+  {
+   "asset": 10005009,
+   "name": "HZ_magnet",
+   "scale": 2.5
+  }
+ ],
+ "statuses": [
+  {
+   "name": "HZ_star",
+   "invincible": true,
+   "seconds": 30
+  },
+  {
+   "name": "HZ_spring",
+   "superJump": [
+    1,
+    2.5
+   ],
+   "seconds": 30
+  }
+ ],
+ "components": [
+  {
+   "prefab": "HZ_sting",
+   "solid": false,
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 1.5
+      }
+     ]
+    }
+   ],
+   "abilityUnits": [
+    {
+     "name": "HZ_sting",
+     "attack": {
+      "coefficient": 1,
+      "added": 2000
+     }
+    }
+   ]
+  },
+  {
+   "prefab": "HZ_starcoin",
+   "solid": false,
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 1.5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "HZ_springcoin",
+   "solid": false,
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 1.5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "HZ_wind",
+   "forceField": {
+    "areas": [
+     {
+      "radius": 2.5,
+      "offset": [
+       0,
+       1,
+       0
+      ]
+     }
+    ],
+    "direction": [
+     0,
+     0,
+     1
+    ],
+    "speed": 6,
+    "innerRadius": 1,
+    "outerRadius": 2.5
+   }
+  },
+  {
+   "prefab": "HZ_magnet",
+   "solid": false,
+   "launcher": {
+    "areas": [
+     {
+      "radius": 3,
+      "offset": [
+       0,
+       0,
+       0
+      ]
+     }
+    ],
+    "speed": 8,
+    "direction": "toward",
+    "holdSeconds": 0.3
+   }
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage2",
+   "name": "HzStage2"
+  },
+  {
+   "key": "sting",
+   "name": "HzSting",
+   "attachToPrefab": "HZ_sting"
+  },
+  {
+   "key": "star",
+   "name": "HzStar",
+   "attachToPrefab": "HZ_starcoin"
+  },
+  {
+   "key": "spring",
+   "name": "HzSpring",
+   "attachToPrefab": "HZ_springcoin"
+  }
+ ]
+}

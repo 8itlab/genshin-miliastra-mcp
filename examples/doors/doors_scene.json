@@ -1,0 +1,23 @@
+{
+ "name": "Doors_Check",
+ "blocks": [
+  {
+   "template": 20002056,
+   "name": "DR_floor_0",
+   "position": [
+    -6,
+    -0.2,
+    0
+   ]
+  },
+  {
+   "template": 20002056,
+   "name": "DR_floor_1",
+   "position": [
+    4,
+    -0.2,
+    0
+   ]
+  }
+ ]
+}

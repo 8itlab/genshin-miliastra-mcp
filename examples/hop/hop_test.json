@@ -1,0 +1,397 @@
+{
+ "about": "A second kind of game built with the same tools: a platform course, side on. Walk up a low ledge; walk onto a wooden platform as far as the barrier at its front and press F: the barrier lifts and the platform carries you ten metres across; pull a lever (F) and a stone gate rises; a strip of lava sends you back to the door unless you blink over it with the E skill; open the chest (F) to win before the clock runs out. Four coins on the way fill a bar. Nine graphs: stage, coin, ferry, lever, chest, lava, hero (character template: the blink), player, and the client skill graph. Prints: HP_READY, HP_GO, HP_COIN and HP_SCORE n, HP_FERRY, HP_LEVER, HP_BURN when the lava is touched (the script walks into it once, is sent back, then blinks over), HP_BLINK, HP_CHEST, HP_VICTORY (or HP_TIME_UP), and HP_AT with the character's x and y every two seconds. Climbing is switched off in the class: with it on, a character pushed against the barrier climbs over it (seen twice). The script does not walk by the clock alone, which passed once and failed once: the barrier stops the character at a known place on the platform, and the lava puts it at a known place before the blink.",
+ "dir": "hop",
+ "namePrefix": "HP_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 35,
+ "screenshotsAt": [
+  5,
+  7.5,
+  9.5,
+  11,
+  12.5,
+  14,
+  16,
+  17.8,
+  19,
+  21,
+  22.5,
+  24,
+  25.5,
+  27,
+  29,
+  32
+ ],
+ "inputs": [
+  {
+   "at": 6,
+   "key": "d",
+   "holdMs": 4500
+  },
+  {
+   "at": 11.5,
+   "key": "f"
+  },
+  {
+   "at": 17,
+   "key": "d",
+   "holdMs": 600
+  },
+  {
+   "at": 18.5,
+   "key": "f"
+  },
+  {
+   "at": 20,
+   "key": "d",
+   "holdMs": 2400
+  },
+  {
+   "at": 23,
+   "key": "e"
+  },
+  {
+   "at": 24.5,
+   "key": "d",
+   "holdMs": 400
+  },
+  {
+   "at": 26,
+   "key": "f"
+  }
+ ],
+ "scenes": [
+  "hop_scene.json"
+ ],
+ "camera": {
+  "distance": 14,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_hop.py",
+ "prefabs": [
+  {
+   "asset": 10005009,
+   "name": "HP_coin",
+   "scale": 0.6
+  },
+  {
+   "asset": 10005015,
+   "name": "HP_ferry",
+   "scale": 1
+  },
+  {
+   "asset": 10005030,
+   "name": "HP_lever",
+   "scale": 1.5
+  },
+  {
+   "asset": 10005006,
+   "name": "HP_chest",
+   "scale": 1.5
+  },
+  {
+   "asset": 10005018,
+   "name": "HP_burn",
+   "scale": 1
+  },
+  {
+   "asset": 20001872,
+   "name": "HP_gate",
+   "scale": [
+    0.15,
+    1.2,
+    1.4
+   ]
+  },
+  {
+   "asset": 20001872,
+   "name": "HP_stop",
+   "scale": [
+    0.1,
+    0.8,
+    1.4
+   ]
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "timers": [
+  {
+   "name": "HP_time",
+   "seconds": 60,
+   "holder": "stage"
+  }
+ ],
+ "clocks": [
+  {
+   "name": "HP_clock",
+   "timer": "HP_time",
+   "position": [
+    0,
+    330
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "name": "HP_coins",
+   "variable": "score",
+   "max": 4,
+   "position": [
+    0,
+    380
+   ],
+   "size": [
+    260,
+    40
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "HpStage"
+  },
+  {
+   "key": "coin",
+   "name": "HpCoin",
+   "attachToPrefab": "HP_coin"
+  },
+  {
+   "key": "ferry",
+   "name": "HpFerry",
+   "attachToPrefab": "HP_ferry"
+  },
+  {
+   "key": "lever",
+   "name": "HpLever",
+   "attachToPrefab": "HP_lever"
+  },
+  {
+   "key": "chest",
+   "name": "HpChest",
+   "attachToPrefab": "HP_chest"
+  },
+  {
+   "key": "burn",
+   "name": "HpBurn",
+   "attachToPrefab": "HP_burn"
+  },
+  {
+   "key": "hero",
+   "name": "HpHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "player",
+   "name": "HpPlayer",
+   "attachToPrefab": "player"
+  },
+  {
+   "key": "blink",
+   "name": "HpBlink",
+   "kind": "characterSkill"
+  }
+ ],
+ "skills": [
+  {
+   "name": "HP_blink",
+   "graph": "blink"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "HP_coin",
+   "solid": false,
+   "follow": "chase",
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "radius": 4
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    },
+    {
+     "areas": [
+      {
+       "size": [
+        1.6,
+        2,
+        1.6
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "HP_lever",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       5,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "扳动",
+      "icon": 3
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "HP_burn",
+   "solid": false,
+   "collisionTriggers": [
+    {
+     "areas": [
+      {
+       "size": [
+        3,
+        3,
+        4
+       ]
+      }
+     ],
+     "targets": [
+      "character"
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "score",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "HP_gate",
+   "motions": [
+    {
+     "name": "open",
+     "move": [
+      0,
+      4,
+      0
+     ],
+     "seconds": 1.5
+    }
+   ]
+  },
+  {
+   "prefab": "HP_chest",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       5,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "打开",
+      "icon": 2
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "HP_ferry",
+   "motions": [
+    {
+     "name": "go",
+     "move": [
+      10,
+      0,
+      0
+     ],
+     "seconds": 4
+    }
+   ],
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       7,
+       3,
+       5
+      ],
+      "offset": [
+       0,
+       1.5,
+       0
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "出发",
+      "icon": 10
+     }
+    ]
+   },
+   "variables": [
+    {
+     "name": "gone",
+     "type": "boolean",
+     "value": false
+    }
+   ]
+  },
+  {
+   "prefab": "HP_stop",
+   "motions": [
+    {
+     "name": "lift",
+     "move": [
+      0,
+      5,
+      0
+     ],
+     "seconds": 0.3
+    }
+   ]
+  }
+ ],
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ]
+}

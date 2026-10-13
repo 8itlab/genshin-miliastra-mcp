@@ -1,0 +1,497 @@
+{
+ "about": "Complex creatures that work by day, take their posts at night and fight, with the platform's own fighting and every attack the one its animation was made for: a farmer who digs with a pickaxe, a knife thrower and a soldier with a sword on the player's side, a wall with a hurt box, and five foes in two groups who hit with bare hands. The models come with empty hands: the sword is a looping effect that is a model, mounted on the soldier's weapon attachment point; the pickaxe and the knife are shown by their skills while the animation holds them (scene_add_creature_skill {effect}). A stroke is a hit box triggered by the skill's graph at the moment the animation strikes; the thrown knife is a projectile that follows its target (scene_add_components {projectile:{type:\"tracking\"}}) and whose hit detection answers to enemies only and attacks with its ability unit. What to look for in the prints: SK_HP soldier / foe / wall (their full health); SK_DIG by day and none after SK_NIGHT; SK_AT shows the farmer's x going back to 3 and the thrower's and soldier's to 9.5 and 15 after SK_NIGHT; after SK_FOES: SK_TARGET soldier on / thrower on, SK_THROW then SK_KNIFE_HIT and SK_HURT, SK_SLASH then SK_HIT soldier 40, SK_PUNCH then SK_HIT foe 25, SK_DOWN foe; a foe that gets as far as the wall: SK_AT_WALL, SK_WALL n going down; after SK_DAY the foes that are left run back. Every run goes differently, the cooldowns are random: in the run written up in WALKTHROUGH.md (2026-10-11, the fourth) the soldier cut down all five and the wall was never reached; in the one before, the second group brought the soldier down (SK_DOWN soldier), two of them hammered the wall from 200 to 100 and fell to the thrower's knives. The knife's ability unit asks for 0 x attack + 40 and takes 18 (SK_HURT): what an ability unit deals is reduced, what a hit box deals is not. The screenshots and the recording show the pickaxe, the knife in the hand and in the air, the sword and the health bars.",
+ "dir": "skirmish",
+ "namePrefix": "SK_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 96,
+ "screenshotsAt": [
+  6,
+  8,
+  10,
+  12,
+  14,
+  16,
+  18,
+  20,
+  22,
+  24,
+  26,
+  28,
+  30,
+  32,
+  34,
+  36,
+  38,
+  40,
+  42,
+  44,
+  46,
+  48,
+  50,
+  52,
+  54,
+  56,
+  58,
+  60,
+  62,
+  64,
+  66,
+  68,
+  70,
+  72,
+  74,
+  76,
+  78,
+  80,
+  82,
+  84,
+  86,
+  88,
+  90,
+  92
+ ],
+ "inputs": [],
+ "scenes": [
+  "skirmish_scene.json"
+ ],
+ "camera": {
+  "distance": 6
+ },
+ "generator": "gen_skirmish.py",
+ "batch": true,
+ "spawn": {
+  "position": [
+   14,
+   0.4,
+   -6.5
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "level": {
+  "aggroMode": "custom"
+ },
+ "prefabs": [
+  {
+   "fromEntity": "SK_farmer_src",
+   "name": "SK_farmer"
+  },
+  {
+   "fromEntity": "SK_thrower_src",
+   "name": "SK_thrower"
+  },
+  {
+   "fromEntity": "SK_soldier_src",
+   "name": "SK_soldier",
+   "health": 30
+  },
+  {
+   "fromEntity": "SK_foe_src",
+   "name": "SK_foe",
+   "health": 12
+  },
+  {
+   "asset": 20003092,
+   "name": "SK_wall",
+   "scale": [
+    0.55,
+    1.2,
+    1
+   ],
+   "health": 200
+  },
+  {
+   "asset": 20001929,
+   "name": "SK_knife",
+   "scale": 0.2
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "SkStage"
+  },
+  {
+   "key": "unit",
+   "name": "SkUnit",
+   "attachToPrefab": [
+    "SK_farmer",
+    "SK_thrower",
+    "SK_soldier"
+   ]
+  },
+  {
+   "key": "foe",
+   "name": "SkFoe",
+   "attachToPrefab": "SK_foe"
+  },
+  {
+   "key": "wall",
+   "name": "SkWall",
+   "attachToPrefab": "SK_wall"
+  },
+  {
+   "key": "knife",
+   "name": "SkKnife",
+   "attachToPrefab": "SK_knife"
+  },
+  {
+   "key": "dig",
+   "name": "SkDig",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "throw",
+   "name": "SkThrow",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "slash",
+   "name": "SkSlash",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "punch",
+   "name": "SkPunch",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "farmerMind",
+   "name": "SkFarmerMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "throwerMind",
+   "name": "SkThrowerMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "soldierMind",
+   "name": "SkSoldierMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "foeMind",
+   "name": "SkFoeMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "home",
+   "name": "SkHome",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "post",
+   "name": "SkPost",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "stroll",
+   "name": "SkStroll",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "work",
+   "name": "SkWork",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "shoot",
+   "name": "SkShoot",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "fight",
+   "name": "SkFight",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "advance",
+   "name": "SkAdvance",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "bash",
+   "name": "SkBash",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "retreat",
+   "name": "SkRetreat",
+   "kind": "creatureStatus"
+  }
+ ],
+ "creatureSkills": [
+  {
+   "name": "SK_dig",
+   "creature": 30006009,
+   "graph": "dig",
+   "animation": "挖矿01",
+   "graphAtMs": 700,
+   "effect": {
+    "asset": 10006070,
+    "attachPoint": "GI_WeaponR",
+    "ms": 4400
+   }
+  },
+  {
+   "name": "SK_throw",
+   "creature": 30006009,
+   "graph": "throw",
+   "animation": "远程攻击_01",
+   "animationPortion": 0.62,
+   "graphAtMs": 2050,
+   "faceTarget": true,
+   "effect": {
+    "asset": 10006069,
+    "attachPoint": "GI_WeaponR",
+    "ms": 2000
+   }
+  },
+  {
+   "name": "SK_slash",
+   "creature": 30008001,
+   "graph": "slash",
+   "animation": "近战攻击_02",
+   "graphAtMs": 750,
+   "faceTarget": true
+  },
+  {
+   "name": "SK_punch",
+   "creature": 30007001,
+   "graph": "punch",
+   "animation": "无武器攻击",
+   "graphAtMs": 900,
+   "faceTarget": true
+  }
+ ],
+ "creatureLogic": [
+  {
+   "prefab": "SK_farmer",
+   "decisionGraph": "farmerMind",
+   "skills": [
+    {
+     "skill": "SK_dig",
+     "cooldownSeconds": [
+      0.3,
+      0.8
+     ]
+    }
+   ]
+  },
+  {
+   "prefab": "SK_thrower",
+   "decisionGraph": "throwerMind",
+   "skills": [
+    {
+     "skill": "SK_throw",
+     "cooldownSeconds": [
+      0.4,
+      0.9
+     ]
+    }
+   ],
+   "logic": {
+    "noticeRadius": 13,
+    "leaveCombatDistance": 20
+   }
+  },
+  {
+   "prefab": "SK_soldier",
+   "decisionGraph": "soldierMind",
+   "skills": [
+    {
+     "skill": "SK_slash",
+     "cooldownSeconds": [
+      0.5,
+      1
+     ]
+    }
+   ],
+   "logic": {
+    "noticeRadius": 8,
+    "leaveCombatDistance": 14
+   }
+  },
+  {
+   "prefab": "SK_foe",
+   "decisionGraph": "foeMind",
+   "skills": [
+    {
+     "skill": "SK_punch",
+     "cooldownSeconds": [
+      1,
+      2
+     ]
+    }
+   ],
+   "logic": {
+    "noticeRadius": 4,
+    "leaveCombatDistance": 12,
+    "territoryRadius": 80
+   }
+  }
+ ],
+ "components": [
+  {
+   "entity": "关卡实体",
+   "variables": [
+    {
+     "name": "night",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "SK_farmer",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 1
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "SK_thrower",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 2
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "SK_soldier",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 3
+    },
+    {
+     "name": "wx",
+     "type": "float",
+     "value": 0
+    },
+    {
+     "name": "wz",
+     "type": "float",
+     "value": 0
+    }
+   ]
+  },
+  {
+   "prefab": "SK_foe",
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 4
+    }
+   ]
+  },
+  {
+   "prefab": "SK_wall",
+   "solid": false,
+   "variables": [
+    {
+     "name": "kind",
+     "type": "integer",
+     "value": 5
+    }
+   ],
+   "hurtBox": {
+    "areas": [
+     {
+      "size": [
+       4,
+       1.1,
+       1.6
+      ],
+      "offset": [
+       0,
+       0.55,
+       0
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "SK_knife",
+   "solid": false,
+   "projectile": {
+    "type": "tracking",
+    "velocity": [
+     0,
+     0,
+     16
+    ],
+    "turnDegreesPerSecond": 720
+   },
+   "hitDetection": {
+    "areas": [
+     {
+      "radius": 0.5
+     }
+    ],
+    "trigger": "oncePerEntity",
+    "delaySeconds": 0.05,
+    "abilityUnit": "SK_pierce",
+    "layers": [
+     "hurtBox"
+    ],
+    "factions": "hostile",
+    "continuous": {
+     "speedAbove": 5,
+     "radius": 0.5
+    }
+   },
+   "abilityUnits": [
+    {
+     "name": "SK_pierce",
+     "attack": {
+      "coefficient": 0,
+      "added": 40
+     }
+    }
+   ]
+  }
+ ],
+ "bakeNavigation": true
+}

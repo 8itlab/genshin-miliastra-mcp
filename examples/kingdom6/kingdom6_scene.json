@@ -1,0 +1,250 @@
+{
+ "name": "Kingdom_V6",
+ "blocks": [
+  {
+   "template": 20002088,
+   "name": "KV_flag",
+   "position": [
+    -2.6,
+    7.6,
+    5.2
+   ]
+  },
+  {
+   "template": 20002409,
+   "name": "KV_hammer_sign",
+   "position": [
+    8.4,
+    7.6,
+    4.2
+   ]
+  },
+  {
+   "template": 20002764,
+   "name": "KV_bow_target_b",
+   "position": [
+    16.0,
+    7.6,
+    5.6
+   ],
+   "rotation": [
+    0,
+    25,
+    0
+   ]
+  },
+  {
+   "template": 20001216,
+   "name": "KV_wall_stump",
+   "position": [
+    24.6,
+    7.6,
+    5.2
+   ]
+  },
+  {
+   "template": "石质墙体（黄）",
+   "name": "KV_crown",
+   "position": [
+    0,
+    11.8,
+    3.6
+   ],
+   "size": [
+    0.9,
+    0.5,
+    0.9
+   ],
+   "rotation": [
+    0,
+    45,
+    0
+   ]
+  },
+  {
+   "template": 20002586,
+   "name": "KV_portal_arch",
+   "position": [
+    37,
+    7.6,
+    4.6
+   ],
+   "scale": 1.1
+  },
+  {
+   "template": "木质天花板（黑）",
+   "name": "KV_portal_back",
+   "position": [
+    37,
+    9.3,
+    4.82
+   ],
+   "size": [
+    3.2,
+    3.4,
+    0.1
+   ]
+  },
+  {
+   "template": 20002570,
+   "name": "KV_lamp_0",
+   "position": [
+    -3.9,
+    7.6,
+    4.3
+   ],
+   "scale": 0.6
+  },
+  {
+   "template": 20002570,
+   "name": "KV_lamp_1",
+   "position": [
+    7.3,
+    7.6,
+    4.3
+   ],
+   "scale": 0.6
+  },
+  {
+   "template": 20002570,
+   "name": "KV_lamp_2",
+   "position": [
+    21.4,
+    7.6,
+    4.3
+   ],
+   "scale": 0.6
+  },
+  {
+   "template": 20001271,
+   "name": "KV_scarecrow",
+   "position": [
+    -10.2,
+    7.6,
+    5.6
+   ],
+   "rotation": [
+    0,
+    20,
+    0
+   ]
+  },
+  {
+   "template": 20001954,
+   "name": "KV_wheat_0",
+   "position": [
+    -5.2,
+    7.6,
+    6.6
+   ]
+  },
+  {
+   "template": 20001954,
+   "name": "KV_wheat_1",
+   "position": [
+    -6.6,
+    7.6,
+    7.2
+   ]
+  },
+  {
+   "template": 20001954,
+   "name": "KV_wheat_2",
+   "position": [
+    -8.2,
+    7.6,
+    6.8
+   ]
+  },
+  {
+   "template": 20002570,
+   "name": "KV_lamp_3",
+   "position": [
+    30.5,
+    7.6,
+    4.3
+   ],
+   "scale": 0.6
+  },
+  {
+   "template": 20002570,
+   "name": "KV_lamp_4",
+   "position": [
+    -11.5,
+    7.6,
+    4.3
+   ],
+   "scale": 0.6
+  },
+  {
+   "template": 30006009,
+   "name": "KV_unit_vagrant",
+   "position": [
+    3.0,
+    7.6,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30006009,
+   "name": "KV_unit_farmer",
+   "position": [
+    5.5,
+    7.6,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30006009,
+   "name": "KV_unit_builder",
+   "position": [
+    8.0,
+    7.6,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30006009,
+   "name": "KV_unit_thrower",
+   "position": [
+    10.5,
+    7.6,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30008001,
+   "name": "KV_unit_soldier",
+   "position": [
+    13.0,
+    7.6,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30007001,
+   "name": "KV_enemy_00",
+   "position": [
+    15.5,
+    7.6,
+    14
+   ],
+   "createAtStart": false
+  },
+  {
+   "template": 30005002,
+   "name": "KV_enemy_big",
+   "position": [
+    18.0,
+    7.6,
+    14
+   ],
+   "createAtStart": false
+  }
+ ]
+}

@@ -1,0 +1,199 @@
+{
+ "about": "Complex creatures (复杂造物) run by graphs, a first try in the game: scene_add_creature_skill, scene_set_creature_logic and the three kinds of creature graph. A scout is ordered about through custom variables (walk to x 12, work, walk back to x 0, stroll); an archer is given an enemy as its target and shoots. What to look for in the prints: BR_AT shows the scout's x going from 2 to 12 after BR_ORDER 0 and back to 0 after BR_ORDER 2; BR_SIGNAL work after BR_ORDER 1; BR_SIGNAL shoot after BR_FOE. BR_CALL shows that a creature's own server graph hears its skill (whenSkillNodeIsCalled). The level's navigation mesh is baked before the playtest (bakeNavigation): without it the scout does not stroll.",
+ "dir": "brain",
+ "namePrefix": "BR_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 56,
+ "screenshotsAt": [
+  5,
+  7,
+  10,
+  12,
+  14,
+  16,
+  19,
+  21,
+  23,
+  27,
+  30,
+  33,
+  36,
+  38,
+  40,
+  42,
+  44,
+  46,
+  50
+ ],
+ "inputs": [],
+ "scenes": [
+  "brain_scene.json"
+ ],
+ "camera": {
+  "distance": 14,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_brain.py",
+ "batch": true,
+ "spawn": {
+  "position": [
+   6,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "level": {
+  "aggroMode": "custom"
+ },
+ "signals": [
+  "BR_work",
+  "BR_shoot"
+ ],
+ "prefabs": [
+  {
+   "fromEntity": "BR_archer_src",
+   "name": "BR_archer"
+  },
+  {
+   "fromEntity": "BR_scout_src",
+   "name": "BR_scout"
+  },
+  {
+   "fromEntity": "BR_foe_src",
+   "name": "BR_foe"
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "BrStage"
+  },
+  {
+   "key": "unit",
+   "name": "BrUnit",
+   "attachToPrefab": [
+    "BR_scout",
+    "BR_archer"
+   ]
+  },
+  {
+   "key": "scoutMind",
+   "name": "BrScoutMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "archerMind",
+   "name": "BrArcherMind",
+   "kind": "creatureDecision"
+  },
+  {
+   "key": "go",
+   "name": "BrGo",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "work",
+   "name": "BrWork",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "stroll",
+   "name": "BrStroll",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "shoot",
+   "name": "BrShoot",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "stand",
+   "name": "BrStand",
+   "kind": "creatureStatus"
+  },
+  {
+   "key": "workSkill",
+   "name": "BrWorkSkill",
+   "kind": "creatureSkill"
+  },
+  {
+   "key": "shootSkill",
+   "name": "BrShootSkill",
+   "kind": "creatureSkill"
+  }
+ ],
+ "creatureSkills": [
+  {
+   "name": "BR_work",
+   "creature": 30006009,
+   "graph": "workSkill",
+   "animation": 6009001
+  },
+  {
+   "name": "BR_shoot",
+   "creature": 30006001,
+   "graph": "shootSkill",
+   "animation": 6001001
+  }
+ ],
+ "creatureLogic": [
+  {
+   "prefab": "BR_archer",
+   "decisionGraph": "archerMind",
+   "skills": [
+    {
+     "skill": "BR_shoot"
+    }
+   ]
+  },
+  {
+   "prefab": "BR_scout",
+   "decisionGraph": "scoutMind",
+   "skills": [
+    {
+     "skill": "BR_work"
+    }
+   ]
+  }
+ ],
+ "components": [
+  {
+   "prefab": "BR_scout",
+   "variables": [
+    {
+     "name": "duty",
+     "type": "integer",
+     "value": 0
+    },
+    {
+     "name": "px",
+     "type": "float",
+     "value": 2
+    },
+    {
+     "name": "pz",
+     "type": "float",
+     "value": 3
+    }
+   ]
+  }
+ ],
+ "bakeNavigation": true
+}

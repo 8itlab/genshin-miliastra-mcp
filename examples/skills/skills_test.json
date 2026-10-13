@@ -1,0 +1,149 @@
+{
+ "about": "Tries the normal (animated) skills of scene_add_skill in the game: a sword attack on E whose graph runs 250 ms into the swing and which shows a sword in the hand, the raking of the farming sample on Q, a reach of the hand on R. First each is pressed standing still, with screenshots during the animation; then E and Q are pressed while walking, and the position printed four times a second shows whether the skill holds the character in place and for how long. Played on 2026-10-11: all three animations play, the sword shows, every graph reaches the server; standing still, the sword attack carries the character 0.65 m forward and the raking 0.55 m. The walking part of the script taught something else: with the spawn turned 90 degrees the camera turns with it, D no longer walks along x, and the character walked off the edge of the terrain. Prints: SK_READY, SK_GO, SK_CALL <word>, SK_AT x.",
+ "dir": "skills",
+ "namePrefix": "SK_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 30,
+ "screenshotsAt": [
+  2.5,
+  3.25,
+  3.5,
+  3.8,
+  4.2,
+  4.8,
+  7.25,
+  7.6,
+  8.2,
+  11.25,
+  11.6,
+  12.2,
+  15.3,
+  15.8,
+  21.3
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "key": "e"
+  },
+  {
+   "at": 7,
+   "key": "q"
+  },
+  {
+   "at": 11,
+   "key": "r"
+  },
+  {
+   "at": 14,
+   "key": "d",
+   "holdMs": 4000
+  },
+  {
+   "at": 15,
+   "key": "e"
+  },
+  {
+   "at": 20,
+   "key": "d",
+   "holdMs": 4000
+  },
+  {
+   "at": 21,
+   "key": "q"
+  },
+  {
+   "at": 25,
+   "key": "d",
+   "holdMs": 3000
+  },
+  {
+   "at": 26,
+   "key": "r"
+  }
+ ],
+ "scenes": [
+  "skills_scene.json"
+ ],
+ "camera": {
+  "distance": 7,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_skills.py",
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   90,
+   0
+  ]
+ },
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "SkStage"
+  },
+  {
+   "key": "hero",
+   "name": "SkHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "swing",
+   "name": "SkSwing",
+   "kind": "characterSkill"
+  },
+  {
+   "key": "rake",
+   "name": "SkRake",
+   "kind": "characterSkill"
+  },
+  {
+   "key": "reach",
+   "name": "SkReach",
+   "kind": "characterSkill"
+  }
+ ],
+ "skills": [
+  {
+   "name": "SK_swing",
+   "graph": "swing",
+   "type": "normal",
+   "animation": 1001,
+   "graphAtMs": 250,
+   "effect": {
+    "asset": 10002152,
+    "attachPoint": "GI_WeaponR",
+    "ms": 1833.333
+   }
+  },
+  {
+   "name": "SK_rake",
+   "graph": "rake",
+   "type": "normal",
+   "animation": 1006,
+   "animationPortion": 0.167
+  },
+  {
+   "name": "SK_reach",
+   "graph": "reach",
+   "type": "normal",
+   "animation": 1025
+  }
+ ]
+}

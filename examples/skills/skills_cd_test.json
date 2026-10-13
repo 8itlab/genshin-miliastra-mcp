@@ -1,0 +1,131 @@
+{
+ "about": "A cooldown put on a skill by a graph: when the sword skill (E) has been used the character's graph calls f.setCharacterSkillCd(character, Skill1E, 4, false); for the rake (Q) the same with the last argument true (no longer than the skill's own longest cooldown, and these skills have none configured). E is pressed at 3, 6 and 8, Q at 11, 13 and 16. If the cooldown holds, SK_CALL swing comes at 3 and 8 only (the press at 6 is refused) and the skill button shows the wait; the Q presses show what the last argument does.",
+ "dir": "skills",
+ "namePrefix": "SK_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 19,
+ "screenshotsAt": [
+  3.6,
+  5,
+  6.3,
+  7,
+  8.4,
+  11.5,
+  12.5,
+  13.4
+ ],
+ "inputs": [
+  {
+   "at": 3,
+   "key": "e"
+  },
+  {
+   "at": 6,
+   "key": "e"
+  },
+  {
+   "at": 8,
+   "key": "e"
+  },
+  {
+   "at": 11,
+   "key": "q"
+  },
+  {
+   "at": 13,
+   "key": "q"
+  },
+  {
+   "at": 16,
+   "key": "q"
+  }
+ ],
+ "scenes": [
+  "skills_scene.json"
+ ],
+ "camera": {
+  "distance": 7,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_skills.py",
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   90,
+   0
+  ]
+ },
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "SkStage"
+  },
+  {
+   "key": "hero",
+   "name": "SkHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "swing",
+   "name": "SkSwing",
+   "kind": "characterSkill"
+  },
+  {
+   "key": "rake",
+   "name": "SkRake",
+   "kind": "characterSkill"
+  },
+  {
+   "key": "reach",
+   "name": "SkReach",
+   "kind": "characterSkill"
+  }
+ ],
+ "skills": [
+  {
+   "name": "SK_swing",
+   "graph": "swing",
+   "type": "normal",
+   "animation": 1001,
+   "graphAtMs": 250,
+   "effect": {
+    "asset": 10002152,
+    "attachPoint": "GI_WeaponR",
+    "ms": 1833.333
+   }
+  },
+  {
+   "name": "SK_rake",
+   "graph": "rake",
+   "type": "normal",
+   "animation": 1006,
+   "animationPortion": 0.167
+  },
+  {
+   "name": "SK_reach",
+   "graph": "reach",
+   "type": "normal",
+   "animation": 1025
+  }
+ ],
+ "generatorArgs": [
+  "cd"
+ ],
+ "screenshotWidth": 2560
+}

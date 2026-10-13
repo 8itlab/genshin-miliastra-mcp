@@ -1,0 +1,336 @@
+{
+ "about": "The same level with nobody playing: the script presses nothing and waits for the clock of ninety seconds to run out. Played on 2026-10-11: RD_TIME_UP at 90 seconds, the official result screen with a defeat at 91.6.",
+ "dir": "raid",
+ "namePrefix": "RD_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 102,
+ "screenshotsAt": [
+  5,
+  84,
+  89,
+  94,
+  99
+ ],
+ "readTextAt": [],
+ "inputs": [],
+ "scenes": [
+  "raid_scene.json"
+ ],
+ "camera": {
+  "distance": 11,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_raid.py",
+ "hostilePairs": [
+  [
+   1,
+   3
+  ]
+ ],
+ "prefabs": [
+  {
+   "asset": 10005008,
+   "name": "RD_crate",
+   "scale": 1.5,
+   "health": 100
+  },
+  {
+   "fromEntity": "RD_enemy",
+   "name": "RD_brute",
+   "dryAsset": 10005009
+  },
+  {
+   "asset": 20001809,
+   "name": "RD_stall",
+   "scale": 1
+  },
+  {
+   "asset": 20001872,
+   "name": "RD_gate",
+   "scale": [
+    0.15,
+    1.2,
+    1.4
+   ]
+  },
+  {
+   "asset": 10005006,
+   "name": "RD_chest",
+   "scale": 1.5
+  }
+ ],
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "currencies": [
+  {
+   "name": "RD_coin",
+   "icon": 100007,
+   "startAmount": 0
+  }
+ ],
+ "items": [
+  {
+   "name": "RD_apple",
+   "icon": 90001,
+   "value": {
+    "currency": "RD_coin",
+    "amount": 2
+   }
+  },
+  {
+   "name": "RD_key",
+   "icon": 90015,
+   "value": {
+    "currency": "RD_coin",
+    "amount": 8
+   }
+  }
+ ],
+ "drops": [
+  {
+   "asset": 20001554,
+   "name": "RD_fallen",
+   "drop": {
+    "item": "RD_apple",
+    "amount": 1,
+    "pickupSize": 6
+   }
+  }
+ ],
+ "shops": [
+  {
+   "name": "RD_trade",
+   "prefab": "RD_stall",
+   "sell": [
+    {
+     "item": "RD_key",
+     "currency": "RD_coin",
+     "price": 8
+    }
+   ],
+   "buy": [
+    {
+     "item": "RD_apple",
+     "currency": "RD_coin",
+     "price": 2
+    }
+   ]
+  }
+ ],
+ "timers": [
+  {
+   "name": "RD_time",
+   "seconds": 90,
+   "holder": "stage"
+  }
+ ],
+ "clocks": [
+  {
+   "name": "RD_clock",
+   "timer": "RD_time",
+   "position": [
+    0,
+    330
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "RdStage"
+  },
+  {
+   "key": "crate",
+   "name": "RdCrate",
+   "attachToPrefab": "RD_crate"
+  },
+  {
+   "key": "brute",
+   "name": "RdBrute",
+   "attachToPrefab": "RD_brute"
+  },
+  {
+   "key": "stall",
+   "name": "RdStall",
+   "attachToPrefab": "RD_stall"
+  },
+  {
+   "key": "gate",
+   "name": "RdGate",
+   "attachToPrefab": "RD_gate"
+  },
+  {
+   "key": "chest",
+   "name": "RdChest",
+   "attachToPrefab": "RD_chest"
+  },
+  {
+   "key": "hero",
+   "name": "RdHero",
+   "attachToPrefab": "character"
+  },
+  {
+   "key": "swing",
+   "name": "RdSwing",
+   "kind": "characterSkill"
+  }
+ ],
+ "skills": [
+  {
+   "name": "RD_swing",
+   "graph": "swing",
+   "type": "normal",
+   "animation": 1001,
+   "graphAtMs": 250,
+   "effect": {
+    "asset": 10002152,
+    "attachPoint": "GI_WeaponR",
+    "ms": 1833.333
+   }
+  }
+ ],
+ "components": [
+  {
+   "prefab": "RD_crate",
+   "hurtBox": {
+    "areas": [
+     {
+      "size": [
+       1.6,
+       1.2,
+       1.4
+      ],
+      "offset": [
+       0,
+       0.6,
+       0
+      ]
+     }
+    ]
+   },
+   "loot": {
+    "dropPrefab": "RD_fallen",
+    "items": [
+     {
+      "item": "RD_apple",
+      "amount": 2
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "RD_brute",
+   "loot": {
+    "dropPrefab": "RD_fallen",
+    "items": [
+     {
+      "item": "RD_apple",
+      "amount": 3
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "RD_stall",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       8,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "交易",
+      "icon": 20
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "RD_gate",
+   "motions": [
+    {
+     "name": "open",
+     "move": [
+      0,
+      4,
+      0
+     ],
+     "seconds": 1.5
+    }
+   ],
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       30,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "开门",
+      "icon": 3
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "RD_chest",
+   "optionTab": {
+    "areas": [
+     {
+      "size": [
+       5,
+       4,
+       8
+      ]
+     }
+    ],
+    "options": [
+     {
+      "text": "打开",
+      "icon": 2
+     }
+    ]
+   }
+  },
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "fallen",
+     "type": "integer",
+     "value": 0
+    }
+   ]
+  }
+ ]
+}

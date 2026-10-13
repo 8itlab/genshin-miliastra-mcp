@@ -1,0 +1,33 @@
+{
+ "name": "Drops_Probe",
+ "blocks": [
+  {
+   "template": "石质墙体（灰）",
+   "name": "DR_post_a",
+   "position": [
+    -8,
+    0,
+    4
+   ],
+   "size": [
+    0.4,
+    2,
+    0.4
+   ]
+  },
+  {
+   "template": "石质墙体（灰）",
+   "name": "DR_post_b",
+   "position": [
+    8,
+    0,
+    4
+   ],
+   "size": [
+    0.4,
+    2,
+    0.4
+   ]
+  }
+ ]
+}

@@ -1,0 +1,780 @@
+{
+ "about": "Finds out in the game whether mechanism assets the official samples never touch have a preset status under the id the others follow, (asset id - 4000) x 10, and what values 1 and 2 do. scene_add_prefab registers the guessed id (presetStatusId); an id the asset does not have makes the editor's playtest check fail and name the prefab, so the wrong guesses were taken out one playtest at a time. As it stands (2026-10-11): five of the thirty-two have no such id and carry none here (10005023, 10005093, 10005142, 10006001, 10006002); the other twenty-seven take value 1, two of them also value 2 (knowledge/notes/preset-status.zh-CN.md). Four things at a time in front of the camera, six seconds each group: value 0, then 1, then 2, read back each time. One graph is shared by all thirty-two prefabs. Prints: PS_READY, PS_GROUP n, PS_V <asset> <value> (twice per thing: after setting 1, after setting 2), PS_CHANGED <asset>.",
+ "dir": "presets",
+ "namePrefix": "PS_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 52,
+ "screenshotsAt": [
+  2.7,
+  4.4,
+  6.2,
+  8.7,
+  10.4,
+  12.2,
+  14.7,
+  16.4,
+  18.2,
+  20.7,
+  22.4,
+  24.2,
+  26.7,
+  28.4,
+  30.2,
+  32.7,
+  34.4,
+  36.2,
+  38.7,
+  40.4,
+  42.2,
+  44.7,
+  46.4,
+  48.2
+ ],
+ "inputs": [],
+ "scenes": [
+  "presets_scene.json"
+ ],
+ "camera": {
+  "distance": 15,
+  "yawRange": [
+   0,
+   0
+  ]
+ },
+ "generator": "gen_presets.py",
+ "prefabs": [
+  {
+   "asset": 10005002,
+   "name": "PS_00_10005002",
+   "scale": 1,
+   "presetStatusId": 100010020
+  },
+  {
+   "asset": 10005004,
+   "name": "PS_01_10005004",
+   "scale": 1,
+   "presetStatusId": 100010040
+  },
+  {
+   "asset": 10005016,
+   "name": "PS_02_10005016",
+   "scale": 1,
+   "presetStatusId": 100010160
+  },
+  {
+   "asset": 10005084,
+   "name": "PS_03_10005084",
+   "scale": 4,
+   "presetStatusId": 100010840
+  },
+  {
+   "asset": 10005035,
+   "name": "PS_04_10005035",
+   "scale": 1.5,
+   "presetStatusId": 100010350
+  },
+  {
+   "asset": 10005063,
+   "name": "PS_05_10005063",
+   "scale": 1,
+   "presetStatusId": 100010630
+  },
+  {
+   "asset": 10005013,
+   "name": "PS_06_10005013",
+   "scale": 1,
+   "presetStatusId": 100010130
+  },
+  {
+   "asset": 10006001,
+   "name": "PS_07_10006001",
+   "scale": 1
+  },
+  {
+   "asset": 10005083,
+   "name": "PS_08_10005083",
+   "scale": 1.5,
+   "presetStatusId": 100010830
+  },
+  {
+   "asset": 10005142,
+   "name": "PS_09_10005142",
+   "scale": 3
+  },
+  {
+   "asset": 10005096,
+   "name": "PS_10_10005096",
+   "scale": 2,
+   "presetStatusId": 100010960
+  },
+  {
+   "asset": 10006002,
+   "name": "PS_11_10006002",
+   "scale": 2.5
+  },
+  {
+   "asset": 10005093,
+   "name": "PS_12_10005093",
+   "scale": 1
+  },
+  {
+   "asset": 10005091,
+   "name": "PS_13_10005091",
+   "scale": 0.4,
+   "presetStatusId": 100010910
+  },
+  {
+   "asset": 10005079,
+   "name": "PS_14_10005079",
+   "scale": 2,
+   "presetStatusId": 100010790
+  },
+  {
+   "asset": 10005080,
+   "name": "PS_15_10005080",
+   "scale": 2,
+   "presetStatusId": 100010800
+  },
+  {
+   "asset": 10005086,
+   "name": "PS_16_10005086",
+   "scale": 1,
+   "presetStatusId": 100010860
+  },
+  {
+   "asset": 10005017,
+   "name": "PS_17_10005017",
+   "scale": 2,
+   "presetStatusId": 100010170
+  },
+  {
+   "asset": 10005029,
+   "name": "PS_18_10005029",
+   "scale": 1,
+   "presetStatusId": 100010290
+  },
+  {
+   "asset": 10005032,
+   "name": "PS_19_10005032",
+   "scale": 1,
+   "presetStatusId": 100010320
+  },
+  {
+   "asset": 10005021,
+   "name": "PS_20_10005021",
+   "scale": 1.5,
+   "presetStatusId": 100010210
+  },
+  {
+   "asset": 10005023,
+   "name": "PS_21_10005023",
+   "scale": 1
+  },
+  {
+   "asset": 10005037,
+   "name": "PS_22_10005037",
+   "scale": 1.5,
+   "presetStatusId": 100010370
+  },
+  {
+   "asset": 10005058,
+   "name": "PS_23_10005058",
+   "scale": 3,
+   "presetStatusId": 100010580
+  },
+  {
+   "asset": 10005010,
+   "name": "PS_24_10005010",
+   "scale": 2,
+   "presetStatusId": 100010100
+  },
+  {
+   "asset": 10005094,
+   "name": "PS_25_10005094",
+   "scale": 1,
+   "presetStatusId": 100010940
+  },
+  {
+   "asset": 10005052,
+   "name": "PS_26_10005052",
+   "scale": 2,
+   "presetStatusId": 100010520
+  },
+  {
+   "asset": 10005053,
+   "name": "PS_27_10005053",
+   "scale": 1.5,
+   "presetStatusId": 100010530
+  },
+  {
+   "asset": 10005012,
+   "name": "PS_28_10005012",
+   "scale": 3,
+   "presetStatusId": 100010120
+  },
+  {
+   "asset": 10005087,
+   "name": "PS_29_10005087",
+   "scale": 1,
+   "presetStatusId": 100010870
+  },
+  {
+   "asset": 10005057,
+   "name": "PS_30_10005057",
+   "scale": 0.5,
+   "presetStatusId": 100010570
+  },
+  {
+   "asset": 10005014,
+   "name": "PS_31_10005014",
+   "scale": 0.5,
+   "presetStatusId": 100010140
+  }
+ ],
+ "classes": [
+  {
+   "allowClimb": false
+  }
+ ],
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "PsStage"
+  },
+  {
+   "key": "thing",
+   "name": "PsThing",
+   "attachToPrefab": [
+    "PS_00_10005002",
+    "PS_01_10005004",
+    "PS_02_10005016",
+    "PS_03_10005084",
+    "PS_04_10005035",
+    "PS_05_10005063",
+    "PS_06_10005013",
+    "PS_07_10006001",
+    "PS_08_10005083",
+    "PS_09_10005142",
+    "PS_10_10005096",
+    "PS_11_10006002",
+    "PS_12_10005093",
+    "PS_13_10005091",
+    "PS_14_10005079",
+    "PS_15_10005080",
+    "PS_16_10005086",
+    "PS_17_10005017",
+    "PS_18_10005029",
+    "PS_19_10005032",
+    "PS_20_10005021",
+    "PS_21_10005023",
+    "PS_22_10005037",
+    "PS_23_10005058",
+    "PS_24_10005010",
+    "PS_25_10005094",
+    "PS_26_10005052",
+    "PS_27_10005053",
+    "PS_28_10005012",
+    "PS_29_10005087",
+    "PS_30_10005057",
+    "PS_31_10005014"
+   ]
+  }
+ ],
+ "components": [
+  {
+   "prefab": "PS_00_10005002",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010020
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005002
+    }
+   ]
+  },
+  {
+   "prefab": "PS_01_10005004",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010040
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005004
+    }
+   ]
+  },
+  {
+   "prefab": "PS_02_10005016",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010160
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005016
+    }
+   ]
+  },
+  {
+   "prefab": "PS_03_10005084",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010840
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005084
+    }
+   ]
+  },
+  {
+   "prefab": "PS_04_10005035",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010350
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005035
+    }
+   ]
+  },
+  {
+   "prefab": "PS_05_10005063",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010630
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005063
+    }
+   ]
+  },
+  {
+   "prefab": "PS_06_10005013",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010130
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005013
+    }
+   ]
+  },
+  {
+   "prefab": "PS_07_10006001",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100020010
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10006001
+    }
+   ]
+  },
+  {
+   "prefab": "PS_08_10005083",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010830
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005083
+    }
+   ]
+  },
+  {
+   "prefab": "PS_09_10005142",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100011420
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005142
+    }
+   ]
+  },
+  {
+   "prefab": "PS_10_10005096",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010960
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005096
+    }
+   ]
+  },
+  {
+   "prefab": "PS_11_10006002",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100020020
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10006002
+    }
+   ]
+  },
+  {
+   "prefab": "PS_12_10005093",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010930
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005093
+    }
+   ]
+  },
+  {
+   "prefab": "PS_13_10005091",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010910
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005091
+    }
+   ]
+  },
+  {
+   "prefab": "PS_14_10005079",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010790
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005079
+    }
+   ]
+  },
+  {
+   "prefab": "PS_15_10005080",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010800
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005080
+    }
+   ]
+  },
+  {
+   "prefab": "PS_16_10005086",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010860
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005086
+    }
+   ]
+  },
+  {
+   "prefab": "PS_17_10005017",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010170
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005017
+    }
+   ]
+  },
+  {
+   "prefab": "PS_18_10005029",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010290
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005029
+    }
+   ]
+  },
+  {
+   "prefab": "PS_19_10005032",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010320
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005032
+    }
+   ]
+  },
+  {
+   "prefab": "PS_20_10005021",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010210
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005021
+    }
+   ]
+  },
+  {
+   "prefab": "PS_21_10005023",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010230
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005023
+    }
+   ]
+  },
+  {
+   "prefab": "PS_22_10005037",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010370
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005037
+    }
+   ]
+  },
+  {
+   "prefab": "PS_23_10005058",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010580
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005058
+    }
+   ]
+  },
+  {
+   "prefab": "PS_24_10005010",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010100
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005010
+    }
+   ]
+  },
+  {
+   "prefab": "PS_25_10005094",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010940
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005094
+    }
+   ]
+  },
+  {
+   "prefab": "PS_26_10005052",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010520
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005052
+    }
+   ]
+  },
+  {
+   "prefab": "PS_27_10005053",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010530
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005053
+    }
+   ]
+  },
+  {
+   "prefab": "PS_28_10005012",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010120
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005012
+    }
+   ]
+  },
+  {
+   "prefab": "PS_29_10005087",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010870
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005087
+    }
+   ]
+  },
+  {
+   "prefab": "PS_30_10005057",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010570
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005057
+    }
+   ]
+  },
+  {
+   "prefab": "PS_31_10005014",
+   "variables": [
+    {
+     "name": "sid",
+     "type": "integer",
+     "value": 100010140
+    },
+    {
+     "name": "aid",
+     "type": "integer",
+     "value": 10005014
+    }
+   ]
+  }
+ ]
+}
