@@ -9,7 +9,8 @@
 // - the controls it asks for by name (GetChild, FindChild), against the controls under the ones that carry it;
 // - the signals it sends and hears, against the signals of the save, and against the graphs that hear and send them;
 // - the custom variables it reads, against the variables of the player and the character templates;
-// - its own variables (GetParam), the templates it makes copies of, pictures and sounds by their ids.
+// - its own variables (GetParam), the templates it makes copies of, pictures and sounds by their ids;
+// - the scripts it requires, against the file names of the scripts of the save.
 // Only literals are checked: a name put together while the script runs is not seen.
 import fs from 'node:fs';
 import luaparse from 'luaparse';
@@ -111,12 +112,16 @@ export function checkClient({mapPath,scripts:only},read){
   };
   for(const t of trees)visit(t,[]);
   const problems=[],heard=new Set(),sentUp=new Set();
+  // require("name") loads the script whose file is name.lua, letter for letter (seen in play: "zr_mod" does not find
+  // ZR_mod.lua). A script that is only required is carried by no control, and need not be.
+  const everyScript=read.listClientScripts({mapPath,includeSource:true}).scripts,modules=new Set(everyScript.map(x=>x.file.replace(/\.lua$/,''))),required=new Set();
+  for(const x of everyScript)for(const m of x.source.matchAll(/\brequire\s*\(?\s*["']([^"']+)["']/g))required.add(m[1].replace(/\.lua$/,''));
   const say=(script,line,severity,kind,message,more={})=>problems.push({script,line,severity,kind,message,...more});
   for(const s of listed){
     const bad=luaSyntaxError(s.source);
     if(bad){say(s.name,bad.line,'error','LUA_SYNTAX',bad.message+' (the playtest would refuse the save with 脚本编译报错).',{column:bad.column});continue;}
     const f=facts(s.source),hosts=under.get(s.name)??[],declared=new Set((s.variables??[]).map(v=>v.name));
-    if(!hosts.length)say(s.name,null,'warning','SCRIPT_NOT_MOUNTED','No control carries this script: it never runs. scene_add_client_ui {script} puts it on the root of an interface, a control\'s own script on that control.');
+    if(!hosts.length&&!required.has(s.file.replace(/\.lua$/,'')))say(s.name,null,'warning','SCRIPT_NOT_MOUNTED','No control carries this script: it never runs. scene_add_client_ui {script} puts it on the root of an interface, a control\'s own script on that control.');
     for(const m of f.members){
       if(m.on==='game'&&!API.game.includes(m.name)){const n=nearest(m.name,API.game);say(s.name,m.line,'error','UNKNOWN_API','game.'+m.name+' is not a function of the client API.',n?{didYouMean:'game.'+n}:{});}
       if(m.on==='script'&&!API.script.includes(m.name)&&!SCRIPT_FIELDS.includes(m.name)){const n=nearest(m.name,[...API.script,...SCRIPT_FIELDS]);say(s.name,m.line,'error','UNKNOWN_API','script has no '+m.name+'.',n?{didYouMean:'script:'+n}:{});}
@@ -137,6 +142,8 @@ export function checkClient({mapPath,scripts:only},read){
         if(!reach&&!inTemplate){const all=[...new Set(hosts.flatMap(h=>[...h.names]))],n=nearest(wanted,all);
           say(s.name,c.line,'error','CONTROL_NOT_FOUND','No control named "'+first+'" stands under '+[...new Set(hosts.map(h=>'"'+h.host+'"'))].join(' or ')+', which carr'+(hosts.length>1?'y':'ies')+' this script: the call gives nil.',{...(n?{didYouMean:n}:{}),controls:all.slice(0,40)});}
       }
+      if(c.on===null&&c.name==='require'&&typeof first==='string'){const wanted=first.replace(/\.lua$/,'');
+        if(!modules.has(wanted)){const n=nearest(wanted,[...modules]);say(s.name,c.line,'error','MODULE_NOT_FOUND','No script of the save has the file "'+wanted+'.lua": require fails (the name is the file name without .lua, letter for letter).',{...(n?{didYouMean:n}:{}),files:[...modules]});}}
       if(on==='game'&&c.name==='ServerSignal'&&typeof first==='string'){sentUp.add(first);
         if(!signals.has(first)){const n=nearest(first,[...signals.keys()]);say(s.name,c.line,'error','SIGNAL_NOT_DEFINED','The save has no signal "'+first+'": nothing hears it. scene_add_signal defines it.',{...(n?{didYouMean:n}:{}),signals:[...signals.keys()]});}
         else if(!used.has(signals.get(first).listen))say(s.name,c.line,'warning','SIGNAL_NOT_HEARD','No graph of this save listens for "'+first+'" yet (.onSignal(\''+first+'\', ...)).');

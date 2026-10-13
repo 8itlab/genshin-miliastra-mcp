@@ -50,6 +50,13 @@ try{
   assert.ok(checkClientScripts({mapPath:lone.mapPath,scripts:['lone']}).problems.some(p=>p.kind==='SCRIPT_NOT_MOUNTED'));
   const card=addClientTemplate({mapPath:lone.mapPath,name:'card',script:'lone',children:[{name:'face',kind:'image'}]},workspace);
   assert.equal(checkClientScripts({mapPath:card.mapPath,scripts:['lone']}).problems.length,0);
+  // require is part of this Lua (seen in play, 2026-10-14): the name is the file of another script, letter for letter.
+  const usesModule=setClientScript({mapPath:lone.mapPath,name:'main2',source:'local util = require("lone")\nlocal other = require("Lone")\nfunction OnStart()\n  print(util)\nend\n',outputName:'req'},workspace);
+  assert.deepEqual(usesModule.problems.map(p=>[p.line,p.kind,p.didYouMean]),[[2,'MODULE_NOT_FOUND','lone']]);
+  assert.ok(!checkClientScripts({mapPath:usesModule.mapPath,scripts:['lone']}).problems.some(p=>p.kind==='SCRIPT_NOT_MOUNTED'),'a script that is required needs no control');
+  for(const source of ['local f = load("return 1")\n','dofile("x.lua")\n','print(package.path)\n','local c = coroutine.create(print)\n'])
+    assert.throws(()=>setClientScript({mapPath:blank,name:'no',source},workspace),e=>e.code==='LUA_NOT_AVAILABLE',source);
+  setClientScript({mapPath:blank,name:'yes',source:'local t = {}\nfunction t.load(x) return x end\nprint(t.load(1), t:load())\n'},workspace);
   // The official sample sends a signal its save does not define: found.
   const dir=path.join(root,'knowledge','samples','gil'),official=path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith('mh47p30a87qo_')));
   assert.deepEqual(checkClientScripts({mapPath:official}).problems.map(p=>[p.kind,p.line]),[['SIGNAL_NOT_DEFINED',99]]);

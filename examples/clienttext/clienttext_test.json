@@ -1,0 +1,242 @@
+{
+ "about": "Text on the screen, seen in play on 2026-10-14 on an account of 奇匠 level 2 (level 1 shows no custom text at all). Seven client text boxes, each with what the save gives it: left/top at size 24, centre/middle in yellow at 36, right/bottom without outline, all three on a background that is 80% solid (the box gets rounded corners); a long line with autoSize, which shrinks to three lines inside its box, beside the same line without it, of which only the start fits and the rest is cut off; white letters with a red outline. The box live has no text in the save: the script writes control.text every second, turns it red at 3 (fontColor) and larger at 5 (fontSize). Two text windows hold twenty lines: win shows eight of them and a scroll bar; winbare stands its text right and has no bar (scrollbar: false). At the bottom a text box of the ordinary interface (scene_add_text_box, \"金币：{1:ps.CT_coins}\") follows a custom variable of the player that the graph counts up: it reads 35 at play second 7. The script reads back what the save gave: the window's text (1290 bytes), interactable true, showScrollBar true, the text and size of mid.",
+ "dir": "clienttext",
+ "namePrefix": "CT_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 9,
+ "screenshotsAt": [
+  2,
+  7
+ ],
+ "inputs": [],
+ "scenes": [],
+ "generator": "gen_clienttext.py",
+ "components": [
+  {
+   "prefab": "player",
+   "variables": [
+    {
+     "name": "CT_coins",
+     "type": "integer",
+     "value": 10
+    }
+   ]
+  }
+ ],
+ "textBoxes": [
+  {
+   "name": "CT_coins",
+   "text": "金币：{1:ps.CT_coins}",
+   "fontSize": 34,
+   "position": [
+    0,
+    -380
+   ],
+   "size": [
+    400,
+    60
+   ]
+  }
+ ],
+ "clientScripts": [
+  {
+   "name": "CT_main",
+   "file": "ct_main.lua"
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "CT_ui",
+   "script": "CT_main",
+   "controls": [
+    {
+     "name": "left",
+     "kind": "text",
+     "position": [
+      -450,
+      330
+     ],
+     "size": [
+      300,
+      90
+     ],
+     "text": {
+      "content": "左上 24",
+      "fontSize": 24,
+      "align": "left",
+      "valign": "top",
+      "background": "#203050",
+      "backgroundOpacity": 0.8
+     }
+    },
+    {
+     "name": "mid",
+     "kind": "text",
+     "position": [
+      0,
+      330
+     ],
+     "size": [
+      300,
+      90
+     ],
+     "text": {
+      "content": "居中 36",
+      "fontSize": 36,
+      "colour": "#ffd040",
+      "background": "#203050",
+      "backgroundOpacity": 0.8
+     }
+    },
+    {
+     "name": "right",
+     "kind": "text",
+     "position": [
+      450,
+      330
+     ],
+     "size": [
+      300,
+      90
+     ],
+     "text": {
+      "content": "右下 无描边",
+      "fontSize": 24,
+      "align": "right",
+      "valign": "bottom",
+      "outline": false,
+      "background": "#203050",
+      "backgroundOpacity": 0.8
+     }
+    },
+    {
+     "name": "auto",
+     "kind": "text",
+     "position": [
+      -450,
+      200
+     ],
+     "size": [
+      300,
+      90
+     ],
+     "text": {
+      "content": "这一行字很长，开着字号自适应，看它会不会自己缩小塞进这个框里",
+      "fontSize": 40,
+      "autoSize": true,
+      "minFontSize": 10,
+      "background": "#503020",
+      "backgroundOpacity": 0.8
+     }
+    },
+    {
+     "name": "fixed",
+     "kind": "text",
+     "position": [
+      0,
+      200
+     ],
+     "size": [
+      300,
+      90
+     ],
+     "text": {
+      "content": "这一行字很长，没开字号自适应，看它超出框以后是什么样",
+      "fontSize": 40,
+      "background": "#503020",
+      "backgroundOpacity": 0.8
+     }
+    },
+    {
+     "name": "outlined",
+     "kind": "text",
+     "position": [
+      450,
+      200
+     ],
+     "size": [
+      300,
+      90
+     ],
+     "text": {
+      "content": "红描边",
+      "fontSize": 40,
+      "colour": "#ffffff",
+      "outlineColour": "#ff0000",
+      "outlineOpacity": 1
+     }
+    },
+    {
+     "name": "live",
+     "kind": "text",
+     "position": [
+      -450,
+      60
+     ],
+     "size": [
+      300,
+      90
+     ],
+     "text": {
+      "content": "",
+      "fontSize": 30,
+      "align": "left"
+     }
+    },
+    {
+     "name": "win",
+     "kind": "textWindow",
+     "position": [
+      150,
+      -60
+     ],
+     "size": [
+      520,
+      220
+     ],
+     "text": {
+      "content": "第 1 行：文本视窗里的字比框多的时候可以滚动\n第 2 行：文本视窗里的字比框多的时候可以滚动\n第 3 行：文本视窗里的字比框多的时候可以滚动\n第 4 行：文本视窗里的字比框多的时候可以滚动\n第 5 行：文本视窗里的字比框多的时候可以滚动\n第 6 行：文本视窗里的字比框多的时候可以滚动\n第 7 行：文本视窗里的字比框多的时候可以滚动\n第 8 行：文本视窗里的字比框多的时候可以滚动\n第 9 行：文本视窗里的字比框多的时候可以滚动\n第 10 行：文本视窗里的字比框多的时候可以滚动\n第 11 行：文本视窗里的字比框多的时候可以滚动\n第 12 行：文本视窗里的字比框多的时候可以滚动\n第 13 行：文本视窗里的字比框多的时候可以滚动\n第 14 行：文本视窗里的字比框多的时候可以滚动\n第 15 行：文本视窗里的字比框多的时候可以滚动\n第 16 行：文本视窗里的字比框多的时候可以滚动\n第 17 行：文本视窗里的字比框多的时候可以滚动\n第 18 行：文本视窗里的字比框多的时候可以滚动\n第 19 行：文本视窗里的字比框多的时候可以滚动\n第 20 行：文本视窗里的字比框多的时候可以滚动",
+      "fontSize": 22,
+      "background": "#102030",
+      "backgroundOpacity": 0.85
+     }
+    },
+    {
+     "name": "winbare",
+     "kind": "textWindow",
+     "position": [
+      -450,
+      -120
+     ],
+     "size": [
+      300,
+      160
+     ],
+     "text": {
+      "content": "第 1 行：文本视窗里的字比框多的时候可以滚动\n第 2 行：文本视窗里的字比框多的时候可以滚动\n第 3 行：文本视窗里的字比框多的时候可以滚动\n第 4 行：文本视窗里的字比框多的时候可以滚动\n第 5 行：文本视窗里的字比框多的时候可以滚动\n第 6 行：文本视窗里的字比框多的时候可以滚动\n第 7 行：文本视窗里的字比框多的时候可以滚动\n第 8 行：文本视窗里的字比框多的时候可以滚动\n第 9 行：文本视窗里的字比框多的时候可以滚动\n第 10 行：文本视窗里的字比框多的时候可以滚动\n第 11 行：文本视窗里的字比框多的时候可以滚动\n第 12 行：文本视窗里的字比框多的时候可以滚动\n第 13 行：文本视窗里的字比框多的时候可以滚动\n第 14 行：文本视窗里的字比框多的时候可以滚动\n第 15 行：文本视窗里的字比框多的时候可以滚动\n第 16 行：文本视窗里的字比框多的时候可以滚动\n第 17 行：文本视窗里的字比框多的时候可以滚动\n第 18 行：文本视窗里的字比框多的时候可以滚动\n第 19 行：文本视窗里的字比框多的时候可以滚动\n第 20 行：文本视窗里的字比框多的时候可以滚动",
+      "fontSize": 22,
+      "align": "right",
+      "scrollbar": false,
+      "background": "#102030",
+      "backgroundOpacity": 0.85
+     }
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CtStage"
+  }
+ ],
+ "expect": {
+  "prints": [
+   "CT_READY",
+   "CT_LUA window text has"
+  ]
+ }
+}

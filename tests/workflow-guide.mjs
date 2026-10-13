@@ -127,6 +127,17 @@ try{
  assert.equal(nobody.failed?.code,'SIGNAL_NOT_FOR_CLIENT_SCRIPTS');
  const unaddressed=await sent('write_graphs',{mapPath:both.mapPath,graphs:[{graphId:stageGraph.graphId,code:toScripts('guide_lever',"")}]});
  assert.equal(unaddressed.failed?.code,'SIGNAL_WITHOUT_PLAYER');
+ // A project of the simulator outside the game, brought into a save in one call: scripts, a template, the interface
+ // with a script on its root, signals, a variable, and its server rules as a compiled graph.
+ const sim=await sent('scene_import_simulator',{mapPath:path.join(root,'tests','fixtures','editor-2026-10-13-handui.gil'),save:path.join(root,'tests','fixtures','simulator-sample.save.json')});
+ assert.deepEqual([sim.written.signals,sim.written.variables,sim.written.scripts,sim.written.templates.map(t=>t.name),sim.written.interface.controls,sim.written.graph.written],[['pick','picked'],['score'],['main'],['Lua实例化面板'],12,true],JSON.stringify(sim.written).slice(0,600));
+ assert.equal(sim.templateNumbersChangedInLua,1);assert.equal(sim.check.errors,0,JSON.stringify(sim.check.problems));
+ assert.ok(sim.notes.some(t=>/states\.normal/.test(t))&&sim.notes.some(t=>/fill/.test(t)));
+ const simScripts=(await sent('scene_list_client_scripts',{mapPath:sim.mapPath,includeSource:true})).scripts.find(x=>x.name==='main');
+ assert.ok(simScripts.source.includes('local PANEL = '+sim.written.templates[0].templateIndex)&&simScripts.source.includes('-- 1073742100 stays in a comment'),'only the number of the Lua itself is put to the new index');
+ assert.deepEqual(simScripts.on,['容器节点']);
+ const simFace=(await sent('scene_list_interface',{mapPath:sim.mapPath})).clientInterfaces.at(-1);
+ assert.deepEqual(simFace.root.children.map(c=>c.kind),['text','cursorArea','reference','grid','presetButton','textWindow','keyHint','image','animation','fullscreenAnimation']);
  const chests=(await sent('scene_search_assets',{query:'宝箱',group:'交互机关'})).assets;
  assert.ok(chests.some(a=>a.presetStatus?.statusId===100010060),'asset search does not show the preset status of the chest');
 }finally{await client.close();fs.rmSync(workspace,{recursive:true,force:true});}

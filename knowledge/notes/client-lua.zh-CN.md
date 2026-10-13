@@ -14,6 +14,9 @@
 | `scene_remove_client {ui \| template \| script}` | 拿掉一个界面、模板或脚本。要改一个已有的界面，就拿掉再照新的样子加一次 |
 | `scene_list_client_scripts`、`scene_list_interface` | 读回脚本（变量的名字和类型；`includeSource` 带源码）、控件树（`clientInterfaces`）和模板（`clientTemplates`） |
 | `scene_add_signal` + 节点图里 `f.sendSignal('client:名字', 玩家)` | 节点图给脚本发一次性的消息（见“和节点图怎么通”） |
+| `scene_check_client {mapPath}` | 不进游戏，把脚本里写死的名字对着存档、节点图、图鉴和官方接口查一遍 |
+| `editor_preview_interface {mapPath, canvases}` | 让编辑器把界面画在手机、主机的画布上，各截一张 |
+| `scene_import_simulator {mapPath, save}` | 把千星沙箱模拟器的工程整个写进存档 |
 
 顺序：先脚本，再模板（模板可以带脚本），最后界面（界面里的网格和引用要叫得出模板的名字）。
 
@@ -102,6 +105,8 @@ end
 ```
 
 给了 `devices` 的控件就不再“同步”，没写的设备沿用控件本身的数字。写出的记录和编辑器里手调四种设备后存下来的逐字节相同；游戏里只看过电脑这一种。
+
+**看别的设备上是什么样：`editor_preview_interface {mapPath, canvases}`。** 它打开编辑器自己的界面管理，把画布依次切到电脑、手机、主机（共十种：`pc`、`pc-21:9`、`mobile`、`mobile-19.5:9`、`mobile-4:3`、`console`、`console-21:9`、`mobileGamepad` 及其两种比例），每种截一张回来，大约半分钟。图是编辑器画的，带着那种设备自带的界面（手机的触屏按键、电脑的按键提示），所以控件有没有出界、有没有压在平台按键上一眼能看出来。说界面做完之前看一眼手机那张：大多数玩家在手机上。它画的是存档里的样子，脚本运行时才画的东西不在上面（没给图的图片是一个问号）。
 
 ### 手柄摇杆往哪走
 
@@ -228,6 +233,19 @@ dot:SetAnchoredPosition(40, 0)
 - **调自己的函数**：`script:Invoke("函数名", 参数...)` 调脚本里的全局函数。`typeof(控件)` 给出类型名（根是 `ClientUIContainerControl`）。
 - `game.PrintClientUITree()` 把控件树写进日志（在 `OnStart` 里调只打出 `Roots: 0`）。
 
+## 从千星沙箱模拟器来
+
+[千星沙箱模拟器](https://github.com/1475505/miliastra-beyond-simulator)在游戏之外跑客户端 Lua 和界面，几秒一轮，适合先把玩法调出来；它到真机这一步是人手做的（导入 GIA、挂脚本、校准模板编号）。`scene_import_simulator {mapPath, save}` 把这一步做掉：
+
+- `save` 是模拟器的完整存档（它“导出 → 完整存档”写出的 `.json`）。
+- 脚本、控件模板、界面（脚本挂在原来的控件上，各设备不同的位置照搬）都写进存档；脚本和服务端规则里提到的信号自动定义，规则要设的玩家变量自动加上。
+- 模拟器的“服务端规则”（收到脚本发来的某个信号时：设变量、给脚本发信号）会变成关卡实体上的一张节点图，源码在结果里。
+- **模板编号自动对上**：Lua 里凡是等于模拟器里模板编号的数字，都换成模板在这份存档里的编号；只动 Lua 自己的数字，字符串和注释里的不动。
+- 结果的 `notes` 列出模拟器里有、这边写不进去的东西（图片的填充和羽化、信号的第二个参数、游戏里不存在的按钮状态），`check` 是 `scene_check_client` 对导入后整份存档查出来的问题。
+- 然后 `playtest_start {mapPath}` 上真机。上机验过（2026-10-14）：脚本发信号、节点图设变量再发回、脚本收到，文字和模板都画出来了。
+
+两处模拟器和游戏不一样、导入时替你处理了的：模拟器把预设按钮的第一个状态叫“不可用”、第四个叫“选中”，编辑器里其实是“默认”和“不可用”；按键提示的键盘键和手柄键在它那里是反的。只读了它的存档格式，没有用它的代码。
+
 ## 输入
 
 - **鼠标**：`cursorArea` 或 `presetButton` 收，`控件:AddCursorEventListener(Enum.CursorEventType.CursorClick, 回调)`；还有 `CursorDown / CursorUp / CursorEnter / CursorExit / CursorDrag`。要鼠标可见：`scene_add_client_ui` 给 `showCursor: true`，或者脚本里 `root.showCursor = true`。
@@ -237,10 +255,12 @@ dot:SetAnchoredPosition(40, 0)
 
 ## 别的规矩（上机量的）
 
-- **奇匠 Lv.1 的账号，客户端文本框也不显示**，和普通文本框一样。数字用一排圆点、一根变长的条来表示；文字照写，升级以后就有了。
+- **奇匠 Lv.1 的账号，客户端文本框也不显示**，和普通文本框一样；升到 Lv.2 就都有了（2026-10-14 实测，`examples/clienttext`：对齐、颜色、描边、背景、自适应、文本视窗的滚动条、脚本运行时改文字，全部按写的显示）。给 Lv.1 的账号做，数字用一排圆点、一根变长的条来表示。
+- 文字放不下时：开了 `autoSize` 会缩小并折行塞进框里；没开就只显示开头，后面的裁掉。文本视窗里文字太宽会自动折行。
 - **控件按给的顺序画，后面的盖住前面的**，也盖住平台自己的界面（小地图、技能键）。铺满全屏的底图会把它们全挡住。
 - **关卡里的传送不会重置界面**：试玩输入里的 `teleport` 之后控件还在、脚本没有重新启动。官方文档说“传送、断线重连时客户端控件会销毁重建”，至少同一关里的传送不是这样；断线重连没验过，稳妥起见脚本要能只凭自定义变量把界面重新画出来。
-- **这版 Lua 没有的**：`coroutine`、`io`、`require`、`string.dump`，`os` 只剩 `time / date / clock / difftime`，`debug` 只剩 `traceback`。`scene_set_client_script` 见到就拒绝。要等一段时间用 `OnUpdate` 里累加 `dt`，或者 `game.TweenSequence()` 的 `AppendInterval`。
+- **这版 Lua 没有的**：`coroutine`、`io`、`package`、`load`、`loadfile`、`dofile`、`string.dump`，`os` 只剩 `time / date / clock / difftime`，`debug` 只剩 `traceback`（上机看过，前六样都是 `nil`）。`scene_set_client_script` 见到就拒绝。
+- **`require` 是有的**（2026-10-14 上机验过；之前这里写的“没有”是错的）：`local m = require("CV_util")` 运行文件名是 `CV_util.lua` 的那个脚本一次，拿到它 `return` 的东西。名字是脚本的文件名去掉 `.lua`，**大小写要一模一样**（`require("cv_util")` 找不到 `CV_util.lua`）。被 `require` 的脚本用 `scene_set_client_script` 放进存档就行，不用挂到控件上；它的 `OnStart` 这些不会被调用，只有顶层代码跑一遍。一局游戏可以拆成几个文件。要等一段时间用 `OnUpdate` 里累加 `dt`，或者 `game.TweenSequence()` 的 `AppendInterval`。
 - 位置是控件中心相对它上一级中心的偏移，y 向上，单位是画布的格子；电脑上画布 1600 × 900（和 `scene_add_image` 的坐标一样），手机 1280 × 720，主机 1920 × 1080（见“四种设备各有各的画布”）。
 - **试玩里的点击可以按住**：输入里给 `{"at": 4, "click": [0.5, 0.8], "holdMs": 600}`，这 0.6 秒里鼠标一直按着，中间截的图能看到按钮“按下”的样子（`examples/clientmenu` 第 4.3 秒那张，按钮是黄的）。不给 `holdMs` 就是点一下。
 - 导入存档时，编辑器会把存档里的 Lua 写到存档旁边的 `external_lua_file\<文件名>`；工具写进存档的源码就是运行的那一份。
@@ -254,6 +274,7 @@ dot:SetAnchoredPosition(40, 0)
 - `examples/clientcheck`：故意出错，看日志里是什么样；隐藏的容器由节点图打开；信号带参数；传送。
 - `examples/clientvars`：每种类型的脚本变量、控件各自的取值、控件编号换成控件；另带一个分设备布局、手柄导航和文本视窗的写法。
 - `examples/clientsignal`：节点图给脚本发信号（不带参数和带一个字符串），脚本收到后换灯的颜色。
+- `examples/clienttext`：文本框的每项设置、字号自适应、两种文本视窗、脚本运行时改文字，外加一个跟着变量走的普通文本框（要奇匠 Lv.2 的账号才看得到）。
 - `examples/clientapi`：图片填充做的进度条和冷却圈（要开遮罩）、关卡时停、音效、画布大小和设备、按路径找控件。
 
 ## 还没做的
@@ -262,5 +283,4 @@ dot:SetAnchoredPosition(40, 0)
 - 读不回一个已有界面的全部设置：`scene_list_interface` 只给控件树（名字、种类、脚本），位置、颜色、变量取值这些读不出来。所以改一个界面要自己留着当初的参数，拿掉再加；编辑器里手做的界面工具接不过来改。
 - 信号的参数只能有一个字符串（`scene_add_signal` 的限制），发给脚本的信号也一样。
 - 手机、主机上没验过：分设备的布局和手柄导航只做到“和编辑器写的一样”，本机只有电脑和键鼠。触屏点击多半和鼠标一样，但手机没有键盘，靠按键的玩法要在屏幕上放按钮。
-- 文本视窗没在游戏里看过（一级账号不显示文字）。
 - 发布以后脚本是否照常打包上传，没验过（要发布才知道）。

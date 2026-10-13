@@ -1506,6 +1506,48 @@ class Run:
                 count += monitor.StateFlags & 1
                 j += 1
 
+    # The canvases the interface manager of the editor offers, in the order of its list at the top of the window.
+    CANVASES = ['pc', 'pc-21:9', 'mobile', 'mobile-19.5:9', 'mobile-4:3', 'console', 'console-21:9',
+                'mobileGamepad', 'mobileGamepad-19.5:9', 'mobileGamepad-4:3']
+
+    def preview_interface(self):
+        """Shows the interface of the save that is open on the canvases of other devices, in the editor's own interface
+        manager (九宫格菜单 > 界面控件组管理), and takes a picture of each: what a phone or a console will draw, by the
+        engine that will draw it. The manager is folded away again at the end."""
+        self.focus('game')
+        full, _ = self.wait_text('game', '界面控件组管理', region=(0, 0, 0.09, 0.04), timeout=1, required=False)
+        if not full:
+            self.open_level_menu()
+            self.click_text('game', '界面控件组管理', exact=True, timeout=10)
+        self.wait_text('game', '界面布局', region=(0, 0.03, 0.2, 0.08), timeout=20)
+        time.sleep(1.0)
+        taken = []
+        left, top, right, bottom = self.window('game')['rect']
+        width, height = right - left, bottom - top
+        for name in self.req.get('canvases') or ['pc', 'mobile', 'console']:
+            if name not in self.CANVASES:
+                continue
+            self.click_fraction('game', (760 / 1600, 49 / 900))
+            time.sleep(0.7)
+            self.click_fraction('game', (700 / 1600, (76 + 26.7 * self.CANVASES.index(name)) / 900))
+            time.sleep(1.5)
+            # The canvas stands between the list on the left and the settings on the right.
+            image = self.grab((left + int(width * 0.168), top + int(height * 0.075), left + int(width * 0.832), bottom)).convert('RGB')
+            file = self.dir / f'{len(self.shots):02d}-canvas-{name.replace(":", "x").replace(".", "_")}.jpg'
+            image.save(file, quality=88)
+            self.shots.append({'file': str(file), 'label': 'canvas ' + name, 'wallTime': time.time(), 'canvas': name})
+            taken.append(name)
+            self.save()
+        # Back to the computer's canvas, which is what the editor shows a creator first, and the manager out of the way.
+        self.click_fraction('game', (760 / 1600, 49 / 900))
+        time.sleep(0.7)
+        self.click_fraction('game', (700 / 1600, 76 / 900))
+        time.sleep(0.8)
+        self.click_fraction('game', (1580 / 1600, 16 / 900))
+        time.sleep(1.0)
+        self.result['canvases'] = taken
+        self.step('interface-previewed', canvases=taken)
+
     def run(self):
         try:
             # MILIASTRA_IGNORE_NO_MONITOR=1 skips this check, for a setup where the count is wrong and the game does draw.
@@ -1546,6 +1588,11 @@ class Run:
                 self.remember_save(official, played=True)
             elif not self.window('sandbox', required=False):
                 raise Failed('没有提供 mapPath，且当前不在编辑器里。')
+            if self.req.get('action') == 'preview_interface':
+                self.preview_interface()
+                self.state = 'succeeded'
+                self.save()
+                return
             if self.req.get('bakeNavigation'):
                 self.bake_navigation()
             if log_kept:

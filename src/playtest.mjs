@@ -137,7 +137,8 @@ export function playtestStatus({runId,prefix='',graphId,maxPrints=200,includeScr
   }
   const summary={runId,runDir,state:status.state,elapsedSeconds:Math.round(status.updatedAt-status.startedAt),steps:status.steps,error:status.error||undefined,
     // Frames of bursts are counted, not listed: there are hundreds. playtest_frames puts a stretch of them side by side.
-    screenshots:status.screenshots.filter(s=>!s.burst).map(s=>({file:s.file,label:s.label,playSeconds:s.playSeconds})),
+    screenshots:status.screenshots.filter(s=>!s.burst).map(s=>({file:s.file,label:s.label,playSeconds:s.playSeconds,...(s.canvas?{canvas:s.canvas}:{})})),
+    canvases:status.result?.canvases,
     burstFrames:burstSummary(status),officialSave:status.result?.officialSave,
     // Pieces the editor refused during an asset import; it reports success even when it drops some.
     droppedPieces:status.result?.droppedPieces&&Object.keys(status.result.droppedPieces).length?status.result.droppedPieces:undefined,
@@ -205,7 +206,7 @@ export function playtestStatus({runId,prefix='',graphId,maxPrints=200,includeScr
   summary.verification='Read the prints and LOOK at the screenshots. A finished run only means the level was played for the requested time; it does not mean the gameplay is correct.';
   // Eight images at most: spread evenly over the run (or over the span asked for), the first and the last among them.
   // It used to be the last eight, and a reader who looked only at those missed the first half of the run.
-  const shown=spread(status.screenshots.filter(s=>!s.burst&&(s.playSeconds!==undefined||status.state==='failed'))
+  const shown=spread(status.screenshots.filter(s=>!s.burst&&(s.playSeconds!==undefined||s.canvas||status.state==='failed'))
     .filter(s=>s.playSeconds===undefined||((screenshotsFrom===undefined||s.playSeconds>=screenshotsFrom)&&(screenshotsTo===undefined||s.playSeconds<=screenshotsTo))),8);
   summary.imagesShown=shown.map(s=>s.playSeconds??s.label);
   const content=[{type:'text',text:JSON.stringify(summary)}];

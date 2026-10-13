@@ -141,7 +141,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_progress_bar` / `scene_add_button` / `scene_add_image` / `scene_list_interface` | 屏幕上的进度条（跟着玩家变量走；可以是横条、竖条、圆环，可以直接显示当前值的数字，颜色可改）、交互按钮（按数字键触发，玩家模板上的图收事件）和图片（平台自带的图，或一块纯色的底板：不靠文字也能把话说清楚）；控件可以一开始隐藏，由节点图开关 |
 | `scene_add_unit_status` / `scene_list_unit_statuses` | 单位状态：描边、透视、加生命上限；图里加减 |
 | `scene_add_environment` / `scene_list_environments` / `scene_add_light` | 固定时刻的环境配置（昼夜靠两套配置切换；按编辑器的写法写，白天不会过曝）和属于某套配置的点光源 |
-| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通（节点图也能直接给脚本发信号：`f.sendSignal('client:名字', 玩家)`）。脚本变量二十种类型都能定，同一个脚本挂在几个控件上可以各给各的值；控件能按设备（电脑、手机、主机）给不同的位置，能指定手柄摇杆往哪走。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写进存档时当场查：语法错直接拒绝并给出行列，写死的控件名、信号名、变量名、接口名、图片和音效编号逐个对存档、节点图和图鉴（`scene_check_client`），对不上的给出行号和最接近的名字；运行时的错带着调用栈从试玩日志里回来。只改 Lua 的一轮不重新导入存档，真机上大约一分钟一轮。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck`、`examples/clientvars`、`examples/clientsignal`、`examples/clientapi` |
+| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通（节点图也能直接给脚本发信号：`f.sendSignal('client:名字', 玩家)`）。脚本变量二十种类型都能定，同一个脚本挂在几个控件上可以各给各的值；控件能按设备（电脑、手机、主机）给不同的位置，能指定手柄摇杆往哪走。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写进存档时当场查：语法错直接拒绝并给出行列，写死的控件名、信号名、变量名、接口名、图片和音效编号逐个对存档、节点图和图鉴（`scene_check_client`），对不上的给出行号和最接近的名字；运行时的错带着调用栈从试玩日志里回来。只改 Lua 的一轮不重新导入存档，真机上大约一分钟一轮。`editor_preview_interface` 让编辑器把界面画在手机、主机的画布上各截一张；`scene_import_simulator` 把千星沙箱模拟器的工程整个写进存档上真机。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck`、`examples/clientvars`、`examples/clientsignal`、`examples/clientapi`、`examples/clienttext` |
 | `image_catalog` | 界面图片控件能用的全部图片（约 1600 张，15 类：功能图标、玩法图标、装饰图案、底板、分隔线、特殊字符、技能、道具、造物头像）：按分类返回编辑器图库的照片，每张图下面是编号 |
 | `scene_remove_entities` | 把已经导入场景的物件从存档副本里拿掉（按名字或名字前缀）：导入只能加，摆错的靠它减 |
 | `scene_list_classes` / `scene_set_class` | 职业：角色能不能跳、冲刺、攀爬、滑翔，用哪个镜头模板；角色的等级和基础生命、攻击、防御、体力（新地图默认一万血，打不死） |
@@ -305,22 +305,31 @@ npm run test:local
 
 ## 和其他千星奇域工具的关系
 
-社区里已经有不少千星奇域的工具，侧重各不相同。本项目的位置是：让 AI 在**真实的编辑器和游戏里**把一整关做出来并验证，搭场景、设关卡、写节点图、试玩都在一套 MCP 工具里。下面这些项目，有的是本项目的基础，有的可以配合着用，有的在本项目不做的方向上做得更好：
+社区里千星奇域的工具很多，游戏 7.1 加了客户端 Lua 以后，2D + Lua 这条线上尤其多。它们几乎都停在同一个地方：**进真游戏验证这一步交给人**（“模拟器通过不等于真机通过”“试玩按钮只能人点”“生成的文件没在真机验证过”，这些是它们自己写的）。本项目的位置就是这一步：让 AI 在**真实的编辑器和游戏里**把一整关做出来，自己点试玩、自己读日志和截图。
 
 | 项目 | 侧重 | 和本项目 |
 |---|---|---|
 | [Genshin-TS](https://github.com/josStorer/genshin-ts) | 用 TypeScript 写节点图，编译并注入存档 | 本项目编译节点图用的就是它。只想自己手写代码、不需要 AI 操作编辑器的，直接用它 |
 | [千星奇域节点图工具集](https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack) | 读写节点图文件、代码和节点图互转、节点数据 | Genshin-TS 内含它的成果，本项目间接用到 |
 | [Ayaya_Miliastra_Editor](https://github.com/AyayaXiaowang/Ayaya_Miliastra_Editor) | 用 Python 写节点图，离线校验、自动排版，有给人看的预览界面 | 想要 Python 工作流和节点图预览界面的选它；本项目没有给人看的界面 |
+| [千星沙箱模拟器](https://github.com/1475505/miliastra-beyond-simulator) | 游戏之外跑客户端 Lua 和界面，几秒一轮；五种画布、多人模拟、录制回放；有网页编辑器和七步制作流程 | **它的工程可以一步导进本项目上真机**：`scene_import_simulator` 读它的完整存档，把脚本、模板、界面、信号、变量和服务端规则都写进存档，模板编号在 Lua 里自动对上，然后自动试玩。几秒一轮地调用它，上真机用这里 |
+| [dsh-miliastra](https://github.com/LoktLin/dsh-miliastra) | DeepSeek Harness 插件：把脚本投进存档旁的活文件、读运行日志、截图、探针、界面规范检查 | 思路相近（都在真机的文件上干活），它面向 Harness、试玩由人点；本项目自己点试玩，也写存档本身 |
+| [miliastra-ugc](https://github.com/QHY8IV/miliastra-ugc)、[MiliastraAgent](https://github.com/ThRabbit-Studio/MiliastraAgent)、[genshin-qianxing-2d-game](https://github.com/chen-985211/genshin-qianxing-2d-game) | 给 AI 的技能和提示词包：Lua 静态检查、离线 Lua 沙箱、像素画和图元拟合出图、分步流程 | 出图（像素画、帧动画、图元拟合）本项目没有，用它们的；流程类的可以和本项目的工具一起用 |
 | [千星奇域工具箱](https://github.com/1475505/Miliastra-toolbox) | 官方文档和社区经验的知识库问答，有在线 MCP | 可以和本项目同时接：它回答“怎么做”，本项目动手做 |
-| [千星沙箱模拟器](https://github.com/1475505/miliastra-beyond-simulator) | 游戏之外的模拟器，面向 2D + Lua 客户端脚本的玩法，几秒一轮 | 2D 界面玩法要几秒一轮地快速迭代时用它；本项目也能写客户端 Lua 和控件，但每一轮都是进真游戏验证，可以两头配合：模拟器里调，这里上真机 |
 | [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | 网页版节点图编辑器，不开游戏就能画节点图 | 画节点图原型用 |
 | [genshin-starcraft-mcp](https://github.com/ystyle/genshin-starcraft-mcp) | 查官方教程和节点文档的 MCP | 本项目自带一份离线的官方指南，功能有重叠 |
 | [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs)、[genshin-miliastra-file-format](https://github.com/script-1024/genshin-miliastra-file-format) | 存档和导出文件格式的文档 | 本项目的物件名单和尺寸来自前者（CC BY 4.0） |
 
-本项目有而上面没看到的：带缩略图的物件、特效、音效、界面图片编号图鉴；在真游戏里按脚本自动试玩并取回日志和截图；场景和 3D 玩法（摆景、复杂造物的战斗、投射物、机关）。
+只有本项目有的：
 
-本项目没有的：游戏之外的模拟器（每一轮都要进真游戏）、给人看的节点图界面、Windows 以外的平台。客户端 Lua 脚本和客户端控件（游戏 7.1 新增）十一种控件、它们的设置、模板和脚本变量都已支持。
+- **真机上的自动试玩**：导入存档、勾日志、点试玩、按键点鼠标、截图、读回打印，全程没有人。给出预期的打印，试玩自己回答通过没有。
+- **真机上一分钟一轮的 Lua**：只改脚本时不重新导入存档，实测 74 秒一轮。
+- **写进去之前先对名字**：脚本里的控件名、信号名、变量名、接口名、模板和图片音效编号，对着存档、节点图、图鉴和官方接口逐个查；这个平台上名字对不上不报错、只是没反应。
+- **真编辑器画的多设备预览**：电脑、手机、主机十种画布各截一张，是编辑器自己画的，不是近似。
+- **整关都在存档里**：场景和 3D 玩法（摆景、复杂造物的战斗、投射物、机关）、节点图、普通界面、客户端界面，写出的记录和编辑器手配的逐字节相同。
+- 带缩略图的物件、特效、音效、界面图片编号图鉴。
+
+本项目没有的：游戏之外的模拟器（最快也是一分钟一轮，模拟器是几秒）、多人模拟（所有范例都是单人）、出图工具、给人看的界面、一行命令安装（现在要克隆仓库）、Windows 以外的平台。
 
 以上是按各项目 README 的自述整理的，如有不准确请提 issue。
 

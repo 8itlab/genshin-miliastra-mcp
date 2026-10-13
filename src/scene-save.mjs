@@ -2211,10 +2211,12 @@ function clientScripts(root){
     return {raw:f,id:varintOf(f.data,1),name:text(2),file:text(3),source:text(5),variables};});
 }
 export const CLIENT_SCRIPT_TYPES=Object.keys(SCRIPT_TYPES);
-// What the Lua of this version cannot have, from the official API page: found here rather than as a silent failure in play.
+// What the Lua of this version does not have: found here rather than as a fault in play. From the official API page,
+// and looked at in play (2026-10-14: coroutine, io, package, load, loadfile and dofile are nil; require is there, and
+// takes the file name of another script of the save without ".lua", letter for letter).
 const LUA_FORBIDDEN=[[/\bcoroutine\s*\./,'coroutine.* is not available'],[/\bio\s*\./,'io.* is not available'],[/\bstring\s*\.\s*dump\b/,'string.dump is not available'],
   [/\bos\s*\.\s*(?!time\b|date\b|clock\b|difftime\b)[A-Za-z_]+/,'of os only time, date, clock and difftime are available'],[/\bdebug\s*\.\s*(?!traceback\b)[A-Za-z_]+/,'of debug only traceback is available'],
-  [/\brequire\s*[("']/,'require is not available: a script reaches another one through its script mapping id'],[/\b(?:loadfile|dofile)\s*\(/,'loadfile and dofile are not available']];
+  [/(?<![.:\w])(?:loadfile|dofile|load)\s*\(/,'load, loadfile and dofile are not available'],[/\bpackage\s*\./,'package.* is not available (require is: require("file name of another script"))']];
 export function setClientScript({mapPath,name,source,sourceFile,file:asFile,variables,outputName},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file);const root=container(bytes);
   if((source===undefined)===(sourceFile===undefined))fail('INVALID_SCRIPT','Give the Lua either as source or as sourceFile (the path of a .lua file).');
