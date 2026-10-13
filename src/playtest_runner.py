@@ -460,7 +460,7 @@ class Run:
             self.step('game-was-not-in-front')
             self.focus('game')
 
-    def wait_watching(self, until):
+    def wait_watching(self, until, key_next=False):
         """Wait until the given time, watching the game window meanwhile for a level that ends by itself.
         The result screen (重新挑战 at the bottom right) stays, so its first sighting gives the time. When the server
         ended the level for load it also says so in one line near the top for a few seconds
@@ -494,20 +494,26 @@ class Run:
                         self.result['watchError'] = str(error)[:200]
                 self._look_cost = max(time.time() - began, 0.8 * cost)
                 self._last_look = time.time()
-            elif ended is None and time.time() - getattr(self, '_last_look', self.result.get('playStartedAt', 0)) > 12:
+            elif (ended is None and time.time() - getattr(self, '_last_look', self.result.get('playStartedAt', 0)) > 12
+                  and (not key_next or until - time.time() > getattr(self, '_corner_cost', 0.6) + 0.15)):
                 # A script with a key every second never leaves room for a whole look: a fight that was lost at second
                 # 86 was played on to second 284, where the keys ran out (2026-10-13). So every twelve seconds at the
-                # latest the corner where the result screen has its 重新挑战 is read by itself, a quarter of the window,
-                # whatever is due; a key may come a fraction of a second late for it.
+                # latest the corner where the result screen has its 重新挑战 is read by itself, a fortieth of the
+                # window. It is not begun when a key is due before it would be over: it took 1.25
+                # seconds once, the key after it came that much late, and the scripted walk of examples/kingdom4 stopped
+                # a station short in every run (found by the regression of 2026-10-14). A screenshot may wait for it.
                 self._last_look = time.time()
+                began = time.time()
                 try:
-                    if any('重新挑战' in i['text'] for i in self.read('game', region=(0.5, 0.7, 1, 1))):
+                    # The button stands at 0.82 to 0.98 across and 0.92 to 0.97 down (measured on a result screen).
+                    if any('重新挑战' in i['text'] for i in self.read('game', region=(0.76, 0.86, 1, 1))):
                         self.result['levelEndedAt'] = now
                         self.shot('game', 'level-ended', t=now)
                         self.step('level-ended', playSeconds=now, seenBy='corner-look')
                 except Exception as error:
                     if not self.result.get('watchError'):
                         self.result['watchError'] = str(error)[:200]
+                self._corner_cost = max(time.time() - began, 0.8 * getattr(self, '_corner_cost', 0.6))
             left = until - time.time()
             if left <= 0:
                 return
@@ -1247,10 +1253,10 @@ class Run:
                 # A key comes up on time or as soon as possible after; nothing is looked at while one waits to.
                 left = start + at - time.time()
                 if left > 0:
-                    self.wait_watching(start + at)
+                    self.wait_watching(start + at, key_next=True)
                 self.key_up(data['key'])
                 continue
-            self.wait_watching(start + at)
+            self.wait_watching(start + at, key_next=kind in ('key', 'keydown'))
             self.keep_front()
             # A key that comes late puts a scripted walk in the wrong place: the result says which did.
             late = round(time.time() - (start + at), 2)

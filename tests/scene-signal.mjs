@@ -92,6 +92,7 @@ try{
   assert.deepEqual(declares("const S=defineSignal('scored',[['p','int'],['w','vec3'],['e','entity'],['t','str_list']] as const)\nconst C=defineSignal(\"client:scored\", [\n ['player','entity'], ['p','int'], ['w','vec3'], ['e','entity'], ['t','str_list'],\n] as const)\nconst N=defineSignal('night',[] as const)"),[]);
   const off=declares("const S=defineSignal('scored',[['p','int'],['w','vec3']] as const)\nconst C=defineSignal('client:scored',[['p','int'],['w','vec3'],['e','entity'],['t','str_list']] as const)\nconst X=defineSignal('nowhere',[['a','int']] as const)\nconst N=defineSignal('night',[['a','int']] as const)");
   assert.deepEqual(off.map(f=>f.signal),['scored','client:scored','nowhere','night']);
+  assert.deepEqual(declares("// const X=defineSignal('nowhere',[['a','int']] as const)\n/* defineSignal('scored',[]) */\nconst url='http://x//y';const N=defineSignal('night',[] as const) // defineSignal('scored',[['a','int']])"),[],'a declaration in a comment is not code');
   assert.equal(off[0].declare,"defineSignal('scored', [['points', 'int'], ['where', 'vec3'], ['who', 'entity'], ['tags', 'str_list']] as const)");
   assert.equal(off[1].declare,"defineSignal('client:scored', [['player', 'entity'], ['points', 'int'], ['where', 'vec3'], ['who', 'entity'], ['tags', 'str_list']] as const)");
   assert.equal(off[3].declare,"defineSignal('night', [] as const)");

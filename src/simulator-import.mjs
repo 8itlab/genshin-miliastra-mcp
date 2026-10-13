@@ -140,45 +140,69 @@ export function readSimulatorSave(file){
     ...(holder.visible===false||holder.active===false?{hidden:true}:{})}:null;
   if(!ui)say('The save has no interface (no container under the client control container of its server project).');
   // The server it simulates: rules of the form "when signal S comes from a script, set variables and send signals to
-  // scripts". That is a node graph of the level entity; signals and variables have to be there for it.
+  // scripts". That is a node graph of the level entity; signals and variables have to be there for it. A signal
+  // carries values of set types in the game: what a script adds to a signal before sending it (AddInt, AddString ...)
+  // says the types of the one it sends, and what a rule sends back says the types of that one.
   const rules=data.serverLogic?.rules??[],signals=new Map(),variables=new Map(),lines=[];
-  const want=(name,params)=>{const had=signals.get(name)??0;signals.set(name,Math.max(had,params));};
-  const written=v=>typeof v==='string'?JSON.stringify(v):typeof v==='boolean'?String(v):Number.isInteger(v)?v+'n':String(v);
+  const ADDS=Object.fromEntries(Object.entries({Int:'integer',Float:'float',String:'string',Bool:'boolean',Vector3:'vector3',Entity:'entity',Guid:'guid',PrefabId:'prefabId',ConfigId:'configId'}).flatMap(([k,t])=>[['Add'+k,t],['Add'+k+'List',t+'List']]));
+  const TS={integer:'int',float:'float',string:'str',boolean:'bool',vector3:'vec3',entity:'entity',guid:'guid',prefabId:'prefab_id',configId:'config_id'};
+  const sentUp=new Map();
+  for(const sc of scripts){let ast;try{ast=luaparse.parse(sc.source,{luaVersion:'5.3',comments:false});}catch{continue;}
+    const held=new Map(),made=n=>(n?.type==='CallExpression'||n?.type==='StringCallExpression')&&n.base?.type==='MemberExpression'&&n.base.base?.name==='game'&&n.base.identifier?.name==='ServerSignal'?String((n.arguments?.[0]??n.argument)?.raw??'').replace(/^["']|["']$/g,''):null;
+    const walk=n=>{if(!n||typeof n!=='object')return;if(Array.isArray(n)){n.forEach(walk);return;}
+      if(n.type==='LocalStatement'||n.type==='AssignmentStatement')n.variables.forEach((v,k)=>{const name=made(n.init?.[k]);if(v.type==='Identifier'&&name)held.set(v.name,{name,types:[]});});
+      if(n.type==='CallExpression'&&n.base?.type==='MemberExpression'&&n.base.indexer===':'&&n.base.base?.type==='Identifier'&&held.has(n.base.base.name)){const h=held.get(n.base.base.name),m=n.base.identifier.name;
+        if(ADDS[m])h.types.push(ADDS[m]);else if(m==='SendSignal'){if(!sentUp.has(h.name)||sentUp.get(h.name).length<h.types.length)sentUp.set(h.name,h.types);held.delete(n.base.base.name);}}
+      if(n.type==='CallExpression'&&n.base?.type==='MemberExpression'&&n.base.identifier?.name==='SendSignal'&&made(n.base.base)&&!sentUp.has(made(n.base.base)))sentUp.set(made(n.base.base),[]);
+      for(const k of Object.keys(n))if(k!=='loc'&&k!=='type')walk(n[k]);};
+    walk(ast.body);}
+  const typeOf=v=>typeof v==='string'?'string':typeof v==='boolean'?'boolean':Number.isInteger(v)?'integer':'float';
+  const want=(name,types)=>{const had=signals.get(name);if(!had||had.length<types.length)signals.set(name,types);};
+  const written=(v,type)=>type==='string'?JSON.stringify(String(v)):type==='boolean'?String(!!v):type==='integer'?Math.round(Number(v))+'n':String(Number(v));
   for(const rule of rules){
     const uses=rule.actions.flatMap(a=>[a.value,...(a.params??[])]).filter(v=>v&&typeof v==='object'&&Number.isInteger(v.fromSignalParam)).map(v=>v.fromSignalParam);
-    want(rule.signalName,uses.length?Math.max(...uses)+1:0);
+    const needed=uses.length?Math.max(...uses)+1:0,fromLua=sentUp.get(rule.signalName)??[],heard=[...fromLua];
+    // A parameter a rule reads and no script was seen to add travels as a string, as the simulator's own values do.
+    while(heard.length<needed)heard.push('string');
+    if(needed>fromLua.length)say('The rule of "'+rule.signalName+'" reads '+needed+' parameter(s) of the signal and the scripts were seen to add '+fromLua.length+': the missing ones are taken to be strings. Make the script add them (AddString and its kind) in that order.');
+    want(rule.signalName,heard);
     const body=[];
     for(const action of rule.actions){
-      const value=v=>v&&typeof v==='object'&&Number.isInteger(v.fromSignalParam)?(v.fromSignalParam===0?'evt.params.value':null):written(v);
+      const fromSignal=v=>v&&typeof v==='object'&&Number.isInteger(v.fromSignalParam);
       if(action.kind==='setCustomVariable'){
-        const v=value(action.value),level=action.entityType==='Level';
-        if(v===null){say('A rule of "'+rule.signalName+'" uses the second or a later parameter of the signal; signals carry one string here: that action is left out.');continue;}
-        const type={Int:'integer',Float:'float',String:'string',Bool:'boolean'}[action.variableType]??(typeof action.value==='string'?'string':typeof action.value==='boolean'?'boolean':Number.isInteger(action.value)?'integer':'float');
+        const level=action.entityType==='Level';
+        const type={Int:'integer',Float:'float',String:'string',Bool:'boolean'}[action.variableType]??(fromSignal(action.value)?heard[action.value.fromSignalParam]:typeOf(action.value));
+        const v=fromSignal(action.value)?'evt.params.p'+(action.value.fromSignalParam+1):written(action.value,type);
+        if(fromSignal(action.value)&&heard[action.value.fromSignalParam]!==type)say('The rule of "'+rule.signalName+'" puts parameter '+(action.value.fromSignalParam+1)+' ('+heard[action.value.fromSignalParam]+') into the variable "'+action.name+'" ('+type+'): the graph needs a conversion there (f.dataTypeConversion), or the script has to add a value of that type.');
         if(!level)variables.set(action.name,type);else say('The rule of "'+rule.signalName+'" sets the level variable "'+action.name+'": it must exist on the level entity (the editor: 关卡变量管理), which no tool here adds.');
         body.push(level?"    f.setCustomVariable(f.getSelfEntity(),"+JSON.stringify(action.name)+","+v+",true);":"    for(const player of f.getListOfPlayerEntitiesOnTheField())f.setCustomVariable(player,"+JSON.stringify(action.name)+","+v+",true);");
       }else if(action.kind==='sendClientScriptSignal'){
-        const params=(action.params??[]).map(value);
-        if(params.length>1||params.includes(null)){say('The rule of "'+rule.signalName+'" sends "'+action.signalName+'" with more than one parameter; signals carry one string here: only the first is sent.');}
-        want(action.signalName,Math.min(1,params.length));
-        // A signal carries a string: a number or a switch of the simulator travels as its text.
-        const first=action.params?.[0],sent=!params.length||params[0]===null?'':','+(first&&typeof first==='object'?params[0]:JSON.stringify(String(first)));
-        body.push("    for(const player of f.getListOfPlayerEntitiesOnTheField())f.sendSignal('client:"+action.signalName+"',player"+sent+");");
+        const params=action.params??[],types=params.map(v=>fromSignal(v)?heard[v.fromSignalParam]:typeOf(v));
+        want(action.signalName,types);
+        const sent=params.map((v,k)=>fromSignal(v)?'evt.params.p'+(v.fromSignalParam+1):written(v,types[k]));
+        body.push({send:action.signalName,values:sent});
       }
     }
     lines.push({signal:rule.signalName,body});
   }
-  return {name:data.meta?.name??path.basename(file),version:data.version,scripts,templates:madeTemplates,ui,signals:[...signals].map(([name,params])=>({name,...(params?{parameter:'value'}:{})})),
-    variables:[...variables].map(([name,type])=>({name,type})),rules:lines,notes};
+  const named=types=>types.map((type,k)=>({name:'p'+(k+1),type}));
+  return {name:data.meta?.name??path.basename(file),version:data.version,scripts,templates:madeTemplates,ui,signals:[...signals].map(([name,types])=>({name,...(types.length?{parameters:named(types)}:{})})),
+    variables:[...variables].map(([name,type])=>({name,type})),rules:lines,notes,signalTypes:Object.fromEntries([...signals].map(([name,types])=>[name,types.map(t=>t.endsWith('List')?TS[t.slice(0,-4)]+'_list':TS[t])]))};
 }
 // The source of the graph that does what the simulator's server rules do, for the level entity.
 export function serverGraphSource(plan,graphId,graphName){
-  // A signal a rule hears and whose string it uses is declared with its parameter, for evt.params.value.
-  const typed=plan.signals.filter(s=>s.parameter&&plan.rules.some(r=>r.signal===s.name&&r.body.some(l=>l.includes('evt.params.value')))),lines=["/// <reference types=\"genshin-ts\" />","import { g"+(typed.length?", defineSignal":"")+" } from 'genshin-ts/runtime/core'","",
+  // A signal that carries values is declared once with their types; the one that goes to client scripts has the name
+  // client:NAME and the player before the values.
+  const types=plan.signalTypes??{},heard=new Map(),toScripts=new Map(),entries=list=>list.map((t,k)=>"['p"+(k+1)+"','"+t+"']").join(',');
+  for(const rule of plan.rules){if(types[rule.signal]?.length&&!heard.has(rule.signal))heard.set(rule.signal,'S'+heard.size);
+    for(const l of rule.body)if(typeof l==='object'&&types[l.send]?.length&&!toScripts.has(l.send))toScripts.set(l.send,'C'+toScripts.size);}
+  const typed=heard.size+toScripts.size,lines=["/// <reference types=\"genshin-ts\" />","import { g"+(typed?", defineSignal":"")+" } from 'genshin-ts/runtime/core'","",
     "// From the server rules of the simulator save \""+plan.name+"\": each rule hears a signal a client script sends","// and sets variables or sends signals back to the scripts."];
-  const handle=new Map(typed.map((s,i)=>['S'+i,s]));
-  for(const [id,s] of handle)lines.push("const "+id+"=defineSignal("+JSON.stringify(s.name)+",[['value','str']] as const)");
+  for(const [name,id] of heard)lines.push("const "+id+"=defineSignal("+JSON.stringify(name)+",["+entries(types[name])+"] as const)");
+  for(const [name,id] of toScripts)lines.push("const "+id+"=defineSignal("+JSON.stringify('client:'+name)+",[['player','entity'],"+entries(types[name])+"] as const)");
   lines.push("g.server({id:"+graphId+",name:'"+graphName+"'})",".on('whenEntityIsCreated',(evt,f)=>{","  f.printString('SIM_SERVER_READY');","})");
-  for(const rule of plan.rules){const typedId=[...handle].find(([,s])=>s.name===rule.signal)?.[0];
-    lines.push(".onSignal("+(typedId??JSON.stringify(rule.signal))+",(evt,f)=>{",...rule.body.map(l=>l.slice(2)),"})");}
+  for(const rule of plan.rules){
+    const body=rule.body.map(l=>typeof l==='string'?l.slice(2):"  for(const player of f.getListOfPlayerEntitiesOnTheField())f.sendSignal("+(toScripts.get(l.send)??JSON.stringify('client:'+l.send))+",player"+l.values.slice(0,types[l.send]?.length??0).map(v=>','+v).join('')+");");
+    lines.push(".onSignal("+(heard.get(rule.signal)??JSON.stringify(rule.signal))+",(evt,f)=>{",...body,"})");}
   return lines.join('\n')+'\n';
 }

@@ -241,7 +241,7 @@ dot:SetAnchoredPosition(40, 0)
 - 结算、掉血、生成东西这些只有节点图能做：脚本发信号，节点图去办。`examples/clientgame` 的输赢就是这样结算的。
 - **节点图 → 脚本：发信号（一次性的消息）。** 游戏 7.1 的服务器节点【发送客户端脚本信号】。节点图里写 `f.sendSignal('client:名字', 玩家, ...参数)`：名字前面加 `client:`，第二个参数是发给哪个玩家；脚本里 `script:RegisterServerSignalHandler("名字", function(name, params) ... end)` 收，`params` 是参数的表（`params[1]` 是第一个）。信号照常用 `scene_add_signal` 定义（同一个信号既能在节点图之间发，也能发给脚本）。上机验过不带参数和带一个字符串（2026-10-13，`examples/clientsignal`）。
 
-- **信号可以带好几个值，十八种类型都行（2026-10-13 上机验过，`examples/signalparams`）。** `scene_add_signal` 的 `parameters: [{name, type}]`，类型是 `integer`、`float`、`boolean`、`string`、`vector3`、`entity`、`guid`、`prefabId`、`configId`，或者它们的列表（`integerList`、`stringList`……）。三条路都通：
+- **信号可以带好几个值，十八种类型都行（2026-10-13 上机验过，`examples/signalparams`）。** `scene_add_signal` 的 `parameters: [{name, type}]`，类型是 `integer`、`float`、`boolean`、`string`、`vector3`、`entity`、`guid`、`prefabId`、`configId`，或者它们的列表（`integerList`、`stringList`……）。三条路都通（技能图、造物图这类客户端节点图发给服务器是第四条，写法和第一行一样，用 `f.sendSignalToServerNodeGraph(S, …)`，`examples/brain`）：
 
   | 路线 | 发 | 收 |
   |---|---|---|
@@ -273,7 +273,7 @@ dot:SetAnchoredPosition(40, 0)
 - 脚本、控件模板、界面（脚本挂在原来的控件上，各设备不同的位置照搬）都写进存档；脚本和服务端规则里提到的信号自动定义，规则要设的玩家变量自动加上。
 - 模拟器的“服务端规则”（收到脚本发来的某个信号时：设变量、给脚本发信号）会变成关卡实体上的一张节点图，源码在结果里。
 - **模板编号自动对上**：Lua 里凡是等于模拟器里模板编号的数字，都换成模板在这份存档里的编号；只动 Lua 自己的数字，字符串和注释里的不动。
-- 结果的 `notes` 列出模拟器里有、这边写不进去的东西（信号的第二个参数、游戏里不存在的按钮状态）；图片的填充、羽化、反转会原样带过来，`check` 是 `scene_check_client` 对导入后整份存档查出来的问题。
+- 结果的 `notes` 列出模拟器里有、这边对不上的东西（游戏里不存在的按钮状态、规则读了脚本没加的参数）；图片的填充、羽化、反转会原样带过来；信号带几个值、各是什么类型，照脚本发之前 `AddInt`、`AddString` 这些调用和规则回发的值推出来，节点图里按 `defineSignal` 声明好，`check` 是 `scene_check_client` 对导入后整份存档查出来的问题。
 - 然后 `playtest_start {mapPath}` 上真机。上机验过（2026-10-13）：脚本发信号、节点图设变量再发回、脚本收到，文字和模板都画出来了。
 
 两处模拟器和游戏不一样、导入时替你处理了的：模拟器把预设按钮的第一个状态叫“不可用”、第四个叫“选中”，编辑器里其实是“默认”和“不可用”；按键提示的键盘键和手柄键在它那里是反的。只读了它的存档格式，没有用它的代码。

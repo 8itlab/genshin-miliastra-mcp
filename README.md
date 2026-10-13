@@ -133,9 +133,9 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `effect_catalog` / `sound_catalog` / `music_catalog` | 平台自带的特效（限时 1986、循环 1209）、音效（1997）、背景音乐（188）：按中文名字查编号，特效带缩略图，结果里有节点图里的用法。名字和编号是从编辑器的资产库里抄下来的 |
 | `scene_search_assets` / `scene_asset_images` | 2468 种官方物件的图鉴：按名字查（`queries` 一次查多个词，查不到会给相近的名字）、按编号看缩略图 |
 | `scene_add_prefab` / `scene_update_prefab` / `scene_list_prefabs` | 做元件（图里 `createPrefab` 造出来的东西）：物件、由摆好的怪做成的造物、掉落物（`drop`）；机关物件带预设状态（宝箱开合、拉杆、活板门，45 个已对上），`health` 定生命值；`scene_update_prefab` 改已有元件的缩放、模型、生命值，编号、组件和挂的图都不变 |
-| `scene_add_components` / `scene_list_components` | 给元件加平台自带的组件：碰撞触发器、选项卡（按 F 交互，可带布尔过滤器）、自定义变量、基础运动器（直线、路径）、跟随运动器、小地图标识、受击盒、能力单元、弹射器（`launcher`：碰到的角色被弹出去，弹跳垫、推人的机关）、战利品、投射运动器（直线、抛物线、追踪目标）和命中检测（子弹；可只碰敌对阵营、可开连续碰撞检测）。范例 `examples/events` |
+| `scene_add_components` / `scene_list_components` | 给元件加平台自带的组件：碰撞触发器、选项卡（按 F 交互，可带布尔过滤器）、自定义变量、基础运动器（直线、路径）、跟随运动器、小地图标识、文本气泡（NPC 头顶一句接一句的话）、铭牌（头顶的名字、图标、跟着变量走的条）、自定义挂接点、受击盒、能力单元、弹射器（`launcher`：碰到的角色被弹出去，弹跳垫、推人的机关）、战利品、投射运动器（直线、抛物线、追踪目标）和命中检测（子弹；可只碰敌对阵营、可开连续碰撞检测）。范例 `examples/events` |
 | `scene_add_graph` | 新建一张空图并挂好：关卡实体、元件（可一图挂多个元件）、玩家模板、角色模板；也能建客户端的技能图、过滤器图和道具图 |
-| `scene_add_signal` / `scene_list_signals` | 信号（全关卡广播），可带好几个参数：整数、浮点数、布尔值、字符串、三维向量、实体、GUID、元件 ID、配置 ID 和它们的列表（编辑器给的十八种类型）；节点图之间、Lua 脚本发给节点图、节点图发给 Lua 脚本三条路都上机验过（`examples/signalparams`） |
+| `scene_add_signal` / `scene_list_signals` | 信号（全关卡广播），可带好几个参数：整数、浮点数、布尔值、字符串、三维向量、实体、GUID、元件 ID、配置 ID 和它们的列表（编辑器给的十八种类型）；节点图之间、Lua 脚本发给节点图、节点图发给 Lua 脚本、客户端节点图发给服务器四条路都上机验过（`examples/signalparams`、`examples/brain`） |
 | `scene_add_global_timer` / `scene_list_global_timers` / `scene_add_timer_display` | 全局计时器（倒计时或正计时）和屏幕上显示它的计时器控件 |
 | `scene_add_creature_skill` / `scene_list_creature_skills` / `scene_set_creature_logic` | 复杂造物（“怪物(AI版)”那 48 种）：定义造物技能（一段或几段动画加一张技能图，可设自动面向目标），给造物元件绑上决策图和技能表（每个技能的冷却），设它多远发现敌人、多远放弃、领地多大。配合三种造物图（`scene_add_graph` 的 `creatureDecision` / `creatureStatus` / `creatureSkill`），单位就能按图走位、闲逛、干活、自己发现敌人、追上去打。做法见 `knowledge/notes/complex-creatures.zh-CN.md`，范例 `examples/brain`、`examples/skirmish`，整个游戏见 `examples/kingdom6` |
 | `creature_animations` | 复杂造物的动画表：名字、编号、时长、是否循环（读了 18 种 296 条）。造物技能按名字或编号选动画。造物的模型都是空手的：表里还写了每种造物手里能拿什么、上机逐帧看过的那些动作是什么样、哪一毫秒算数（`atMs`，直接当技能的 `graphAtMs`） |
@@ -143,9 +143,10 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_currency` / `scene_list_currencies` | 货币，以及角色身上的背包 |
 | `scene_add_item` / `scene_add_shop` / `scene_list_items` | 道具（材料，或带道具节点图、能在背包里使用的消耗品）；把元件做成商店（平台自带的买卖界面） |
 | `scene_add_progress_bar` / `scene_add_button` / `scene_add_image` / `scene_list_interface` | 屏幕上的进度条（跟着玩家变量走；可以是横条、竖条、圆环，可以直接显示当前值的数字，颜色可改）、交互按钮（按数字键触发，玩家模板上的图收事件）和图片（平台自带的图，或一块纯色的底板：不靠文字也能把话说清楚）；控件可以一开始隐藏，由节点图开关 |
+| `scene_add_card_selector` | 卡牌选择器：平台自带的“几选一”窗口（每张卡有图标、标题、描述；单人关卡里打开时游戏暂停），节点图用 `f.invokeDeckSelector` 唤起、玩家模板上的图收到选了哪张。记录和官方样例“卡牌选择器”逐字节相同 |
 | `scene_add_unit_status` / `scene_list_unit_statuses` | 单位状态：描边、透视、加生命上限；图里加减 |
 | `scene_add_environment` / `scene_list_environments` / `scene_add_light` | 固定时刻的环境配置（昼夜靠两套配置切换；按编辑器的写法写，白天不会过曝）和属于某套配置的点光源 |
-| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通（节点图也能直接给脚本发信号：`f.sendSignal('client:名字', 玩家)`）。脚本变量二十种类型都能定，同一个脚本挂在几个控件上可以各给各的值；控件能按设备（电脑、手机、主机）给不同的位置，能指定手柄摇杆往哪走。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写进存档时当场查：语法错直接拒绝并给出行列，写死的控件名、信号名、变量名、接口名、图片和音效编号逐个对存档、节点图和图鉴（`scene_check_client`），对不上的给出行号和最接近的名字；运行时的错带着调用栈从试玩日志里回来。只改 Lua 的一轮不重新导入存档，真机上大约一分钟一轮。`editor_preview_interface` 让编辑器把界面画在手机、主机的画布上各截一张；`scene_import_simulator` 把千星沙箱模拟器的工程整个写进存档上真机。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck`、`examples/clientvars`、`examples/clientsignal`、`examples/clientapi`、`examples/clienttext`，以及整局游戏 `examples/pairs` |
+| `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通（节点图也能直接给脚本发信号：`f.sendSignal('client:名字', 玩家)`）。脚本变量二十种类型都能定，同一个脚本挂在几个控件上可以各给各的值；控件能按设备（电脑、手机、主机）给不同的位置，能指定手柄摇杆往哪走。图片能直接带填充（横、竖、四分之一圈、半圈、整圈）、边缘羽化和遮罩反转，进度条和冷却圈不用脚本画；`scene_get_client_ui` 把已有的界面读回成参数，改完 `replace: true` 原位换回去。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写进存档时当场查：语法错直接拒绝并给出行列，写死的控件名、信号名、变量名、接口名、图片和音效编号逐个对存档、节点图和图鉴（`scene_check_client`），对不上的给出行号和最接近的名字；运行时的错带着调用栈从试玩日志里回来。只改 Lua 的一轮不重新导入存档，真机上大约一分钟一轮。`editor_preview_interface` 让编辑器把界面画在手机、主机的画布上各截一张；`scene_import_simulator` 把千星沙箱模拟器的工程整个写进存档上真机。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck`、`examples/clientvars`、`examples/clientsignal`、`examples/clientapi`、`examples/clienttext`，以及整局游戏 `examples/pairs` |
 | `image_catalog` | 界面图片控件能用的全部图片（约 1600 张，15 类：功能图标、玩法图标、装饰图案、底板、分隔线、特殊字符、技能、道具、造物头像）：按分类返回编辑器图库的照片，每张图下面是编号 |
 | `scene_remove_entities` | 把已经导入场景的物件从存档副本里拿掉（按名字或名字前缀）：导入只能加，摆错的靠它减 |
 | `scene_list_classes` / `scene_set_class` | 职业：角色能不能跳、冲刺、攀爬、滑翔，用哪个镜头模板；角色的等级和基础生命、攻击、防御、体力（新地图默认一万血，打不死） |
@@ -328,7 +329,7 @@ npm run test:local
 
 - **真机上的自动试玩**：导入存档、勾日志、点试玩、按键点鼠标、截图、读回打印，全程没有人。给出预期的打印，试玩自己回答通过没有。
 - **真机上一分钟一轮的 Lua**：只改脚本时不重新导入存档，实测 74 秒一轮。
-- **写进去之前先对名字**：脚本里的控件名、信号名、变量名、接口名、模板和图片音效编号，对着存档、节点图、图鉴和官方接口逐个查；这个平台上名字对不上不报错、只是没反应。
+- **写进去之前先对名字**：脚本里的控件名、信号名、变量名、接口名、模板和图片音效编号，对着存档、节点图、图鉴和官方接口逐个查；信号带的参数，Lua 和节点图两边的个数、类型、顺序也对着定义查；界面写进去时直接说哪些控件在手机上出了屏幕。这个平台上名字对不上不报错、只是没反应。
 - **真编辑器画的多设备预览**：电脑、手机、主机十种画布各截一张，是编辑器自己画的，不是近似。
 - **整关都在存档里**：场景和 3D 玩法（摆景、复杂造物的战斗、投射物、机关）、节点图、普通界面、客户端界面，写出的记录和编辑器手配的逐字节相同。
 - 带缩略图的物件、特效、音效、界面图片编号图鉴。

@@ -26,16 +26,21 @@ guids = json.load(open(sys.argv[1], encoding='utf-8'))
 which = sys.argv[-1]
 G = lambda key: guids['graph:' + key]
 P = {n: guids['prefab:BR_' + n] for n in ('scout', 'archer', 'foe')}
+# BR_work carries three values from the creature's skill graph (a client graph) to the server: declared once, the
+# same line in both.
+WORK = "const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)"
 SERVER_HEAD = f"""/// <reference types="genshin-ts" />
-import {{ g }} from 'genshin-ts/runtime/core'
+import {{ g, defineSignal }} from 'genshin-ts/runtime/core'
 
 // Brain, graph "{which}": see examples/brain/gen_brain.py.
+{WORK}
 """
 CLIENT_HEAD = f"""/// <reference types="genshin-ts" />
-import {{ g }} from 'genshin-ts/runtime/core'
+import {{ g, defineSignal }} from 'genshin-ts/runtime/core'
 import {{ TacticSpeed, TargetEntity }} from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "{which}": see examples/brain/gen_brain.py.
+{WORK}
 """
 SERVER = f"g.server({{id:{guids['graph:id']},name:'{guids['graph:name']}'}})"
 ME = f"{{id:{guids['graph:id']},name:'{guids['graph:name']}',prefix:false}}"
@@ -93,7 +98,7 @@ BODY = {
   for(const foe of f.getEntitiesWithSpecifiedPrefabOnTheField({P['foe']}))f.removeEntity(foe);
   f.printString('BR_FOE_GONE');
 }})
-.onSignal('BR_work',(evt,f)=>{{f.printString('BR_SIGNAL');f.printString('work');}})
+.onSignal(WORK,(evt,f)=>{{f.printString('BR_SIGNAL');f.printString('work');f.printString({STR('evt.params.times')});f.printString({STR('evt.params.spot')});f.printString(evt.params.word);}})
 .onSignal('BR_shoot',(evt,f)=>{{f.printString('BR_SIGNAL');f.printString('shoot');}})
 """,
     'unit': SERVER + """
@@ -142,7 +147,7 @@ BODY = {
 }})
 """,
     'workSkill': f"""g.creationSkill({ME}).on('start',(evt,f)=>{{
-  f.sendSignalToServerNodeGraph('BR_work');
+  f.sendSignalToServerNodeGraph(WORK,3n,[1,2.5,-3],'dig');
   f.notifyServerNodeGraph('work','','');
 }})
 """,

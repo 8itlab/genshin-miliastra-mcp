@@ -8,7 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields} from '../src/scene/wire.mjs';
-import {addPrefab,addGraph,addComponents,listComponents,launcherContent} from '../src/scene-save.mjs';
+import {addPrefab,addGraph,addComponents,listComponents,launcherContent,nameplateContent,bubbleContent} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-components-'));
 const sample=path.join(root,'knowledge','samples','gil',fs.readdirSync(path.join(root,'knowledge','samples','gil')).find(f=>f.startsWith('mhumsn9uap96_')));
@@ -145,5 +145,46 @@ try{
     assert.throws(()=>tryOn('bad',{projectile:{type:'spiral',velocity:[0,0,1]}}),e=>e.code==='INVALID_PROJECTILE');
     assert.throws(()=>tryOn('bad2',{hitDetection:{areas:[]}}),e=>e.code==='INVALID_HIT_DETECTION');
   }
+  // Text bubbles (what an NPC says): the records of the official sample 铭牌与气泡对话, one shown from the start and one not.
+  const talk=pick('mh0mrr0c4xps_');
+  const said=addComponents({mapPath:made.mapPath,prefab:'t_coin',textBubbles:[{active:true,attach:'头顶',radius:5,offset:[0,200],lines:[{text:'你好，我是xx',seconds:1},{text:'可以帮我采几朵野花么？',seconds:1}]}]},workspace);
+  assert.ok(record(said.mapPath,'t_coin',28).equals(record(talk,'功能示例2',28)),'the text bubble differs from the official one');
+  assert.deepEqual(listComponents({mapPath:said.mapPath,prefab:'t_coin'}).found[0].textBubbles,[{number:1,active:true,lines:['你好，我是xx','可以帮我采几朵野花么？']}]);
+  assert.deepEqual(listComponents({mapPath:talk,prefab:'功能示例3'}).found[0].textBubbles.map(b=>[b.number,b.active]),[[1,false]]);
+  assert.match(said.next,/switchActiveTextBubble/);
+  const quiet=addComponents({mapPath:made.mapPath,prefab:'t_coin',textBubbles:[{lines:[{text:'一'}]},{lines:[{text:'二'}]}]},workspace);
+  assert.deepEqual(listComponents({mapPath:quiet.mapPath,prefab:'t_coin'}).found[0].textBubbles,[{number:1,active:false,lines:['一']},{number:2,active:false,lines:['二']}]);
+  assert.throws(()=>addComponents({mapPath:made.mapPath,prefab:'t_coin',textBubbles:[{lines:[{text:'一'}]},{active:true,lines:[{text:'二'}]}]},workspace),e=>e.code==='INVALID_TEXT_BUBBLE');
+  // What the editor stored after two switches of a bubble were turned by hand (said once, and the graph told at the
+  // end) and after a health bar was added to a nameplate and its style and colour changed (2026-10-14).
+  assert.equal(bubbleContent([{active:true,loop:false,endEvent:true,radius:20,offset:[0,450],lines:[{text:'你好，我是甲',seconds:2},{text:'今天天气不错',seconds:2}]}]).toString('hex'),
+    'aa1f9d01a81f01b01f01ba1f0b47495f526f6f744e6f6465c21f00cd1f0000a041d21f06b51f0000e143e01f01ea1f24b01f12ba1f15aa1f12e4bda0e5a5bdefbc8ce68891e698afe794b2c51f00000040c82501ea1f24b01f12ba1f15aa1f12e4bb8ae5a4a9e5a4a9e6b094e4b88de99499c51f00000040c82502f81f1eca2516e69687e69cace6b094e6b3a120e9858de7bdae494431d025e907da2500e8250d');
+  const healthBlock=look=>{const plate=fields(nameplateContent([{items:[{health:look,size:[100,5],offset:[0,260]}]}])).find(f=>f.id===501).data,item=fields(plate).find(f=>f.id===512).data;
+    assert.equal(Number(fields(item).find(f=>f.id===501).value),4);return fields(item).find(f=>f.id===506).data.toString('hex');};
+  assert.equal(healthBlock(true),'b21f06b51f00008243ba1f0cad1f0000c842b51f0000a040c01f01e51f0000c842');
+  assert.equal(healthBlock({numbers:true,colour:'red'}),'b21f06b51f00008243ba1f0cad1f0000c842b51f0000a040c01f02d01f01e51f0000c842');
+  // above: metres over the foot. The attach point is made for it, beside the points the thing has, and both hang on it.
+  const raised=addComponents({mapPath:addComponents({mapPath:made.mapPath,prefab:'t_coin',attachPoints:[{name:'头顶',offset:[0,1,0]}]},workspace).mapPath,prefab:'t_coin',textBubbles:[{above:2,lines:[{text:'高处'}]}],nameplates:[{above:2,items:[{text:'名字'}]},{above:2.5,items:[{health:true}]}]},workspace);
+  assert.deepEqual(listComponents({mapPath:raised.mapPath,prefab:'t_coin'}).found[0].attachPoints,['头顶','above_2','above_2_5']);
+  assert.ok(record(raised.mapPath,'t_coin',28).includes(Buffer.from('above_2'))&&record(raised.mapPath,'t_coin',27).includes(Buffer.from('above_2_5')));
+  // A custom attach point: 头顶 on the doll of the official sample.
+  const pointed=addComponents({mapPath:made.mapPath,prefab:'t_coin',attachPoints:[{name:'头顶',offset:[0,1,0]}]},workspace);
+  assert.ok(record(pointed.mapPath,'t_coin',21).equals(record(talk,'功能示例2',21)),'the attach point differs from the official one');
+  assert.deepEqual(listComponents({mapPath:pointed.mapPath,prefab:'t_coin'}).found[0].attachPoints,['头顶']);
+  assert.throws(()=>addComponents({mapPath:made.mapPath,prefab:'t_coin',attachPoints:[{name:'a'},{name:'a'}]},workspace),e=>e.code==='INVALID_ATTACH_POINT');
+  // Nameplates: the label over a button of the official sample 全局计时器 and the bar of the sample 定时器 (both stand on
+  // placed entities there, so the content is looked for among all the records of that kind in the save).
+  const contents=(file,code)=>{const out=[],cf=code+11,walk=(b,d)=>{let list;try{list=fields(b);}catch{return;}
+    const k=list.find(x=>x.id===1&&x.wire===0),c=list.find(x=>x.id===cf&&x.wire===2);if(k&&Number(k.value)===code&&c)out.push(c.data);
+    if(d<7)for(const x of list)if(x.wire===2&&x.data.length>8)walk(x.data,d+1);};walk(container(fs.readFileSync(file)),0);return out;};
+  const label=nameplateContent([{items:[{text:'开始',fontSize:48,size:[300,100],offset:[0,300]}]}]);
+  assert.ok(contents(pick('mhujr59z1756_'),27).some(c=>c.equals(label)),'the label differs from the official one');
+  const gauge=nameplateContent([{active:false,items:[{bar:{current:'当前值',min:'最小值',max:'最大值'},size:[300,50],offset:[0,100]}]}]);
+  assert.ok(contents(pick('mhll54i94vjg_'),27).some(c=>c.equals(gauge)),'the bar differs from the official one');
+  const plated=addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{offset:[0,1.5,0],items:[{text:'守卫 {2:s.HpCur}'},{icon:11044,offset:[-80,0]}]},{active:false,items:[{bar:{current:'hp',min:'zero',max:'hpMax'}}]}]},workspace);
+  assert.deepEqual(listComponents({mapPath:plated.mapPath,prefab:'t_coin'}).found[0].nameplates,[{number:1,active:true,items:2},{number:2,active:false,items:1}]);
+  assert.match(plated.next,/setEntityActiveNameplate/);
+  assert.throws(()=>addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{items:[{text:'a',icon:1}]}]},workspace),e=>e.code==='INVALID_NAMEPLATE');
+  assert.throws(()=>addComponents({mapPath:made.mapPath,prefab:'t_coin',nameplates:[{items:[{bar:{current:'a'}}]}]},workspace),e=>e.code==='INVALID_NAMEPLATE');
   console.log(JSON.stringify({ok:true,triggerBytes:record(made.mapPath,'t_coin',5).length,tabBytes:record(made.mapPath,'t_coin',17).length}));
 }finally{fs.rmSync(workspace,{recursive:true,force:true});}

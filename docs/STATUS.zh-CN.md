@@ -30,7 +30,7 @@
 | `examples/raid` | 打怪—战利品—买卖：挥剑砍箱子和怪、捡掉落、摊位卖钱买钥匙、开门、开宝箱 | 8 张图 141 节点 | 通关 |
 | `examples/pairs` | 翻牌配对：整局写在一个客户端 Lua 脚本里（开始界面、照模板造牌、翻牌动画、音效、计时条、暂停），节点图只管结算 | 1 个脚本 149 行，1 张图 | 配完判胜；时间走完判负（2026-10-13） |
 
-另有一批单项的验证关，每个把一两样工具在游戏里用一遍：`events`（最小的事件驱动范例）、`checks`、`skills`、`shop`、`drops`、`buttons`、`strike`（攻击盒打到东西）、`shoot`（技能发射投射物）、`potion`、`presets`（机关的预设状态）、`hazards`（弹跳垫、力场、状态效果、锁定视角）、`walls`（什么挡得住人）、`doors`（门开了再关）、`images`（屏幕上的图片和进度条样式）、`skirmish` 和 `brain`（复杂造物）、`fitting`（近看间：逐帧看造物的动作）、`listen`（把音效放出来录音）、`clientui`（Lua 界面和节点图互通）、`clientgame`（整局用 Lua 写的 2D 小游戏）、`clientlist`（模板、网格等其余几种控件）、`clientmenu`（脚本变量、按钮状态、模板和子控件上的脚本）、`clientcheck`（脚本出错时日志里是什么样）、`clientvars`（脚本变量的二十种类型、分设备布局）、`clientsignal`（节点图给脚本发信号）、`signalparams`（带好几个各种类型参数的信号，三条路）、`clientapi`（填充、时停、音效等接口）、`clienttext`（屏幕上的文字，奇匠 Lv.2）。
+另有一批单项的验证关，每个把一两样工具在游戏里用一遍：`events`（最小的事件驱动范例）、`checks`、`skills`、`shop`、`drops`、`buttons`、`strike`（攻击盒打到东西）、`shoot`（技能发射投射物）、`potion`、`presets`（机关的预设状态）、`hazards`（弹跳垫、力场、状态效果、锁定视角）、`walls`（什么挡得住人）、`doors`（门开了再关）、`images`（屏幕上的图片和进度条样式）、`skirmish` 和 `brain`（复杂造物）、`fitting`（近看间：逐帧看造物的动作）、`listen`（把音效放出来录音）、`clientui`（Lua 界面和节点图互通）、`clientgame`（整局用 Lua 写的 2D 小游戏）、`clientlist`（模板、网格等其余几种控件）、`clientmenu`（脚本变量、按钮状态、模板和子控件上的脚本）、`clientcheck`（脚本出错时日志里是什么样）、`clientvars`（脚本变量的二十种类型、分设备布局）、`clientsignal`（节点图给脚本发信号）、`signalparams`（带好几个各种类型参数的信号，三条路）、`clientapi`（填充、时停、音效等接口）、`clienttext`（屏幕上的文字，奇匠 Lv.2）、`talk`（文本气泡和铭牌：NPC 说话、头顶的名字、血条、进度条）、`cards`（卡牌选择器：几选一）。
 
 **一关的完整做法写在服务器自带的说明里**：资源 `miliastra://workflow`（步骤和每步用哪个工具）和 `miliastra://platform-rules`（平台实测规则，即 [PLATFORM_RULES](PLATFORM_RULES.zh-CN.md)）。想了解平台有哪些系统、官方怎么拼玩法、工具覆盖到哪，读 [HOW_MILIASTRA_BUILDS_GAMES](HOW_MILIASTRA_BUILDS_GAMES.zh-CN.md)。
 
@@ -72,7 +72,7 @@
 - 客户端界面还缺的：还没让“只拿到工具的 AI”做过一局 Lua 的游戏（盲测）。分设备的布局和手柄导航的目标能写了（和编辑器写的逐字节相同），但只在电脑、键鼠上玩过，手机和手柄没验；发布以后脚本是否照常上传没验。
 
 - 排行榜和成就（在编辑器的“外围系统管理”里配，没有可参照的样本）。
-- 装备（装备栏、词条）、计分板、铭牌和文本气泡、卡牌选择器、道具展示控件。
+- 装备（装备栏、词条）、计分板、道具展示控件；铭牌的导航指示器、计时器和受打断值这三种内容项。
 - 本地投射物（技能的客户端图直接发射的那一种；现在只有服务器创建的）。
 - 另外 30 种复杂造物的动画表（谁用到谁读，`scripts/dev/animscrape.py`）。
 - 职业的默认技能。

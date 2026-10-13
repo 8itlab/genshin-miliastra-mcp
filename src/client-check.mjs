@@ -51,12 +51,15 @@ function facts(source){
   const isSelf=n=>{const c=chain(n);return !!c&&c.length===2&&c[0]==='script'&&c[1]==='object';};
   const signalMade=n=>{if(n?.type!=='CallExpression'&&n?.type!=='StringCallExpression')return null;const c=chain(n.base),a=n.type==='CallExpression'?n.arguments[0]:n.argument;
     return c&&c.join('.')==='game.ServerSignal'&&a?.type==='StringLiteral'?literal(a):null;};
+  // branch: how many ifs and loops stand around the place (a value added to a signal in one is added sometimes).
+  let branch=0;const BRANCHES=new Set(['IfStatement','WhileStatement','ForNumericStatement','ForGenericStatement','RepeatStatement']);
   const walk=n=>{
     if(!n||typeof n!=='object')return;
     if(Array.isArray(n)){n.forEach(walk);return;}
+    if(BRANCHES.has(n.type)){branch++;for(const k of Object.keys(n))if(k!=='loc'&&k!=='type')walk(n[k]);branch--;return;}
     if(n.type==='CallExpression'||n.type==='StringCallExpression'||n.type==='TableCallExpression'){
       const args=n.type==='CallExpression'?n.arguments:[n.argument],base=n.base;
-      if(base?.type==='MemberExpression')calls.push({line:n.loc.start.line,on:chain(base.base),indexer:base.indexer,name:base.identifier.name,args,...(signalMade(base.base)?{onSignal:signalMade(base.base)}:{})});
+      if(base?.type==='MemberExpression')calls.push({line:n.loc.start.line,branch,on:chain(base.base),indexer:base.indexer,name:base.identifier.name,args,...(signalMade(base.base)?{onSignal:signalMade(base.base)}:{})});
       else if(base?.type==='Identifier')calls.push({line:n.loc.start.line,on:null,indexer:null,name:base.name,args});
     }
     if(n.type==='MemberExpression'){
@@ -73,7 +76,7 @@ function facts(source){
     for(const k of Object.keys(n))if(k!=='loc'&&k!=='type')walk(n[k]);
     // A name that is given a signal to send (local s = game.ServerSignal("NAME")): noted after the call itself, so
     // that what is added to it afterwards can be told from what was added to an earlier one of that name.
-    if(n.type==='LocalStatement'||n.type==='AssignmentStatement')n.variables.forEach((v,i)=>{const made=signalMade(n.init[i]);if(v.type==='Identifier'&&made)calls.push({line:n.loc.start.line,on:null,indexer:null,name:'',args:[],holds:{name:v.name,signal:made}});});
+    if(n.type==='LocalStatement'||n.type==='AssignmentStatement')n.variables.forEach((v,i)=>{const made=signalMade(n.init[i]);if(v.type==='Identifier'&&made)calls.push({line:n.loc.start.line,branch,on:null,indexer:null,name:'',args:[],holds:{name:v.name,signal:made}});});
   };
   walk(ast.body);
   return {calls,enums,own,members,selves};
@@ -149,10 +152,11 @@ export function checkClient({mapPath,scripts:only},read){
         {expected:want.length?'local s = game.ServerSignal("'+signal+'") '+want.map(w=>'s:'+w.lua+'('+w.name+')').join(' ')+' s:SendSignal()':'game.ServerSignal("'+signal+'"):SendSignal()'});
     };
     for(const c of f.calls){
-      if(c.holds){building.set(c.holds.name,{signal:c.holds.signal,adds:[],generic:false});continue;}
+      if(c.holds){building.set(c.holds.name,{signal:c.holds.signal,adds:[],generic:false,branch:c.branch});continue;}
       if(c.name==='SendSignal'&&c.onSignal)sends(c.onSignal,[],false,c.line);
       if(c.indexer===':'&&c.on?.length===1&&building.has(c.on[0])){const b=building.get(c.on[0]);
-        if(c.name==='AddParam')b.generic=true;else if(/^Add[A-Z]/.test(c.name))b.adds.push(c.name);
+        // What is added inside an if or a loop that the signal was not made in is added sometimes or several times: not counted.
+        if(c.name==='AddParam'||(/^Add[A-Z]/.test(c.name)&&c.branch>b.branch))b.generic=true;else if(/^Add[A-Z]/.test(c.name))b.adds.push(c.name);
         else if(c.name==='SendSignal'){sends(b.signal,b.adds,b.generic,c.line);building.delete(c.on[0]);}}
       const first=literal(c.args[0]),second=literal(c.args[1]),on=c.on?.join('.');
       if(c.indexer===':'&&on!=='script'&&!API.methods.includes(c.name)&&!API.script.includes(c.name)&&!LUA_METHODS.has(c.name)&&!f.own.has(c.name)){

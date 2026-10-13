@@ -148,6 +148,8 @@ try{
   for(const [i,timer] of (args.timers||[]).entries())mapPath=(await call('scene_add_global_timer',{mapPath,...timer,outputName:'kingdom-timer-'+i})).mapPath;
   for(const [i,clock] of (args.clocks||[]).entries()){const made=await call('scene_add_timer_display',{mapPath,...clock,outputName:'kingdom-clock-'+i});mapPath=made.mapPath;extra.push(['clock:'+made.name,made.controlId]);}
   // Bars on the screen that follow a player variable: args.bars = a list of scene_add_progress_bar arguments.
+  // Card selectors: args.cardSelectors = a list of scene_add_card_selector arguments (ids reach the generator as 'cards:<name>').
+  for(const [i,cards] of (args.cardSelectors||[]).entries()){const made=await call('scene_add_card_selector',{mapPath,...cards,outputName:'kingdom-cards-'+i});mapPath=made.mapPath;extra.push(['cards:'+made.name,made.selectorId]);}
   // Text boxes of the ordinary interface: args.textBoxes = a list of scene_add_text_box arguments (shown on accounts of 奇匠 level 2 and up).
   for(const [i,box] of (args.textBoxes||[]).entries()){const made=await call('scene_add_text_box',{mapPath,...box,outputName:'kingdom-text-'+i});mapPath=made.mapPath;extra.push(['text:'+made.name,made.controlId]);}
   // Pictures and coloured rectangles on the screen: args.images = a list of scene_add_image arguments (before the bars, so that a panel lies under them).

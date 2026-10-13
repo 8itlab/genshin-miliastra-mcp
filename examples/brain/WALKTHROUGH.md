@@ -4,27 +4,27 @@
 
 - 每个会改存档的工具都返回新的 `mapPath`，下一步把它传进去；下面为了好读把 `mapPath` 和 `outputName` 省掉了。
 - 编号（元件、节点图、环境配置、单位状态、预设点）每张地图都不一样，用你自己那次调用返回的，不要照抄这里的数字。
-- 标了 [UI] 的三步要游戏窗口：`editor_open_map`、`scene_import_assets`、`playtest_start`。
+- 标了 [UI] 的三步要游戏窗口：`editor_open_map`、`scene_import_assets`、`playtest_start`。这份记录是离线演练，跳过了这三步，它们的位置在下面标出。
 
 ## 这个样例是什么
 
-Complex creatures (复杂造物) run by graphs, a first try in the game: scene_add_creature_skill, scene_set_creature_logic and the three kinds of creature graph. A scout is ordered about through custom variables (walk to x 12, work, walk back to x 0, stroll); an archer is given an enemy as its target and shoots. What to look for in the prints: BR_AT shows the scout's x going from 2 to 12 after BR_ORDER 0 and back to 0 after BR_ORDER 2; BR_SIGNAL work after BR_ORDER 1; BR_SIGNAL shoot after BR_FOE. BR_CALL shows that a creature's own server graph hears its skill (whenSkillNodeIsCalled). The level's navigation mesh is baked before the playtest (bakeNavigation): without it the scout does not stroll.
+Complex creatures (复杂造物) run by graphs, a first try in the game: scene_add_creature_skill, scene_set_creature_logic and the three kinds of creature graph. A scout is ordered about through custom variables (walk to x 12, work, walk back to x 0, stroll); an archer is given an enemy as its target and shoots. What to look for in the prints: BR_AT shows the scout's x going from 2 to 12 after BR_ORDER 0 and back to 0 after BR_ORDER 2; BR_SIGNAL work after BR_ORDER 1; BR_SIGNAL shoot after BR_FOE. BR_CALL shows that a creature's own server graph hears its skill (whenSkillNodeIsCalled). The level's navigation mesh is baked before the playtest (bakeNavigation): without it the scout does not stroll. Since 2026-10-14 the signal BR_work carries three values from the scout's skill graph (a client graph) to the server, an integer, a vector and a string, declared with defineSignal in both graphs: the log shows BR_SIGNAL work 3 {1.0,2.5,-3.0} dig.
 
 ## 一、工具调用顺序
 
 1. `list_maps` `{}`
 2. `scene_set_camera` `{"distance":14,"yawRange":[0,0]}`
-3. `editor_open_map` `{}`
+3. [UI] `editor_open_map` `{mapPath}`：在编辑器里打开底图的副本（演练时跳过）
 4. `scene_build_blocks` `{"name":"Brain_Probe","blocks":[{"template":"石质墙体（灰）","name":"BR_post_a","position":[0,0,5.5],"size":[0.4,2,0.4]},{"template":"石质墙体（灰）","name":"BR_post_b","position":[12,0,5.5],"size":[0.4,3,0.4]},{"template":30006009,"name":"BR_scout_src","position":[5,0,14],"createAtStart":false},"… 2 more pieces of the same form"]}` → `{"name":"Brain_Probe"}`
-5. `scene_import_assets` `{"packs":["Brain_Probe"]}`
-6. `scene_list_entities` `{"namePrefix":"BR_"}` → `{"total":5}`
-7. `scene_add_prefab` `{"fromEntity":"BR_archer_src","name":"BR_archer"}` → `{"name":"BR_archer","prefabId":1082130436}`
-8. `scene_add_prefab` `{"fromEntity":"BR_scout_src","name":"BR_scout"}` → `{"name":"BR_scout","prefabId":1082130437}`
-9. `scene_add_prefab` `{"fromEntity":"BR_foe_src","name":"BR_foe"}` → `{"name":"BR_foe","prefabId":1082130438}`
+5. [UI] `scene_import_assets` `{"packs":["Brain_Probe"]}`：把上面的场景包导入并保存（演练时跳过）
+6. `scene_list_entities` `{"namePrefix":"BR_"}` → `{"total":0}`
+7. `scene_add_prefab` `{"fromEntity":"BR_archer_src","name":"BR_archer"}` → `{"name":"BR_archer","prefabId":1077936129}`（从摆在场景里的造物做元件；演练时场景没导入，这一步用一个物件顶替）
+8. `scene_add_prefab` `{"fromEntity":"BR_scout_src","name":"BR_scout"}` → `{"name":"BR_scout","prefabId":1077936130}`（从摆在场景里的造物做元件；演练时场景没导入，这一步用一个物件顶替）
+9. `scene_add_prefab` `{"fromEntity":"BR_foe_src","name":"BR_foe"}` → `{"name":"BR_foe","prefabId":1077936131}`（从摆在场景里的造物做元件；演练时场景没导入，这一步用一个物件顶替）
 10. `scene_set_faction_hostility` `{"hostilePairs":[[1,3]]}`
 11. `scene_set_level_settings` `{"aggroMode":"custom"}`
 12. `scene_set_spawn` `{"position":[6,0.4,0],"rotation":[0,0,0]}` → `{"pointId":1073741825}`
-13. `scene_add_signal` `{"name":"BR_work"}` → `{"name":"BR_work"}`
+13. `scene_add_signal` `{"name":"BR_work","parameters":[{"name":"times","type":"integer"},{"name":"spot","type":"vector3"},{"name":"word","type":"string"}]}` → `{"name":"BR_work"}`
 14. `scene_add_signal` `{"name":"BR_shoot"}` → `{"name":"BR_shoot"}`
 15. `scene_add_graph` `{"name":"BrStage"}` → `{"graphId":1073741825,"name":"_GSTS_BrStage"}`
 16. `scene_add_graph` `{"name":"BrUnit","attachToPrefab":["BR_scout","BR_archer"]}` → `{"graphId":1073741826,"name":"_GSTS_BrUnit"}`
@@ -44,19 +44,22 @@ Complex creatures (复杂造物) run by graphs, a first try in the game: scene_a
 30. `scene_add_components` `{"prefab":"BR_scout","variables":[{"name":"duty","type":"integer","value":0},{"name":"px","type":"float","value":2},{"name":"pz","type":"float","value":3}]}`
 31. `scene_list_prefabs` `{}`
 32. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 11 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。
-33. `playtest_start` `{"graphNames":["_GSTS_BrStage","_GSTS_BrUnit"],"durationSeconds":56,"screenshotsAt":[5,7,10,12,14,16,19,21,23,27,30,33,36,38,40,42,44,46,50],"inputs":[],"readTextAt":[],"recordAudio":false,"bakeNavigation":true}`
+33. `scene_list_components` `{"prefab":"BR_scout"}`
+34. `inspect_map` `{}`
+35. [UI] `playtest_start` `{"graphNames":["_GSTS_BrStage","_GSTS_BrUnit","_GSTS_BrScoutMind","_GSTS_BrArcherMind","_GSTS_BrGo","_GSTS_BrWork","_GSTS_BrStroll","_GSTS_BrShoot","_GSTS_BrStand","_GSTS_BrWorkSkill","_GSTS_BrShootSkill"],"durationSeconds":56,"screenshotsAt":[5,7,10,12,14,16,19,21,23,27,30,33,36,38,40,42,44,46,50],"inputs":[]}`，然后 `playtest_status` 读打印和截图（演练时跳过）
 
 ## 二、各张节点图的源码
 
-一共 11 张，合计 153 个节点。挂在哪个实体上见第一节里对应的 `scene_add_graph`。
+一共 11 张，合计 158 个节点。挂在哪个实体上见第一节里对应的 `scene_add_graph`。
 
-### _GSTS_BrStage（112 个节点）
+### _GSTS_BrStage（117 个节点）
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 
 // Brain, graph "stage": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.server({id:1073741825,name:'_GSTS_BrStage'})
 .on('whenEntityIsCreated',(evt,f)=>{
   f.startTimer(evt.eventSourceEntity,'BR_GO',false,[3]);
@@ -68,15 +71,15 @@ g.server({id:1073741825,name:'_GSTS_BrStage'})
   const stage=evt.eventSourceEntity,side=f.queryEntityFaction(players[0]);
   if(evt.timerName==='BR_GO'){
     // The two units stand on the player's side, or they would go for the player.
-    const scout=f.createPrefab(1082130437,[2,0.4,3],[0,0,0],stage,false,1,[] as bigint[]);
-    const archer=f.createPrefab(1082130436,[9,0.4,6],[0,0,0],stage,false,1,[] as bigint[]);
+    const scout=f.createPrefab(1077936130,[2,0.4,3],[0,0,0],stage,false,1,[] as bigint[]);
+    const archer=f.createPrefab(1077936129,[9,0.4,6],[0,0,0],stage,false,1,[] as bigint[]);
     f.modifyEntityFaction(scout,side);f.modifyEntityFaction(archer,side);
     f.startTimer(stage,'BR_TICK',true,[2]);
     f.startTimer(stage,'BR_PLAN',false,[8,16,24,32,42]);
     f.printString('BR_GO');
     return;
   }
-  const scouts=f.getEntitiesWithSpecifiedPrefabOnTheField(1082130437),archers=f.getEntitiesWithSpecifiedPrefabOnTheField(1082130436);
+  const scouts=f.getEntitiesWithSpecifiedPrefabOnTheField(1077936130),archers=f.getEntitiesWithSpecifiedPrefabOnTheField(1077936129);
   if(evt.timerName==='BR_TICK'){
     f.printString('BR_AT');
     for(const scout of scouts){f.printString(f.dataTypeConversion(f.split3dVector(f.getEntityLocationAndRotation(scout).location).xComponent,'str'));f.printString(f.dataTypeConversion(f.split3dVector(f.getEntityLocationAndRotation(scout).location).zComponent,'str'));}
@@ -91,15 +94,15 @@ g.server({id:1073741825,name:'_GSTS_BrStage'})
   if(evt.timerSequenceId===3n){
     // A creature of the other side appears twelve metres from the archer, which is given it as its target.
     for(const scout of scouts)f.setCustomVariable(scout,'duty',0n,true);
-    const foe=f.createPrefab(1082130438,[17,0.4,2],[0,-90,0],stage,false,1,[] as bigint[]);
+    const foe=f.createPrefab(1077936131,[17,0.4,2],[0,-90,0],stage,false,1,[] as bigint[]);
     for(const archer of archers)f.setTheAggroValueOfSpecifiedEntity(foe,archer,1000n);
     f.printString('BR_FOE');f.printString('BR_ORDER');f.printString('3');
     return;
   }
-  for(const foe of f.getEntitiesWithSpecifiedPrefabOnTheField(1082130438))f.removeEntity(foe);
+  for(const foe of f.getEntitiesWithSpecifiedPrefabOnTheField(1077936131))f.removeEntity(foe);
   f.printString('BR_FOE_GONE');
 })
-.onSignal('BR_work',(evt,f)=>{f.printString('BR_SIGNAL');f.printString('work');})
+.onSignal(WORK,(evt,f)=>{f.printString('BR_SIGNAL');f.printString('work');f.printString(f.dataTypeConversion(evt.params.times,'str'));f.printString(f.dataTypeConversion(evt.params.spot,'str'));f.printString(evt.params.word);})
 .onSignal('BR_shoot',(evt,f)=>{f.printString('BR_SIGNAL');f.printString('shoot');})
 ```
 
@@ -107,9 +110,10 @@ g.server({id:1073741825,name:'_GSTS_BrStage'})
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 
 // Brain, graph "unit": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.server({id:1073741826,name:'_GSTS_BrUnit'})
 .on('whenSkillNodeIsCalled',(evt,f)=>{
   f.printString('BR_CALL');f.printString(evt.parameter1);
@@ -120,10 +124,11 @@ g.server({id:1073741826,name:'_GSTS_BrUnit'})
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "scoutMind": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationStatusDecision({id:1082130433,name:'_GSTS_BrScoutMind',prefix:false}).on('start1',(evt,f)=>{
   const duty=f.getCustomVariable(TargetEntity.Self,'duty').asType('int');
   if(duty===1n){f.switchToSelfExecutionStatus(true,1082130435,1n);}
@@ -138,10 +143,11 @@ g.creationStatusDecision({id:1082130433,name:'_GSTS_BrScoutMind',prefix:false}).
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "archerMind": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationStatusDecision({id:1082130434,name:'_GSTS_BrArcherMind',prefix:false}).on('start1',(evt,f)=>{
   if(f.queryIfEntityIsOnTheField(TargetEntity.AggroTarget)){f.switchToSelfExecutionStatus(true,1082130438,1n);}
   else{f.switchToSelfExecutionStatus(true,1082130439,1n);}
@@ -152,10 +158,11 @@ g.creationStatusDecision({id:1082130434,name:'_GSTS_BrArcherMind',prefix:false})
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "go": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationStatus({id:1082130435,name:'_GSTS_BrGo',prefix:false}).on('start1',(evt,f)=>{
   // A statement runs only if the one before it could not: standing still is what is left once the place is reached.
   const to=f.create3dVector(f.getCustomVariable(TargetEntity.Self,'px').asType('float'),0,f.getCustomVariable(TargetEntity.Self,'pz').asType('float'));
@@ -168,10 +175,11 @@ g.creationStatus({id:1082130435,name:'_GSTS_BrGo',prefix:false}).on('start1',(ev
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "work": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationStatus({id:1082130436,name:'_GSTS_BrWork',prefix:false}).on('start1',(evt,f)=>{
   f.executeSkill(true,1n);
   f.tacticStandStill(true,'between',false);
@@ -182,10 +190,11 @@ g.creationStatus({id:1082130436,name:'_GSTS_BrWork',prefix:false}).on('start1',(
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "stroll": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationStatus({id:1082130437,name:'_GSTS_BrStroll',prefix:false}).on('start1',(evt,f)=>{
   f.tacticGroundIdleRoaming(true,TacticSpeed.Walk,4,1,3,1,3,'stroll',false);
   f.tacticStandStill(true,'pause',false);
@@ -196,10 +205,11 @@ g.creationStatus({id:1082130437,name:'_GSTS_BrStroll',prefix:false}).on('start1'
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "shoot": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationStatus({id:1082130438,name:'_GSTS_BrShoot',prefix:false}).on('start1',(evt,f)=>{
   f.executeSkill(true,1n);
   f.tacticRotateToTheTargetEntity(true,f.getTargetEntity(),360,false,'aim',false);
@@ -210,10 +220,11 @@ g.creationStatus({id:1082130438,name:'_GSTS_BrShoot',prefix:false}).on('start1',
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "stand": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationStatus({id:1082130439,name:'_GSTS_BrStand',prefix:false}).on('start1',(evt,f)=>{
   f.tacticStandStill(true,'stand',false);
 })
@@ -223,12 +234,13 @@ g.creationStatus({id:1082130439,name:'_GSTS_BrStand',prefix:false}).on('start1',
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "workSkill": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationSkill({id:1082130440,name:'_GSTS_BrWorkSkill',prefix:false}).on('start',(evt,f)=>{
-  f.sendSignalToServerNodeGraph('BR_work');
+  f.sendSignalToServerNodeGraph(WORK,3n,[1,2.5,-3],'dig');
   f.notifyServerNodeGraph('work','','');
 })
 ```
@@ -237,10 +249,11 @@ g.creationSkill({id:1082130440,name:'_GSTS_BrWorkSkill',prefix:false}).on('start
 
 ```ts
 /// <reference types="genshin-ts" />
-import { g } from 'genshin-ts/runtime/core'
+import { g, defineSignal } from 'genshin-ts/runtime/core'
 import { TacticSpeed, TargetEntity } from 'genshin-ts/definitions/client_enums'
 
 // Brain, graph "shootSkill": see examples/brain/gen_brain.py.
+const WORK=defineSignal('BR_work',[['times','int'],['spot','vec3'],['word','str']] as const)
 g.creationSkill({id:1082130441,name:'_GSTS_BrShootSkill',prefix:false}).on('start',(evt,f)=>{
   f.sendSignalToServerNodeGraph('BR_shoot');
   f.notifyServerNodeGraph('shoot','','');

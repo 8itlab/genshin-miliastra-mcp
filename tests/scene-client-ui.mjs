@@ -243,7 +243,7 @@ try{
   assert.throws(()=>addClientUi({mapPath:blank,name:'x',controls:[{name:'a',kind:'image',fill:{shape:'vertical',from:'left'}}]},workspace),e=>e.code==='INVALID_CONTROL');
   assert.throws(()=>addClientUi({mapPath:blank,name:'x',controls:[{name:'a',kind:'text',fill:{}}]},workspace),e=>e.code==='INVALID_CONTROL');
   // What stands near the edge of the computer's canvas is off a phone's: said when the interface is written.
-  const wide=addClientUi({mapPath:blank,name:'wide',controls:[{name:'top',kind:'image',position:[0,400],size:[60,60]},{name:'ok',kind:'image',position:[600,300],size:[60,60]},{name:'side',kind:'image',position:[700,0],size:[100,40]},
+  const wide=addClientUi({mapPath:blank,name:'wide',controls:[{name:'backdrop',kind:'image',size:[1600,900]},{name:'top',kind:'image',position:[0,400],size:[60,60]},{name:'ok',kind:'image',position:[600,300],size:[60,60]},{name:'side',kind:'image',position:[700,0],size:[100,40]},
     {name:'edge',kind:'image',position:[-40,-40],size:[60,60],anchor:{min:[1,1],max:[1,1]}},{name:'fit',kind:'image',position:[700,0],devices:{mobile:{position:[560,0]}}},
     {name:'group',kind:'container',position:[500,0],scale:[2,2],children:[{name:'far',kind:'image',position:[60,0],size:[40,40]}]}],outputName:'wide'},workspace);
   assert.deepEqual(wide.offPhoneCanvas,[{control:'top',beyond:{top:70}},{control:'side',beyond:{right:110}},{control:'group/far',beyond:{right:20}}]);

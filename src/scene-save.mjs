@@ -611,6 +611,90 @@ function followContent(mode){
   const tracking=mode==='attach'?field(11,2,EMPTY):Buffer.concat([field(1,0,2),field(13,2,Buffer.concat([field(1,5,f32(5)),field(2,5,f32(1)),field(3,5,f32(10)),field(4,0,1),field(501,5,f32(5)),field(502,0,1)]))]);
   return Buffer.concat([field(2,2,Buffer.from('default','utf8')),field(3,2,Buffer.concat([field(1,5,f32(1)),field(3,5,f32(1))])),field(4,2,EMPTY),field(5,0,1200),field(6,0,1100),field(7,2,tracking),field(502,2,Buffer.from('完全跟随','utf8'))]);
 }
+// 21 custom attach points (自定义挂接点): named places on a thing, at an offset from its foot in metres, that move and
+// turn with it; a text bubble, a nameplate, an effect or a follow device hangs on one by its name. {501: one point {1:
+// the name, 2: the offset {1 x, 2 y, 3 z}, 3: {}, 501: 1001 and up, 502: the name again, 504: 1}...}. From the official
+// samples (头顶 on the dolls of 铭牌与气泡对话, 顶部 on the rake of 自定义挂接点).
+export function attachPointContent(points,existing){
+  if(!Array.isArray(points)||!points.length||points.length>20||points.some(p=>typeof p.name!=='string'||!p.name)||new Set(points.map(p=>p.name)).size!==points.length)fail('INVALID_ATTACH_POINT','attachPoints is a list of up to twenty points {name, offset: [x, y, z]} with names that differ.');
+  const text=v=>Buffer.from(v,'utf8');
+  // The points the thing has already stay, but for those of the same name; the new ones are numbered after them.
+  const kept=existing?fields(existing).filter(f=>f.id===501&&f.wire===2&&!points.some(p=>p.name===fields(f.data).find(x=>x.id===1&&x.wire===2)?.data.toString('utf8'))):[];
+  const first=Math.max(1000,...kept.map(f=>varintOf(f.data,501)??1000))+1;
+  return Buffer.concat([...kept.map(f=>f.raw),...points.map((p,i)=>{const [x,y,z]=p.offset??[0,0,0];
+    return field(501,2,Buffer.concat([field(1,2,text(p.name)),field(2,2,Buffer.concat([x?field(1,5,f32(x)):EMPTY,y?field(2,5,f32(y)):EMPTY,z?field(3,5,f32(z)):EMPTY])),field(3,2,EMPTY),field(501,0,first+i),field(502,2,text(p.name)),field(504,0,1)]));})]);
+}
+// A bubble or a nameplate that says above: n hangs on an attach point n metres over the foot of the thing, made for it.
+const abovePoint=n=>'above_'+String(Math.round(n*100)/100).replace('.','_');
+const hung=list=>list?.map(({above,...x})=>above===undefined?x:{...x,attach:abovePoint(above)});
+const pointsAbove=(...lists)=>[...new Set(lists.flatMap(l=>l??[]).filter(x=>x.above!==undefined).map(x=>Math.round(x.above*100)/100))].map(n=>({name:abovePoint(n),offset:[0,n,0]}));
+// 28 text bubbles (文本气泡): words over a thing, one line after another, shown to a character within the radius: what
+// an NPC says. {501: one bubble {501: its number (the config id a graph switches to), 502: 1 when it shows from the
+// start, 503: the attach point, 504: {}, 505: the radius, 506: the offset {501 x, 502 y}, 507: 1, 509: a line {502: 18,
+// 503: {501: the words}, 504: its seconds, 601: its place}..., 511: the font size, 601: the name, 602: 1001, 603: {},
+// 605: 13}..., 502: -1 when no bubble shows from the start}. From the official sample 铭牌与气泡对话 (功能示例2 and 3).
+// 507: 1 the lines are said again and again (是否循环播放), 508: 1 the graph of the thing is told when the last line
+// has been said (是否发送结束事件): both switched by hand in the editor and the save read, 2026-10-14. The offset is in
+// the editor's own units, not metres: 450 of them stood a bubble just over the head of a doll 1.8 m tall, and one at
+// 200 was inside the doll and was not seen at all, in the editor and in the game (a bubble is hidden by what stands
+// before it).
+export function bubbleContent(bubbles){
+  if(!Array.isArray(bubbles)||!bubbles.length||bubbles.length>20)fail('INVALID_TEXT_BUBBLE','textBubbles is a list of one to twenty bubbles {lines: [{text, seconds}], ...}.');
+  if(bubbles.filter(b=>b.active).length>1||bubbles.slice(1).some(b=>b.active))fail('INVALID_TEXT_BUBBLE','One bubble shows at a time, and the one that shows from the start is the first of the list (active: true on it); a graph switches to the others with f.switchActiveTextBubble(entity, number).');
+  const text=v=>Buffer.from(v,'utf8');
+  const one=(b,i)=>{
+    if(!Array.isArray(b.lines)||!b.lines.length||b.lines.some(l=>typeof l.text!=='string'||!l.text))fail('INVALID_TEXT_BUBBLE','A bubble needs lines: [{text, seconds}], each with words.',{bubble:i+1});
+    const [x,y]=b.offset??[0,0];
+    return field(501,2,Buffer.concat([field(501,0,i+1),b.active?field(502,0,1):EMPTY,field(503,2,text(b.attach??'GI_RootNode')),field(504,2,EMPTY),field(505,5,f32(b.radius??20)),
+      field(506,2,Buffer.concat([x?field(501,5,f32(x)):EMPTY,y?field(502,5,f32(y)):EMPTY])),b.loop===false?EMPTY:field(507,0,1),b.endEvent?field(508,0,1):EMPTY,
+      ...b.lines.map((l,k)=>field(509,2,Buffer.concat([field(502,0,18),field(503,2,field(501,2,text(l.text))),field(504,5,f32(l.seconds??2)),field(601,0,l.place??k+1)]))),
+      field(511,0,b.fontSize??30),field(601,2,text(b.name??'文本气泡 配置ID'+(i+1))),field(602,0,1001),field(603,2,EMPTY),field(605,0,13)]));
+  };
+  return Buffer.concat([...bubbles.map(one),bubbles[0].active?EMPTY:field(502,0,0xffffffffffffffffn)]);
+}
+// 27 nameplates (铭牌): what stands over a thing for a character within the radius, a label, an icon, a bar. {501: one
+// nameplate {501: its number, 502: 1 when it shows from the start, 503: the attach point, 504: {}, 505: the radius,
+// 506: the offset in metres {501 x, 502 y, 503 z}, 507: 20 and 508: 1 (the radii of the navigation indicator, which
+// is not written), 512: an item..., 515: {}, 602: the name, 604: {}, 605: 13}}. An item carries the blocks of all its
+// kinds and says which it is in 501 (nothing a text box, 1 an icon, 2 a bar): 502 the text box {502: font size, 503:
+// size, 504: {501: the words}, 505: offset, 507: 1, 508: 1}, 503 the icon {502: its id, 504: size, 505: offset}, 504
+// the bar {504 505 506: current, least and most, each {501: 201, 502: the name of a custom variable of the thing},
+// 508: 1, 509: size, 510: offset, 511: the seconds a change takes}; 505, 506 and 507 as the editor leaves them; 602
+// its place. From the official samples 全局计时器 (the labels over its four buttons) and 定时器 (a bar).
+// A health bar (生命值与护盾) is kind 4 and its block is 506: {502: offset, 503: size, 504: 1 a bar or 2 a bar with the
+// numbers, 506: the colour (none green, 1 red, 2 yellow, 3 blue, 4 white), 508: 100}: an item of that kind was added
+// by hand in the editor and its style and colour changed, the save read after each (2026-10-14). The offsets of the
+// items are in the editor's own units, not metres (a label at 300 stood just over a doll 1.8 m tall).
+export function nameplateContent(plates){
+  if(!Array.isArray(plates)||!plates.length||plates.length>20)fail('INVALID_NAMEPLATE','nameplates is a list of one to twenty nameplates {items: [...], ...}.');
+  const text=v=>Buffer.from(v,'utf8'),two=(a,b)=>Buffer.concat([a?field(501,5,f32(a)):EMPTY,b?field(502,5,f32(b)):EMPTY]),none=field(501,0,0xffffffffffffffffn);
+  const item=(it,k,at)=>{
+    const kinds=['text','icon','bar','health'].filter(key=>it[key]!==undefined&&it[key]!==false);
+    if(kinds.length!==1)fail('INVALID_NAMEPLATE','An item of a nameplate is one of {text}, {icon}, {bar: {current, min, max}} or {health: true}.',{nameplate:at,item:k+1});
+    const kind=kinds[0],offset=it.offset??[0,0],size=it.size;
+    if(kind==='bar'&&['current','min','max'].some(key=>typeof it.bar[key]!=='string'||!it.bar[key]))fail('INVALID_NAMEPLATE','A bar names three custom variables of the thing: bar: {current, min, max}.',{nameplate:at,item:k+1});
+    const words=kind==='text'?Buffer.concat([field(502,0,it.fontSize??24),field(503,2,two(...(size??[200,40]))),field(504,2,field(501,2,text(it.text))),field(505,2,two(...offset)),field(507,0,1),field(508,0,1)])
+      :Buffer.concat([field(502,0,18),field(503,2,two(100,30)),field(504,2,EMPTY),field(505,2,EMPTY)]);
+    const picture=kind==='icon'?Buffer.concat([field(502,0,it.icon),field(504,2,two(...(size??[32,32]))),field(505,2,two(...offset))]):Buffer.concat([field(502,0,11001),field(504,2,two(32,32)),field(505,2,EMPTY)]);
+    const named=name=>Buffer.concat([field(501,0,201),field(502,2,text(name))]);
+    const bar=kind==='bar'?Buffer.concat([field(504,2,named(it.bar.current)),field(505,2,named(it.bar.min)),field(506,2,named(it.bar.max)),field(508,0,1),field(509,2,two(...(size??[100,10]))),field(510,2,two(...offset)),field(511,5,f32(it.bar.seconds??0.5))])
+      :Buffer.concat([field(504,2,none),field(505,2,none),field(506,2,none),field(508,0,1),field(509,2,two(100,5)),field(510,2,EMPTY),field(511,5,f32(1))]);
+    const tone=kind==='health'&&typeof it.health==='object'?['green','red','yellow','blue','white'].indexOf(it.health.colour??'green'):0;
+    if(tone<0)fail('INVALID_NAMEPLATE','The colour of a health bar is green, red, yellow, blue or white.',{nameplate:at,item:k+1});
+    const health=kind==='health'?Buffer.concat([field(502,2,two(...offset)),field(503,2,two(...(size??[100,8]))),field(504,0,it.health?.numbers?2:1),tone?field(506,0,tone):EMPTY,field(508,5,f32(100))])
+      :Buffer.concat([field(502,2,EMPTY),field(503,2,two(100,5)),field(504,0,1),field(508,5,f32(100))]);
+    return field(512,2,Buffer.concat([kind==='text'?EMPTY:field(501,0,{icon:1,bar:2,health:4}[kind]),field(502,2,words),field(503,2,picture),field(504,2,bar),
+      field(505,2,Buffer.concat([field(501,0,1),field(506,2,EMPTY)])),field(506,2,health),
+      field(507,2,Buffer.concat([field(501,2,EMPTY),field(502,2,two(100,5)),field(504,0,2)])),field(602,0,k+1)]));
+  };
+  return Buffer.concat(plates.map((p,i)=>{
+    if(!Array.isArray(p.items)||!p.items.length||p.items.length>10)fail('INVALID_NAMEPLATE','A nameplate needs items: one to ten of {text}, {icon}, {bar}.',{nameplate:i+1});
+    const [x,y,z]=p.offset??[0,0,0];
+    return field(501,2,Buffer.concat([field(501,0,i+1),p.active===false?EMPTY:field(502,0,1),field(503,2,text(p.attach??'GI_RootNode')),field(504,2,EMPTY),field(505,5,f32(p.radius??5)),
+      field(506,2,Buffer.concat([x?field(501,5,f32(x)):EMPTY,y?field(502,5,f32(y)):EMPTY,z?field(503,5,f32(z)):EMPTY])),field(507,5,f32(20)),field(508,5,f32(1)),
+      ...p.items.map((it,k)=>item(it,k,i+1)),field(515,2,EMPTY),field(602,2,text(p.name??'铭牌 配置ID'+(i+1))),field(604,2,EMPTY),field(605,0,13)]));
+  }));
+}
 // 32 minimap marker (小地图标识): {501: {501: marker id, 502: 1, 503: {}, 504: name, 505: 1 to show the height difference,
 //   506: 1, 507: 1, 509: {501: icon, 503: 101}, 510 to 513: {502: 101}, 514: 1, 515: 1, 516: description, 517: "标记"}}.
 function markerContent({name,description='',icon=12046}){
@@ -700,6 +784,9 @@ function componentSummary(data,layout){
         if(kind===4)out.motions=fields(body).filter(x=>(x.id===1||x.id===3)&&x.wire===2).map(m=>fields(m.data).find(x=>x.id===1&&x.wire===2)?.data.toString('utf8')??'');
         if(kind===9)out.follow=true;
         if(kind===32)out.minimapMarker=fields(body).some(x=>x.id===501&&x.wire===2);
+        if(kind===28){const list=fields(body).filter(x=>x.id===501&&x.wire===2);if(list.length)out.textBubbles=list.map(b=>({number:varintOf(b.data,501),active:varintOf(b.data,502)===1,lines:fields(b.data).filter(x=>x.id===509&&x.wire===2).map(l=>{const w=fields(l.data).find(x=>x.id===503&&x.wire===2);return w?fields(w.data).find(x=>x.id===501&&x.wire===2)?.data.toString('utf8')??'':'';})}));}
+        if(kind===21){const list=fields(body).filter(x=>x.id===501&&x.wire===2);if(list.length)out.attachPoints=list.map(p=>fields(p.data).find(x=>x.id===1&&x.wire===2)?.data.toString('utf8')??'');}
+        if(kind===27){const list=fields(body).filter(x=>x.id===501&&x.wire===2);if(list.length)out.nameplates=list.map(p=>({number:varintOf(p.data,501),active:varintOf(p.data,502)===1,items:fields(p.data).filter(x=>x.id===512&&x.wire===2).length}));}
         if(kind===19)out.hurtBox=fields(body).some(x=>x.id===1&&x.wire===2);
         if(kind===15)out.launcher=fields(body).some(x=>x.id===1&&x.wire===2);
         if(kind===8)out.extraCollision=fields(body).some(x=>x.id===1&&x.wire===2);
@@ -753,13 +840,16 @@ export const extraCollisionContent=areas=>field(1,2,Buffer.concat([field(1,0,1),
 export const forceFieldContent=({areas,direction,innerRadius,outerRadius,innerSpeed,outerSpeed})=>Buffer.concat([field(1,2,Buffer.concat([field(1,0,1),...areas.map((a,n)=>field(2,2,areaBlock(a,n,'INVALID_FORCE_FIELD'))),field(3,0,1801),field(5,2,Buffer.alloc(0)),
   field(12,2,Buffer.concat([field(1,2,Buffer.alloc(0)),field(2,0,1811),field(3,2,xyz(direction)),field(5,5,f32(outerRadius)),field(6,5,f32(innerRadius)),field(7,5,f32(outerSpeed)),field(8,5,f32(innerSpeed)),field(501,0,1),field(502,0,1),field(503,0,1),field(504,0,1),field(505,5,f32(outerSpeed)),field(506,5,f32(innerSpeed)),field(507,0,1811)])),
   field(502,0,1),field(503,0,1),field(504,2,Buffer.from('角色扰动装置 序号：1','utf8'))])),field(2,0,1)]);
-export function addComponents({mapPath,prefab,entity,collisionTriggers,optionTab,variables,motions,follow,minimapMarker,hurtBox,abilityUnits,loot,projectile,hitDetection,launcher,forceField,extraCollision,solid,outputName},workspace){
+export function addComponents({mapPath,prefab,entity,collisionTriggers,optionTab,variables,motions,follow,minimapMarker,textBubbles,nameplates,attachPoints,hurtBox,abilityUnits,loot,projectile,hitDetection,launcher,forceField,extraCollision,solid,outputName},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file);
-  if(collisionTriggers===undefined&&optionTab===undefined&&variables===undefined&&motions===undefined&&follow===undefined&&minimapMarker===undefined&&hurtBox===undefined&&abilityUnits===undefined&&loot===undefined&&projectile===undefined&&hitDetection===undefined&&launcher===undefined&&forceField===undefined&&extraCollision===undefined&&solid===undefined)fail('NOTHING_TO_ADD','Give collisionTriggers, optionTab, variables, motions, follow, minimapMarker, hurtBox, abilityUnits, launcher, forceField, extraCollision or solid.');
+  if(collisionTriggers===undefined&&optionTab===undefined&&variables===undefined&&motions===undefined&&follow===undefined&&minimapMarker===undefined&&textBubbles===undefined&&nameplates===undefined&&attachPoints===undefined&&hurtBox===undefined&&abilityUnits===undefined&&loot===undefined&&projectile===undefined&&hitDetection===undefined&&launcher===undefined&&forceField===undefined&&extraCollision===undefined&&solid===undefined)fail('NOTHING_TO_ADD','Give collisionTriggers, optionTab, variables, motions, follow, minimapMarker, hurtBox, abilityUnits, launcher, forceField, extraCollision or solid.');
   if(variables){const names=variables.map(v=>v.name);if(new Set(names).size!==names.length)fail('INVALID_VARIABLE','Variable names must differ.',{names});}
   const triggers=collisionTriggers&&record(5,triggerContent(collisionTriggers)),tab=optionTab&&record(17,tabContent(optionTab)),added=variables?.map(variableBlock);
   const moving=motions&&record(4,motionContent(motions)),following=follow&&record(9,followContent(follow));
   const marked=minimapMarker&&record(32,markerContent(minimapMarker));
+  const points=[...(attachPoints??[]),...pointsAbove(textBubbles,nameplates).filter(p=>!(attachPoints??[]).some(a=>a.name===p.name))];
+  const speaking=textBubbles&&record(28,bubbleContent(hung(textBubbles))),labelled=nameplates&&record(27,nameplateContent(hung(nameplates)));
+  if(points.length)attachPointContent(points);
   const struck=hurtBox&&record(19,hurtBoxContent(hurtBox.areas));
   const walled=extraCollision&&record(8,extraCollisionContent(extraCollision.areas));
   let flinging=null;
@@ -792,6 +882,9 @@ export function addComponents({mapPath,prefab,entity,collisionTriggers,optionTab
     if(moving)next=setBlock(next,layout.records,4,()=>moving);
     if(following)next=setBlock(next,layout.records,9,()=>following);
     if(marked)next=setBlock(next,layout.records,32,()=>marked);
+    if(speaking)next=setBlock(next,layout.records,28,()=>speaking);
+    if(labelled)next=setBlock(next,layout.records,27,()=>labelled);
+    if(points.length)next=setBlock(next,layout.records,21,old=>record(21,attachPointContent(points,old&&fields(old).find(f=>f.id===contentField(21)&&f.wire===2)?.data)));
     if(struck)next=setBlock(next,layout.records,19,()=>struck);
     if(flinging)next=setBlock(next,layout.records,15,()=>flinging);
     if(walled)next=setBlock(next,layout.records,8,()=>walled);
@@ -815,6 +908,8 @@ export function addComponents({mapPath,prefab,entity,collisionTriggers,optionTab
   if(tab)events.push('whenTabIsSelected fires in a graph attached to this same prefab or entity, with the option id (from 1); f.activateDisableTab(entity, optionId, bool) shows or hides an option');
   if(moving)events.push('f.activateBasicMotionDevice(entity, name) starts a motion by its name (search_node_docs has the exact arguments, and the nodes that stop one); a motion with active true runs as soon as the entity exists');
   if(following)events.push('the follow device has no target until a graph gives it one: search_node_docs "follow motion device" (a character is followed through the GUID of its player)');
+  if(speaking)events.push('a bubble shows its lines one after another to a character within its radius (the first of the list from the start when active: true); a graph switches with f.switchActiveTextBubble(entity, number of the bubble, from 1), and whenTextBubbleIsCompleted fires in a graph on this prefab when the last line has been shown, for a bubble with endEvent: true. A bubble or a nameplate with neither above nor attach hangs on the foot of the thing, where the thing itself hides it: give above (metres over the foot, before the scale of the prefab). Custom text shows on an account of 奇匠 level 2 and up');
+  if(labelled)events.push('the nameplates show to a character within the radius; f.setEntityActiveNameplate(entity, f.assemblyList([1n], \'config_id\')) changes which (the numbers of the nameplates that are to show, from 1; the list has to be made with f.assemblyList, the compiler takes no list written out here). A text may hold {1:s.NAME} for a custom variable of the thing and {2:s.HpCur}, {2:s.HpMax}, {2:s.AtkCur}, {2:s.DefCur}, {2:s.LvCur} for its attributes. Custom text shows on an account of 奇匠 level 2 and up');
   if(marked)events.push('the marker shows on every player\'s minimap from the start; search_node_docs "minimap" has the nodes that change who sees or tracks it');
   if(flying)events.push('the thing flies from the moment it exists: a graph launches one with f.createProjectile(prefabId, position, rotation, ownerEntity, targetEntity, false, 1n, [] as bigint[]) (rotation decides where forward is; the fifth argument is the target a tracking projectile would follow)');
   if(touching)events.push('whenOnHitDetectionIsTriggered fires in a graph on this prefab (evt.onHitEntity, evt.onHitLocation, evt.onHitHurtbox); with abilityUnit, what it hits is attacked with that unit at once');
@@ -890,9 +985,63 @@ export function listInterface({mapPath}){
   const file=resolve(mapPath),root=container(fs.readFileSync(file)),records=uiRecords(root);
   const layouts=records.filter(r=>r.structure.includes(7));
   return {mapPath:file,layouts:layouts.map(l=>({layoutId:l.id,name:l.name,controls:records.filter(r=>r.parent===l.id).map(r=>({id:r.id,name:r.name,kind:r.content.includes(82)?'clientContainer':r.content.includes(26)?'progressBar':r.content.includes(38)?'image':r.content.includes(25)?'textBox':r.content.includes(27)?'timer':r.content.includes(28)?'scoreboard':r.content.includes(22)?'button':r.content.includes(23)?'custom':'builtIn'}))})),
+    // Card selectors: the template groups (a group with a block of type 13 and no parent) whose panel has the card library.
+    cardSelectors:records.filter(r=>r.structure.includes(13)&&!r.parent&&records.some(k=>k.parent===r.id&&k.content.includes(33))).map(r=>({selectorId:r.id,name:r.name})),
     clientInterfaces:clientTrees(root,records),clientTemplates:clientTemplates(records).map(t=>({templateIndex:t.id,name:t.name})),
     knownImages:IMAGE_CATALOGUE.map(([id,shows])=>({id,shows})),
     note:'scene_add_progress_bar puts a bar on the screen that follows a player custom variable. On an account whose 奇匠 level is 1, text boxes show nothing in play (measured), bars do. scene_add_image puts a picture or a coloured rectangle on the screen; knownImages are the picture ids the official samples use. clientInterfaces are the trees of client controls (scene_add_client_ui) and the Lua script each carries.'};
+}
+// A card selector (卡牌选择器): the platform's own "choose one of three" window, opened for a player by a graph
+// (f.invokeDeckSelector) and answered in the player's graph (whenDeckSelectorIsComplete). It is a control group of two
+// records, the group and its panel (管理器面板), made twice: the template (which a graph names) and its copy in the
+// control library; it stands in no layout. The panel fills the screen and carries four blocks: 30 the window (502: 1 a
+// title is shown, 503: the title, 515: the seconds to choose in, 517: the seconds before the end at which the clock
+// warns, the rest as the editor leaves them), 31 what a card shows (icon, title, description), 32 what happens to a
+// card of unknown content once chosen ({502: 1, 503: 1}: it is turned over), 33 the cards {503: {503: n, 505: 1} for
+// each, 504: {1: a card {1: its number, 2: 1 and 3: its icon and 5: its title and 6: 1 when its content is known, 4:
+// {501: the description}, 7: its label}...}}. Written after the two selectors of the official sample 卡牌选择器.
+export function cardSelectorRecords({templateId,panelTemplateId,libraryId,panelLibraryId,slot,library,name,title,seconds=30,warnSeconds,cards,reveal=false,closing=true}){
+  const text=v=>Buffer.from(v,'utf8'),custom=Buffer.concat([field(15,2,EMPTY),field(501,0,5)]);
+  const shown=field(505,2,uiBlock(14,custom,4,23,[field(503,2,uiBlock(14,custom,5,23,[field(503,0,1)]))]));
+  const grouped=field(502,2,uiBlock(16,EMPTY,6,13,[field(503,2,uiBlock(15,EMPTY,6,13,[field(503,0,1)]))]));
+  const group=(id,panel,copyOf)=>Buffer.concat([field(501,0,id),...(copyOf?[grouped]:[]),field(502,2,uiBlock(11,field(501,0,id),1,5)),field(502,2,uiBlock(12,field(501,0,slot),2,6)),
+    copyOf?field(502,2,uiBlock(13,field(501,0,copyOf),3,3)):field(502,2,uiBlock(14,field(501,2,packIds([libraryId])),4,4)),...(copyOf?[]:[grouped]),field(503,2,packIds([panel])),
+    ...(copyOf?[field(504,0,library)]:[]),field(505,2,uiBlock(12,field(501,2,text(name)),2,15)),shown]);
+  const state=i=>field(501,2,Buffer.concat([i?field(501,0,i):EMPTY,field(502,2,Buffer.concat([field(501,2,Buffer.concat([field(1,5,f32(1)),field(2,5,f32(1)),field(3,5,f32(1))])),field(502,2,EMPTY),field(503,2,pair(1,1)),field(504,2,EMPTY),field(505,2,EMPTY),field(506,2,pair(0.5,0.5))]))]));
+  const rect=Buffer.concat([state(0),state(1),state(2),state(3),field(502,0,7)]);
+  const block=(wrap,type,inner,at)=>field(505,2,uiBlock(wrap,EMPTY,at,type,[field(503,2,uiBlock(wrap,inner,at+1,type,[field(503,0,1)]))]));
+  const windowed=Buffer.concat([field(502,0,1),field(503,2,text(title)),field(505,0,1),field(506,0,1),field(507,0,3),field(508,0,1),field(510,0,1),field(511,0,1),field(512,0,3),field(513,0,1),field(514,0,1),field(515,0,seconds),field(516,0,1),
+    ...(warnSeconds?[field(517,0,warnSeconds)]:[]),field(518,0,1),field(519,0,1),...(closing?[field(520,0,1)]:[])]);
+  const card=(c,i)=>field(1,2,c.unknown?Buffer.concat([field(1,0,i+1),field(4,2,EMPTY),field(7,2,text(c.label??''))])
+    :Buffer.concat([field(1,0,i+1),field(2,0,1),field(3,0,c.icon??91001),field(4,2,field(501,2,text(c.description??''))),field(5,2,text(c.title)),field(6,0,1),field(7,2,text(c.label??''))]));
+  const library_=Buffer.concat([...cards.map((c,i)=>field(503,2,Buffer.concat([field(503,0,i+1),field(505,0,1)]))),field(504,2,Buffer.concat(cards.map(card)))]);
+  const panel=(id,parent)=>Buffer.concat([field(501,0,id),field(502,2,uiBlock(11,field(501,0,id),1,5)),field(502,2,uiBlock(12,field(501,0,slot+1),2,6)),field(504,0,parent),
+    field(505,2,uiBlock(12,field(501,2,text('管理器面板')),2,15)),shown,
+    field(505,2,uiBlock(11,Buffer.concat([field(12,2,EMPTY),field(501,0,2)]),1,12,[field(503,2,uiBlock(13,Buffer.concat([field(12,2,rect),field(501,0,2)]),4,12,[field(503,0,1)]))])),
+    block(23,30,windowed,13),block(24,31,Buffer.concat([field(502,0,1),field(503,0,1),field(504,0,1)]),14),block(25,32,reveal?Buffer.concat([field(502,0,1),field(503,0,1)]):EMPTY,15),block(26,33,library_,16)]);
+  return [group(templateId,panelTemplateId,0),panel(panelTemplateId,templateId),group(libraryId,panelLibraryId,templateId),panel(panelLibraryId,libraryId)];
+}
+export function addCardSelector({mapPath,name,title,cards,seconds=30,warnSeconds,revealUnknown=false,outputName},workspace){
+  const file=resolve(mapPath),bytes=fs.readFileSync(file),root=container(bytes),records=uiRecords(root),library=records.find(r=>r.structure.includes(14));
+  if(!library)fail('UNSUPPORTED_SAVE','The save has no control library to add to.');
+  if(records.some(r=>r.name===name))fail('DUPLICATE_CONTROL_NAME','The interface already has a control with this name.',{name});
+  if(!Array.isArray(cards)||cards.length<1||cards.length>30||cards.some(c=>!c.unknown&&(typeof c.title!=='string'||!c.title)))fail('INVALID_CARDS','cards is a list of one to thirty cards: {title, description, icon, label}, or {unknown: true, label} for one whose content is hidden.');
+  const next=Math.max(...records.map(r=>r.id))+1,slot=Math.max(0,...records.map(r=>r.slot))+1;
+  const fresh=cardSelectorRecords({templateId:next,panelTemplateId:next+1,libraryId:next+2,panelLibraryId:next+3,slot,library:library.id,name,title:title??name,seconds,warnSeconds,cards,reveal:revealUnknown});
+  const adopt=(data,child)=>{const parts=fields(data),list=parts.find(f=>f.id===503&&f.wire===2);
+    if(list)return Buffer.concat(parts.map(f=>f===list?field(503,2,Buffer.concat([f.data,varint(child)])):f.raw));
+    let last=-1;parts.forEach((f,i)=>{if(f.id===502&&f.wire===2)last=i;});
+    return Buffer.concat(parts.flatMap((f,i)=>i===last?[f.raw,field(503,2,varint(child))]:[f.raw]));};
+  const section=fields(one(root,9)),rebuilt=section.flatMap(f=>{
+    if(f.id===501&&f.wire===2)return [field(501,2,Buffer.concat([varint(next),f.data]))];
+    if(f.id!==502||f.wire!==2)return [f.raw];
+    return [varintOf(f.data,501)===library.id?field(502,2,adopt(f.data,next+2)):f.raw];});
+  let lastRecord=-1;section.forEach((f,i)=>{if(f.id===502&&f.wire===2)lastRecord=i;});
+  rebuilt.splice(lastRecord+1,0,...fresh.map(b=>field(502,2,b)));
+  const out=output(workspace,file,outputName,'-cards');fs.writeFileSync(out,wrap(bytes,replace(root,9,2,Buffer.concat(rebuilt))));
+  const numbers=cards.map((c,i)=>i+1+'n').join(', ');
+  return {mapPath:out,source:file,name,selectorId:next,cards:cards.map((c,i)=>({number:i+1,title:c.unknown?'(unknown)':c.title})),
+    next:'Use mapPath in later calls. A graph opens it for a player with f.invokeDeckSelector(player, '+next+'n, '+seconds+', ['+numbers+'], ['+numbers+'], 1n, 1n, DecisionRefreshMode.CannotRefresh, 0n, 0n, [1n]) (DecisionRefreshMode from genshin-ts/definitions/enum): the seconds to choose in, the value each card gives back, the cards of the library to show (their numbers, from 1; show some or all), the least and the most the player picks, no refreshing, and what comes back when the time runs out. The answer comes to a graph on the player template (scene_add_graph {attachToPrefab: "player"}) as whenDeckSelectorIsComplete: evt.selectionResultList holds the values of the cards picked, evt.completionReason why it closed, evt.deckSelectorIndex which selector. f.closeDeckSelector(player, '+next+'n) closes it. The words on the cards show on an account of 奇匠 level 2 and up.'};
 }
 // Adds a custom control to the screen: its template, the copy in the control library and the copy in the layout, and
 // registers them (root list, the library's children, the layout's children).
@@ -1277,6 +1426,8 @@ export const signalWords=type=>SIGNAL_TYPES[type]?{ts:SIGNAL_TYPES[type].ts,lua:
 // name client:NAME is the signal NAME sent to client scripts, whose first value is the player. Nothing when all agree.
 export function signalDeclarationFaults({mapPath,code}){
   let have=null;const faults=[];
+  // Comments are not code: a declaration quoted in one is not looked at.
+  code=code.replace(/\/\*[\s\S]*?\*\//g,' ').replace(/(^|[^:'"`\\])\/\/[^\n]*/g,'$1');
   for(const m of code.matchAll(/defineSignal\s*\(\s*(['"])([^'"]+)\1\s*,\s*\[([\s\S]*?)\]\s*(?:as\s+const\s*)?\)/g)){
     const toScripts=/^client:/.test(m[2]),name=m[2].replace(/^client:/,''),declared=[...m[3].matchAll(/\[\s*(['"])([^'"]*)\1\s*,\s*(['"])([^'"]*)\3\s*\]/g)].map(x=>({name:x[2],type:x[4]}));
     have??=listSignals({mapPath});
@@ -2461,7 +2612,9 @@ function beyondPhone(controls){
     const m=c.devices?.mobile,anchor=m?.anchor??c.anchor;if(!centred(anchor)||c.kind==='fullscreenAnimation')continue;
     const position=m?.position??c.position??[0,0],size=m?.size??c.size??CLIENT_SIZES[c.kind]??[100,100],own=m?.scale??c.scale??[1,1];
     const x=x0+position[0]*scale[0],y=y0+position[1]*scale[1],sx=scale[0]*own[0],sy=scale[1]*own[1],w=Math.abs(size[0]*sx)/2,h=Math.abs(size[1]*sy)/2,at=[...trail,c.name].join('/');
-    if(c.kind!=='container'){const by={};if(x-w<-halfW-1)by.left=Math.round(-halfW-(x-w));if(x+w>halfW+1)by.right=Math.round(x+w-halfW);if(y+h>halfH+1)by.top=Math.round(y+h-halfH);if(y-h<-halfH-1)by.bottom=Math.round(-halfH-(y-h));
+    // A backdrop that covers the whole canvas and more is where it should be.
+    const covers=x-w<=-halfW&&x+w>=halfW&&y-h<=-halfH&&y+h>=halfH;
+    if(c.kind!=='container'&&!covers){const by={};if(x-w<-halfW-1)by.left=Math.round(-halfW-(x-w));if(x+w>halfW+1)by.right=Math.round(x+w-halfW);if(y+h>halfH+1)by.top=Math.round(y+h-halfH);if(y-h<-halfH-1)by.bottom=Math.round(-halfH-(y-h));
       if(Object.keys(by).length)out.push({control:at,beyond:by});}
     walk(c.children??[],x,y,[sx,sy],[...trail,c.name]);}};
   walk(controls,0,0,[1,1],[]);

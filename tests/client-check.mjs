@@ -75,9 +75,11 @@ try{
   const sending=['function OnStart()','  local a = game.ServerSignal("score")','  a:AddInt(3)','  a:AddString("x")','  a:AddVector3({x=1,y=2,z=3})','  a:SendSignal()',
     '  local b = game.ServerSignal("score")','  b:AddString("x")','  b:AddInt(3)','  b:SendSignal()','  game.ServerSignal("score"):SendSignal()',
     '  local c = game.ServerSignal("pick")','  c:AddInt(1)','  c:SendSignal()','  game.ServerSignal("pick"):SendSignal()',
-    '  local d = game.ServerSignal("score")','  d:AddParam(Enum.ParamType.Int, 3)','  d:SendSignal()','end',''].join('\n');
+    '  local d = game.ServerSignal("score")','  d:AddParam(Enum.ParamType.Int, 3)','  d:SendSignal()',
+    '  local e = game.ServerSignal("score")','  e:AddInt(1)','  if x then e:AddString("a") else e:AddString("b") end','  e:AddVector3({x=0,y=0,z=0})','  e:SendSignal()',
+    '  if y then','    local g = game.ServerSignal("score")','    g:AddInt(1)','    g:SendSignal()','  end','end',''].join('\n');
   const sent=setClientScript({mapPath:carrying,name:'sender',source:sending},workspace).problems.filter(p=>p.kind==='SIGNAL_PARAMETERS_DIFFER');
-  assert.deepEqual(sent.map(p=>p.line),[10,11,14],JSON.stringify(sent));
+  assert.deepEqual(sent.map(p=>p.line),[10,11,14,27],JSON.stringify(sent));
   assert.equal(sent[0].expected,'local s = game.ServerSignal("score") s:AddInt(points) s:AddString(label) s:AddVector3(at) s:SendSignal()');
   assert.equal(sent[2].expected,'game.ServerSignal("pick"):SendSignal()');
   // What a run was expected to print: in order, with the first that is missing and what stood there instead.

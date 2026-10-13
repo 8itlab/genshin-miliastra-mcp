@@ -8,7 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields} from '../src/scene/wire.mjs';
-import {barRecord,addProgressBar,listInterface,listComponents,timerRecord,addGlobalTimer,listGlobalTimers,addTimerDisplay,addButton,addTextBox,addImage} from '../src/scene-save.mjs';
+import {barRecord,addProgressBar,listInterface,listComponents,timerRecord,addGlobalTimer,listGlobalTimers,addTimerDisplay,addButton,addTextBox,addImage,cardSelectorRecords,addCardSelector} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-interface-'));
 const pick=prefix=>path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith(prefix)));
@@ -128,6 +128,27 @@ try{
     assert.ok(!content(mine.get(a.controlId),23,14).equals(content(mine.get(hid.controlId),23,14)));
     // A bar with no style asked for is still the bar of the official sample (checked above against the sample itself).
     assert.ok(!fields(content(records(addProgressBar({mapPath:blank,name:'plain',variable:'p',max:10},workspace).mapPath).byId.get(a.controlId),26,20)).some(f=>f.id>=509));
+  }
+  // The card selector: the four records of each of the two selectors of the official sample 卡牌选择器, byte for byte.
+  {
+    const cardSample=path.join(root,'knowledge','samples','gil',fs.readdirSync(path.join(root,'knowledge','samples','gil')).find(f=>f.startsWith('mhfpf0rhlaeu_')));
+    const section9=fields(fields(container(fs.readFileSync(cardSample))).find(f=>f.id===9&&f.wire===2).data),B=1073741824;
+    const theirs=id=>section9.filter(f=>f.id===502&&f.wire===2).find(r=>Number(fields(r.data).find(f=>f.id===501&&f.wire===0)?.value)===id).data;
+    const three=cardSelectorRecords({templateId:B+22,panelTemplateId:B+23,libraryId:B+20,panelLibraryId:B+21,slot:4,library:B+13,name:'3选1',title:'请在以下3项中选择1项',seconds:30,
+      cards:[{title:'单手剑',description:'选择后可获得单手剑',icon:91001,label:'装备单手剑'},{title:'长柄武器',description:'选择后可获得长柄武器',icon:91011,label:'装备长柄武器'},{title:'法器',description:'选择后可获得法器',icon:91016,label:'装备法器'}]});
+    [B+22,B+23,B+20,B+21].forEach((id,i)=>assert.ok(three[i].equals(theirs(id)),'record '+i+' of the selector 3选1 differs from the official one'));
+    const four=cardSelectorRecords({templateId:B+16,panelTemplateId:B+17,libraryId:B+14,panelLibraryId:B+15,slot:1,library:B+13,name:'4选2',title:'请在以下4项中选择2项',seconds:30,warnSeconds:10,closing:false,reveal:true,
+      cards:[{title:'食物A',description:'选择后，吃下食物A，获得火护盾',icon:92001,label:'选择食物A'},{title:'食物B',description:'选择后，吃下食物B，获得水环环绕',icon:92002,label:'选择食物B'},{title:'食物C',description:'选择后，吃下食物C，获得风魔法',icon:92003,label:'选择食物C'},{unknown:true,label:'选择未知奖励'}]});
+    [B+16,B+17,B+14,B+15].forEach((id,i)=>assert.ok(four[i].equals(theirs(id)),'record '+i+' of the selector 4选2 differs from the official one'));
+    assert.deepEqual(listInterface({mapPath:cardSample}).cardSelectors,[{selectorId:B+16,name:'4选2'},{selectorId:B+22,name:'3选1'}]);
+    // Added to a save: the template is in the root list, the copy among the library's children, and it is listed.
+    const dealt=addCardSelector({mapPath:made.mapPath,name:'升级',title:'选一项升级',cards:[{title:'力量',description:'攻击 +10'},{title:'敏捷',description:'移速 +10%'},{unknown:true,label:'碰运气'}]},workspace);
+    assert.deepEqual(listInterface({mapPath:dealt.mapPath}).cardSelectors,[{selectorId:dealt.selectorId,name:'升级'}]);
+    assert.match(dealt.next,/invokeDeckSelector\(player, \d+n, 30, \[1n, 2n, 3n\], \[1n, 2n, 3n\], 1n, 1n, DecisionRefreshMode\.CannotRefresh/);
+    const after9=fields(fields(container(fs.readFileSync(dealt.mapPath))).find(f=>f.id===9&&f.wire===2).data),ids=after9.filter(f=>f.id===502&&f.wire===2).map(r=>Number(fields(r.data).find(f=>f.id===501&&f.wire===0).value));
+    assert.equal(new Set(ids).size,ids.length);assert.ok([0,1,2,3].every(k=>ids.includes(dealt.selectorId+k)));
+    assert.throws(()=>addCardSelector({mapPath:dealt.mapPath,name:'升级',cards:[{title:'a'}]},workspace),e=>e.code==='DUPLICATE_CONTROL_NAME');
+    assert.throws(()=>addCardSelector({mapPath:dealt.mapPath,name:'空',cards:[{description:'no title'}]},workspace),e=>e.code==='INVALID_CARDS');
   }
   console.log(JSON.stringify({ok:true,controlId:made.controlId}));
 }finally{fs.rmSync(workspace,{recursive:true,force:true});}

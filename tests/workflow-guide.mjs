@@ -7,6 +7,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
+import {readSimulatorSave,serverGraphSource} from '../src/simulator-import.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-guide-'));
 const client=new Client({name:'workflow-guide-test',version:'1'});
 await client.connect(new StdioClientTransport({command:process.execPath,args:[path.join(root,'src/server.mjs')],cwd:root,env:{...process.env,MILIASTRA_WORKSPACE:workspace},stderr:'pipe'}));
@@ -150,12 +151,27 @@ try{
  const faceNow=await sent('scene_get_client_ui',{mapPath:facePut.mapPath,ui:simFace.name});
  assert.deepEqual(faceNow.ids,faceRead.ids);assert.deepEqual(faceNow.interface.controls[0].position,[11,22]);
  assert.deepEqual(faceNow.interface.controls.slice(1),faceRead.interface.controls.slice(1));
+ // Signals with several values in a simulator project: the types come from what the script adds before it sends and
+ // from what the rule sends back; the graph declares both and sends the values in their places.
+ const rich=JSON.parse(fs.readFileSync(path.join(root,'tests','fixtures','simulator-sample.save.json'),'utf8'));
+ rich.assets.scripts[0].source+='\nfunction Report()\n  local s = game.ServerSignal("score")\n  s:AddInt(5)\n  s:AddString("a")\n  s:SendSignal()\nend\n';
+ rich.serverLogic.rules.push({id:'r2',signalName:'score',actions:[{kind:'setCustomVariable',entityType:'PlayerSelf',name:'best',value:{fromSignalParam:0},variableType:'Int'},
+  {kind:'sendClientScriptSignal',target:'PlayerSelf',signalName:'show',params:[{fromSignalParam:0},{fromSignalParam:1},true,2.5]}]});
+ const richFile=path.join(workspace,'rich.save.json');fs.writeFileSync(richFile,JSON.stringify(rich));
+ const richPlan=readSimulatorSave(richFile),richSource=serverGraphSource(richPlan,1073741825,'x');
+ assert.deepEqual(richPlan.signals.filter(x=>x.name==='score'||x.name==='show'),[{name:'score',parameters:[{name:'p1',type:'integer'},{name:'p2',type:'string'}]},
+  {name:'show',parameters:[{name:'p1',type:'integer'},{name:'p2',type:'string'},{name:'p3',type:'boolean'},{name:'p4',type:'float'}]}]);
+ assert.ok(richSource.includes("defineSignal(\"score\",[['p1','int'],['p2','str']] as const)")&&richSource.includes("defineSignal(\"client:show\",[['player','entity'],['p1','int'],['p2','str'],['p3','bool'],['p4','float']] as const)"),richSource);
+ assert.ok(/f\.sendSignal\(C\d,player,evt\.params\.p1,evt\.params\.p2,true,2\.5\);/.test(richSource)&&richSource.includes('"best",evt.params.p1,true'),richSource);
+ const richIn=await sent('scene_import_simulator',{mapPath:path.join(root,'tests','fixtures','editor-2026-10-13-handui.gil'),save:richFile,outputName:'rich'});
+ assert.equal(richIn.written.graph.written,true,JSON.stringify(richIn.written.graph));assert.equal(richIn.check.errors,0,JSON.stringify(richIn.check.problems));
+ assert.deepEqual((await sent('scene_list_signals',{mapPath:richIn.mapPath})).parameters.show.map(x=>x.type),['integer','string','boolean','float']);
  // A graph whose defineSignal does not agree with the signal in the save is not written, and is told the declaration.
  const simSignals=await sent('scene_list_signals',{mapPath:sim.mapPath});
- assert.deepEqual(simSignals.parameters,{picked:[{name:'value',type:'string'}]},JSON.stringify(simSignals));
+ assert.deepEqual(simSignals.parameters,{picked:[{name:'p1',type:'string'}]},JSON.stringify(simSignals));
  const misdeclared=await sent('write_graphs',{mapPath:sim.mapPath,graphs:[{graphId:sim.written.graph.graphId,code:"import { g, defineSignal } from 'genshin-ts/runtime/core'\nconst S=defineSignal('picked',[['n','int']] as const)\ng.server({id:"+sim.written.graph.graphId+",name:'x'}).onSignal(S,(evt,f)=>{f.printString('x');})\n"}]});
  assert.equal(misdeclared.failed?.code,'SIGNAL_PARAMETERS_DIFFER',JSON.stringify(misdeclared).slice(0,400));
- assert.equal(misdeclared.failed.details.signals[0].declare,"defineSignal('picked', [['value', 'str']] as const)");
+ assert.equal(misdeclared.failed.details.signals[0].declare,"defineSignal('picked', [['p1', 'str']] as const)");
  const chests=(await sent('scene_search_assets',{query:'宝箱',group:'交互机关'})).assets;
  assert.ok(chests.some(a=>a.presetStatus?.statusId===100010060),'asset search does not show the preset status of the chest');
 }finally{await client.close();fs.rmSync(workspace,{recursive:true,force:true});}

@@ -101,6 +101,8 @@ playtest_status gives the outcome.
      attachToPrefab may be a list: one graph on several prefabs that behave alike (a wooden and a stone wall).
    scene_add_components also gives a prefab: motions (a gate that rises once; a platform that goes there and back for
      ever; a thing that spins), follow (a pickup that flies to the player), minimapMarker (an icon on the minimap),
+     textBubbles (what an NPC says, words over it a line after another), nameplates (a label, an icon or a bar over
+     a thing: a name, a health readout, a progress), attachPoints (named places on the thing those hang on),
      hurtBox (so that the piece can be hit), abilityUnits (ready-made attacks and heals a graph launches by name),
      launcher (the piece flings the characters that touch it: a bounce pad, a bumper, a gust; no graph needed),
      extraCollision (shapes that stop a character whatever the model looks like: on a prefab of the empty model,
@@ -219,6 +221,9 @@ playtest_status gives the outcome.
    scene_add_image puts a picture or a coloured rectangle on the screen (a dark panel behind the bars, an icon
    beside a bar): a way to say something without words. image_catalog shows the pictures there are, by category,
    each with its id (hearts, keys, swords, stars, coins, potions, frames, portraits of creatures).
+   scene_add_card_selector makes the platform's own "choose one of three" window (cards with an icon, a title and a
+   description; the game stands still while a lone player chooses): a graph opens it with f.invokeDeckSelector and
+   the player's graph hears the choice. Upgrades after a wave, a reward, a class at the start.
    A screen that moves, answers the mouse or any key, a menu, a whole 2D game: a client interface (game 7.1).
    scene_set_client_script puts a Lua script into the save, scene_add_client_ui a tree of client controls with the
    script on its root (pictures, mouse areas, grids, buttons), scene_add_client_template a control the script makes
@@ -226,7 +231,8 @@ playtest_status gives the outcome.
    something that lasts by setting a custom variable (the script hears the change) and something of the moment by
    a signal to the player's scripts (f.sendSignal('client:NAME', player), heard with
    script:RegisterServerSignalHandler); it tells a graph by a signal (game.ServerSignal(name):SendSignal(), heard
-   with .onSignal). One script serves several controls when its variables are public and each control gives its
+   with .onSignal); a signal carries values of any type when scene_add_signal is given parameters, and the answer
+   of that tool gives both sides' code. One script serves several controls when its variables are public and each control gives its
    own values (script: {name, values}). The canvas is 1600 x 900 on a computer and 1280 x 720 on a phone: hang
    what belongs at an edge on that edge with anchor, or give the control devices {mobile: {...}}. playtest_start returns what the script prints
    with the prints of the graphs, a fault in the script among them with its line. scene_remove_client takes an
@@ -237,7 +243,11 @@ playtest_status gives the outcome.
    the open save instead of importing), and expect {prints} makes the playtest answer passed or what was missing.
    OnUpdate runs only after script:EnableUpdate(true), a tween does nothing until :Play(), a preset button needs
    a hover state, the script starts seconds before the play does, Color takes 0 to 255, the fill of an image (a
-   bar, a cooldown ring) shows only on an image with its mask on.
+   bar, a cooldown ring) shows only on an image with its mask on (an image given fill: {shape, amount} in
+   scene_add_client_ui has it on and is drawn filled from the start).
+   scene_get_client_ui reads an interface back as the parameters it was made from; change them and put it again with
+   replace: true. editor_preview_interface shows it on a phone's and a console's canvas, drawn by the editor.
+   A whole game in Lua, start screen to result screen, is examples/pairs (read_knowledge {id:"example-pairs"}).
    On an account of 奇匠 level 1 no custom text shows, not even the text of an option (only its icon). Say a price
    with a row of things over the station, "possible now" with a marker over it, a refusal with a question mark, a
    quantity with a bar whose maximum is 10 (the bar prints a percentage).
@@ -280,7 +290,7 @@ Worked examples, readable through the server: read_knowledge {id:"example-events
 {id:"example-hop"}, {id:"example-farm"}, {id:"example-checks"}, {id:"example-skills"}, {id:"example-shop"},
 {id:"example-drops"}, {id:"example-buttons"}, {id:"example-strike"}, {id:"example-raid"}, {id:"example-potion"},
 {id:"example-shoot"}, {id:"example-kingdom5"}, {id:"example-brain"}, {id:"example-skirmish"}, {id:"example-kingdom6"},
-{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-signalparams"}, {id:"example-clientapi"}, {id:"example-clienttext"}, {id:"example-pairs"} give every
+{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-signalparams"}, {id:"example-talk"}, {id:"example-cards"}, {id:"example-clientapi"}, {id:"example-clienttext"}, {id:"example-pairs"} give every
 tool call in order with its arguments and the source of every graph, recorded from a real run. All of them have been played in the game.
 examples/doors is a gate that opens and closes again with two motion devices; examples/images is a screen that speaks without
 words (a row of lives made of image controls that a graph switches off and on, bars that show a value, a ring, a picture that starts hidden).

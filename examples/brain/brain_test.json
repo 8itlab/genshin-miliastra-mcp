@@ -1,5 +1,5 @@
 {
- "about": "Complex creatures (复杂造物) run by graphs, a first try in the game: scene_add_creature_skill, scene_set_creature_logic and the three kinds of creature graph. A scout is ordered about through custom variables (walk to x 12, work, walk back to x 0, stroll); an archer is given an enemy as its target and shoots. What to look for in the prints: BR_AT shows the scout's x going from 2 to 12 after BR_ORDER 0 and back to 0 after BR_ORDER 2; BR_SIGNAL work after BR_ORDER 1; BR_SIGNAL shoot after BR_FOE. BR_CALL shows that a creature's own server graph hears its skill (whenSkillNodeIsCalled). The level's navigation mesh is baked before the playtest (bakeNavigation): without it the scout does not stroll.",
+ "about": "Complex creatures (复杂造物) run by graphs, a first try in the game: scene_add_creature_skill, scene_set_creature_logic and the three kinds of creature graph. A scout is ordered about through custom variables (walk to x 12, work, walk back to x 0, stroll); an archer is given an enemy as its target and shoots. What to look for in the prints: BR_AT shows the scout's x going from 2 to 12 after BR_ORDER 0 and back to 0 after BR_ORDER 2; BR_SIGNAL work after BR_ORDER 1; BR_SIGNAL shoot after BR_FOE. BR_CALL shows that a creature's own server graph hears its skill (whenSkillNodeIsCalled). The level's navigation mesh is baked before the playtest (bakeNavigation): without it the scout does not stroll. Since 2026-10-14 the signal BR_work carries three values from the scout's skill graph (a client graph) to the server, an integer, a vector and a string, declared with defineSignal in both graphs: the log shows BR_SIGNAL work 3 {1.0,2.5,-3.0} dig.",
  "dir": "brain",
  "namePrefix": "BR_",
  "baseName": "未分类页签_存档_3",
@@ -63,7 +63,23 @@
   "aggroMode": "custom"
  },
  "signals": [
-  "BR_work",
+  {
+   "name": "BR_work",
+   "parameters": [
+    {
+     "name": "times",
+     "type": "integer"
+    },
+    {
+     "name": "spot",
+     "type": "vector3"
+    },
+    {
+     "name": "word",
+     "type": "string"
+    }
+   ]
+  },
   "BR_shoot"
  ],
  "prefabs": [
