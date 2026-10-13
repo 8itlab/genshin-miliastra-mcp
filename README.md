@@ -22,13 +22,13 @@
 
 ## 自带的图鉴：缩略图和编号
 
-千星奇域里的物件、特效、音效、图片，在存档和节点图里都是靠编号引用的。编号在编辑器里看得到，但本地数据里没有现成的表可查。这个仓库把它们从编辑器里一样一样读了出来、拍了下来，AI 按中文名字就能查到编号、看到长相再挑：
+千星奇域里的物件、特效、音效、图片，在存档和节点图里都是靠编号引用的。编号在编辑器里看得到，但本地数据里没有现成的表可查。这个仓库把它们整理成了图鉴，大部分是从编辑器里一样一样读出来、拍下来的，AI 按中文名字就能查到编号、看到长相再挑：
 
 ![千星奇域物件图鉴：缩略图、编号和名字](docs/images/prop-catalogue.jpg)
 
 | 图鉴 | 数量 | 内容 | 文件 |
 |---|---|---|---|
-| 物件 | 2468 种，其中 2398 种有缩略图 | 编号、名字、分组、尺寸；缩略图是摆进编辑器里逐个实拍的 | `src/scene/asset-catalog.json`、`src/scene/thumbs/<编号>.jpg` |
+| 物件 | 2468 种，其中 2398 种有缩略图 | 编号、名字、分组、尺寸（名单和尺寸来自 [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs)，CC BY 4.0）；缩略图是摆进编辑器里逐个实拍的 | `src/scene/asset-catalog.json`、`src/scene/thumbs/<编号>.jpg` |
 | 特效 | 3195 条（限时 1986、循环 1209） | 编号、名字、每条在资产库里的小图；87 个循环特效另有挂在角色身上的实拍 | `src/scene/media/effects.json`、`fx-thumbs.*`、`src/scene/fx/` |
 | 音效 | 1997 条 | 编号、名字、分类；其中 73 条录下来量过时长和响度 | `src/scene/media/sounds.json` |
 | 背景音乐 | 188 首 | 编号、名字、分类 | `src/scene/media/music.json` |
@@ -312,6 +312,27 @@ npm run test:local
 - 哈希检查可以发现预览后的外部保存；与编辑器同时写文件仍存在极短竞争窗口。实时修改时应先切出目标地图，重载后再保存。单服务内部操作串行化；不要启动多个服务同时修改同一工作区。
 - 导入、烘焙、试玩都要开着编辑器。工具不会仅凭文件构建成功就说游戏可玩：编译通过、写进存档、在游戏里验证过是三件事，返回里分开报告。
 - 更多限制和还没做的事见 [现状和限制](docs/STATUS.zh-CN.md)。
+
+## 和其他千星奇域工具的关系
+
+社区里已经有不少千星奇域的工具，侧重各不相同。本项目的位置是：让 AI 在**真实的编辑器和游戏里**把一整关做出来并验证，搭场景、设关卡、写节点图、试玩都在一套 MCP 工具里。下面这些项目，有的是本项目的基础，有的可以配合着用，有的在本项目不做的方向上做得更好：
+
+| 项目 | 侧重 | 和本项目 |
+|---|---|---|
+| [Genshin-TS](https://github.com/josStorer/genshin-ts) | 用 TypeScript 写节点图，编译并注入存档 | 本项目编译节点图用的就是它。只想自己手写代码、不需要 AI 操作编辑器的，直接用它 |
+| [千星奇域节点图工具集](https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack) | 读写节点图文件、代码和节点图互转、节点数据 | Genshin-TS 内含它的成果，本项目间接用到 |
+| [Ayaya_Miliastra_Editor](https://github.com/AyayaXiaowang/Ayaya_Miliastra_Editor) | 用 Python 写节点图，离线校验、自动排版，有给人看的预览界面 | 想要 Python 工作流和节点图预览界面的选它；本项目没有给人看的界面 |
+| [千星奇域工具箱](https://github.com/1475505/Miliastra-toolbox) | 官方文档和社区经验的知识库问答，有在线 MCP | 可以和本项目同时接：它回答“怎么做”，本项目动手做 |
+| [千星沙箱模拟器](https://github.com/1475505/miliastra-beyond-simulator) | 游戏之外的模拟器，面向 2D + Lua 客户端脚本的玩法，几秒一轮 | 做 2D 界面玩法、要快速迭代的选它；本项目目前只做节点图这一路，验证是进真游戏 |
+| [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | 网页版节点图编辑器，不开游戏就能画节点图 | 画节点图原型用 |
+| [genshin-starcraft-mcp](https://github.com/ystyle/genshin-starcraft-mcp) | 查官方教程和节点文档的 MCP | 本项目自带一份离线的官方指南，功能有重叠 |
+| [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs)、[genshin-miliastra-file-format](https://github.com/script-1024/genshin-miliastra-file-format) | 存档和导出文件格式的文档 | 本项目的物件名单和尺寸来自前者（CC BY 4.0） |
+
+本项目有而上面没看到的：带缩略图的物件、特效、音效、界面图片编号图鉴；在真游戏里按脚本自动试玩并取回日志和截图；场景和 3D 玩法（摆景、复杂造物的战斗、投射物、机关）。
+
+本项目没有的：客户端 Lua 脚本和客户端控件（游戏 7.1 版本新增，还没支持）、给人看的节点图界面、Windows 以外的平台。
+
+以上是按各项目 README 的自述整理的，如有不准确请提 issue。
 
 ## 常见问题
 

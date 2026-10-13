@@ -24,13 +24,13 @@ These three games were each made from a blank map by an AI that had never seen t
 
 ## Bundled catalogues: thumbnails and ids
 
-Props, effects, sounds and pictures are referred to by numeric id in Miliastra saves and node graphs. The editor shows those ids, but there is no table of them in the local data. This repository read them out of the editor one by one and photographed what they look like, so an AI can find an id by its Chinese name and look at the thing before choosing it:
+Props, effects, sounds and pictures are referred to by numeric id in Miliastra saves and node graphs. The editor shows those ids, but there is no table of them in the local data. This repository collects them into catalogues, most of them read out of the editor one by one and photographed there, so an AI can find an id by its Chinese name and look at the thing before choosing it:
 
 ![Miliastra Wonderland prop catalogue: thumbnails with ids and names](docs/images/prop-catalogue.jpg)
 
 | Catalogue | Size | What it holds | Files |
 |---|---|---|---|
-| Props | 2,468, of which 2,398 have a thumbnail | id, name, group, size; each thumbnail was photographed in the editor | `src/scene/asset-catalog.json`, `src/scene/thumbs/<id>.jpg` |
+| Props | 2,468, of which 2,398 have a thumbnail | id, name, group, size (list and sizes from [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs), CC BY 4.0); each thumbnail was photographed in the editor | `src/scene/asset-catalog.json`, `src/scene/thumbs/<id>.jpg` |
 | Effects | 3,195 (1,986 timed, 1,209 looping) | id, name, the small picture from the asset library; 87 looping effects also photographed on a character | `src/scene/media/effects.json`, `fx-thumbs.*`, `src/scene/fx/` |
 | Sounds | 1,997 | id, name, category; 73 recorded and measured for length and loudness | `src/scene/media/sounds.json` |
 | Music | 188 | id, name, category | `src/scene/media/music.json` |
@@ -120,6 +120,22 @@ The full table with what each tool does is in the [Chinese README](README.md#工
 - All examples are single-player.
 - This is a local, trusted development tool, not a sandbox for untrusted code. Do not expose it to the internet.
 - More in [docs/STATUS.zh-CN.md](docs/STATUS.zh-CN.md) and [docs/PLATFORM_RULES.zh-CN.md](docs/PLATFORM_RULES.zh-CN.md) (Chinese).
+
+## Related projects
+
+The community has built a number of Miliastra Wonderland tools with different aims. This project's place among them: an AI builds and verifies a whole level in the **real editor and game** — scene, level settings, node graphs and playtests in one set of MCP tools.
+
+| Project | What it is for | Relation |
+|---|---|---|
+| [Genshin-TS](https://github.com/josStorer/genshin-ts) | Write node graphs in TypeScript, compile and inject them | This project compiles node graphs with it. If you want to write code yourself and need no AI operating the editor, use it directly |
+| [Miliastra node editor pack](https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack) | Reading and writing graph files, code/graph conversion, node data | Included in Genshin-TS, so used here indirectly |
+| [Ayaya_Miliastra_Editor](https://github.com/AyayaXiaowang/Ayaya_Miliastra_Editor) | Node graphs as Python code with offline validation, auto layout and a preview UI | Choose it for a Python workflow and a graph preview; this project has no UI for people |
+| [Miliastra-toolbox](https://github.com/1475505/Miliastra-toolbox) | Knowledge-base Q&A over official docs and community posts, with a hosted MCP | Complementary: it answers "how", this project does the work |
+| [miliastra-beyond-simulator](https://github.com/1475505/miliastra-beyond-simulator) | A simulator outside the game for 2D + Lua client-script games, seconds per round | Choose it for 2D interface games and fast iteration; this project covers node graphs only and verifies in the real game |
+| [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | A web node-graph editor that needs no game | For prototyping graphs |
+| [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs) | Documentation of the file formats | The prop list and sizes in this repository come from it (CC BY 4.0) |
+
+Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: client Lua scripts and client controls (new in game version 7.1), a UI for people, platforms other than Windows. This table follows each project's own README; please open an issue if something is inaccurate.
 
 ## FAQ
 
