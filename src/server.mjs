@@ -111,6 +111,8 @@ playtest_status gives the outcome.
    scene_list_components shows what a prefab carries.
    scene_add_signal: a level-wide broadcast, f.sendSignal('name') in one graph and .onSignal('name', ...) in any
      number of others: dawn, "the wall fell", "round over". Use it instead of one graph reaching into many entities.
+     It carries values when defined with parameters (integers, floats, strings, vectors, entities, lists ...); the
+     answer of the tool gives the defineSignal line for graphs and the Add... calls for Lua (examples/signalparams).
    scene_add_global_timer: a countdown the stage or the player holds (f.startGlobalTimer; whenGlobalTimerIsTriggered
      when it ends); scene_add_timer_display puts it on the screen as a clock. For plain delays inside one graph
      f.startTimer needs no tool.
@@ -278,7 +280,7 @@ Worked examples, readable through the server: read_knowledge {id:"example-events
 {id:"example-hop"}, {id:"example-farm"}, {id:"example-checks"}, {id:"example-skills"}, {id:"example-shop"},
 {id:"example-drops"}, {id:"example-buttons"}, {id:"example-strike"}, {id:"example-raid"}, {id:"example-potion"},
 {id:"example-shoot"}, {id:"example-kingdom5"}, {id:"example-brain"}, {id:"example-skirmish"}, {id:"example-kingdom6"},
-{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-clientapi"}, {id:"example-clienttext"}, {id:"example-pairs"} give every
+{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-signalparams"}, {id:"example-clientapi"}, {id:"example-clienttext"}, {id:"example-pairs"} give every
 tool call in order with its arguments and the source of every graph, recorded from a real run. All of them have been played in the game.
 examples/doors is a gate that opens and closes again with two motion devices; examples/images is a screen that speaks without
 words (a row of lives made of image controls that a graph switches off and on, bars that show a value, a ring, a picture that starts hidden).

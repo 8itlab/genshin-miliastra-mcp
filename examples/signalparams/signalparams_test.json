@@ -1,0 +1,132 @@
+{
+ "about": "Signals that carry several values of several types, on the three ways a signal travels; seen in play on 2026-10-13 (passed at the first run). scene_add_signal defines three with parameters: [{name, type}]. Graph to graph: the stage graph sends SP_note (an integer, an entity) and hears it itself; the log shows SP_NOTE n and 7. Client script to graph: six seconds in, sp_main.lua sends SP_report with AddInt(42), AddFloat(0.5), AddString(\"hello\"), AddVector3({x=1,y=2.5,z=-3}), AddBool(true), AddIntList({3,4,5}); the graph prints 42, 0.5, hello, {1.0,2.5,-3.0}, True and the length of the list, 3. Graph to client script: the graph answers with client:SP_reply (the player first, then an integer, a vector, a boolean, a list of strings, an entity) and the script prints what arrived: five values, 42 as a Lua integer, the vector as a table with x, y and z, true, a table of two strings, and the entity as a number. In a graph a signal with parameters is declared once with defineSignal and that declaration is given to f.sendSignal and .onSignal; the values are evt.params.<name>.",
+ "dir": "signalparams",
+ "namePrefix": "SP_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 14,
+ "screenshotsAt": [
+  2,
+  12
+ ],
+ "inputs": [],
+ "scenes": [],
+ "generator": "gen_signalparams.py",
+ "signals": [
+  {
+   "name": "SP_note",
+   "parameters": [
+    {
+     "name": "n",
+     "type": "integer"
+    },
+    {
+     "name": "who",
+     "type": "entity"
+    }
+   ]
+  },
+  {
+   "name": "SP_report",
+   "parameters": [
+    {
+     "name": "points",
+     "type": "integer"
+    },
+    {
+     "name": "ratio",
+     "type": "float"
+    },
+    {
+     "name": "label",
+     "type": "string"
+    },
+    {
+     "name": "at",
+     "type": "vector3"
+    },
+    {
+     "name": "ok",
+     "type": "boolean"
+    },
+    {
+     "name": "picks",
+     "type": "integerList"
+    }
+   ]
+  },
+  {
+   "name": "SP_reply",
+   "parameters": [
+    {
+     "name": "points",
+     "type": "integer"
+    },
+    {
+     "name": "at",
+     "type": "vector3"
+    },
+    {
+     "name": "ok",
+     "type": "boolean"
+    },
+    {
+     "name": "names",
+     "type": "stringList"
+    },
+    {
+     "name": "who",
+     "type": "entity"
+    }
+   ]
+  }
+ ],
+ "clientScripts": [
+  {
+   "name": "SP_main",
+   "file": "sp_main.lua"
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "SP_ui",
+   "script": "SP_main",
+   "controls": [
+    {
+     "name": "lamp",
+     "kind": "image",
+     "image": 106025,
+     "position": [
+      0,
+      300
+     ],
+     "size": [
+      90,
+      90
+     ]
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "SpStage"
+  }
+ ],
+ "expect": {
+  "prints": [
+   "SP_READY",
+   "SP_LUA listening",
+   "SP_SENT note",
+   "SP_NOTE n",
+   "SP_LUA sent report",
+   "SP_REPORT points",
+   "SP_REPORT picks",
+   "SP_LUA reply count 5",
+   "SP_LUA reply who number"
+  ]
+ }
+}

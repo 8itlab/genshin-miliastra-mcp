@@ -76,7 +76,7 @@
    "name": "PrStage"
   }
  ],
- "about": "The same game as pairs_win.json with six seconds on the clock instead of sixty: the script reads the length of a game from its variable seconds (script:GetParam), which is public, and here the interface gives its root another value for it (script: {name: \"PR_game\", values: {seconds: 6}}). The route presses 开始, finds one pair and waits: PR_LUA start, pair 1, lose moves 1, and PR_DEFEAT from the graph, which settles the level as lost. Seen in play on 2026-10-14; expect {prints, absent: [PR_VICTORY]} answered passed.",
+ "about": "The same game as pairs_win.json with six seconds on the clock instead of sixty: the script reads the length of a game from its variable seconds (script:GetParam), which is public, and here the interface gives its root another value for it (script: {name: \"PR_game\", values: {seconds: 6}}). The route presses 开始, finds one pair and waits: PR_LUA start, pair 1, lose moves 1, and PR_DEFEAT from the graph, which settles the level as lost. Seen in play on 2026-10-13; expect {prints, absent: [PR_VICTORY]} answered passed.",
  "durationSeconds": 14,
  "screenshotsAt": [
   4,

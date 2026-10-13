@@ -135,7 +135,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_prefab` / `scene_update_prefab` / `scene_list_prefabs` | 做元件（图里 `createPrefab` 造出来的东西）：物件、由摆好的怪做成的造物、掉落物（`drop`）；机关物件带预设状态（宝箱开合、拉杆、活板门，45 个已对上），`health` 定生命值；`scene_update_prefab` 改已有元件的缩放、模型、生命值，编号、组件和挂的图都不变 |
 | `scene_add_components` / `scene_list_components` | 给元件加平台自带的组件：碰撞触发器、选项卡（按 F 交互，可带布尔过滤器）、自定义变量、基础运动器（直线、路径）、跟随运动器、小地图标识、受击盒、能力单元、弹射器（`launcher`：碰到的角色被弹出去，弹跳垫、推人的机关）、战利品、投射运动器（直线、抛物线、追踪目标）和命中检测（子弹；可只碰敌对阵营、可开连续碰撞检测）。范例 `examples/events` |
 | `scene_add_graph` | 新建一张空图并挂好：关卡实体、元件（可一图挂多个元件）、玩家模板、角色模板；也能建客户端的技能图、过滤器图和道具图 |
-| `scene_add_signal` / `scene_list_signals` | 信号（全关卡广播），可带一个字符串参数 |
+| `scene_add_signal` / `scene_list_signals` | 信号（全关卡广播），可带好几个参数：整数、浮点数、布尔值、字符串、三维向量、实体、GUID、元件 ID、配置 ID 和它们的列表（编辑器给的十八种类型）；节点图之间、Lua 脚本发给节点图、节点图发给 Lua 脚本三条路都上机验过（`examples/signalparams`） |
 | `scene_add_global_timer` / `scene_list_global_timers` / `scene_add_timer_display` | 全局计时器（倒计时或正计时）和屏幕上显示它的计时器控件 |
 | `scene_add_creature_skill` / `scene_list_creature_skills` / `scene_set_creature_logic` | 复杂造物（“怪物(AI版)”那 48 种）：定义造物技能（一段或几段动画加一张技能图，可设自动面向目标），给造物元件绑上决策图和技能表（每个技能的冷却），设它多远发现敌人、多远放弃、领地多大。配合三种造物图（`scene_add_graph` 的 `creatureDecision` / `creatureStatus` / `creatureSkill`），单位就能按图走位、闲逛、干活、自己发现敌人、追上去打。做法见 `knowledge/notes/complex-creatures.zh-CN.md`，范例 `examples/brain`、`examples/skirmish`，整个游戏见 `examples/kingdom6` |
 | `creature_animations` | 复杂造物的动画表：名字、编号、时长、是否循环（读了 18 种 296 条）。造物技能按名字或编号选动画。造物的模型都是空手的：表里还写了每种造物手里能拿什么、上机逐帧看过的那些动作是什么样、哪一毫秒算数（`atMs`，直接当技能的 `graphAtMs`） |

@@ -96,7 +96,7 @@ export function readSimulatorSave(file){
     }
     if(kind==='presetButton'){
       // The simulator calls the four state slots 不可用, 悬停, 按下, 选中; in the editor they are 默认, 悬停, 按下, 不可用
-      // (the panel of a button, 2026-10-14). What its author meant is kept: its 不可用 is the tool's disabled, and the
+      // (the panel of a button, 2026-10-13). What its author meant is kept: its 不可用 is the tool's disabled, and the
       // look of the button left alone is given a state of its own when a hover or a pressed look is there.
       const named=id=>id?(node.children??[]).find(c=>c.id===id)?.name:undefined,states={hover:named(node.hoverChildId),pressed:named(node.pressedChildId),disabled:named(node.unavailableChildId)};
       for(const k of Object.keys(states))if(!states[k])delete states[k];

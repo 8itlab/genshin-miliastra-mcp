@@ -218,10 +218,20 @@ dot:SetAnchoredPosition(40, 0)
 ## 和节点图怎么通
 
 - **节点图 → 界面：改自定义变量。** 节点图照常 `f.setCustomVariable(player, 'lives', 2n, true)`；脚本用 `game.GetGlobalCustomVariableValue(Enum.CustomVariableEntityType.PlayerSelf | Level | AvatarSelf, 名字)` 读，用 `script:RegisterCustomVariableChangedHandler(类型, 名字, 回调)` 监听变化。变量要先在玩家模板上有（`scene_add_components {prefab:"player", variables:[...]}`）。节点图改变量，界面同一秒就跟着变。
-- **界面 → 节点图：发信号。** 脚本 `game.ServerSignal("名字"):SendSignal()`，节点图用 `.onSignal('名字', (evt, f) => {...})` 收，信号要先用 `scene_add_signal` 定义。带参数：信号定义时给 `parameter`，脚本 `signal:AddString("hello")` 再发，节点图里 `defineSignal('名字', [['word','str']] as const)` 后读 `evt.params.word`（上机验过字符串）。
+- **界面 → 节点图：发信号。** 脚本 `game.ServerSignal("名字"):SendSignal()`，节点图用 `.onSignal('名字', (evt, f) => {...})` 收，信号要先用 `scene_add_signal` 定义。带参数：信号定义时给 `parameter`（一个字符串）或 `parameters`（好几个，见下），脚本 `signal:AddString("hello")` 再发，节点图里 `defineSignal('名字', [['word','str']] as const)` 后读 `evt.params.word`。
 - **整块界面的开关：** `scene_add_client_ui` 给 `hidden: true`，节点图用 `f.modifyUiControlStatusWithinTheInterfaceLayout(玩家, containerId, UIControlGroupStatus.On)` 打开。打开的那一刻它的脚本才启动；关掉时控件销毁。背包、商店、暂停菜单这种整块开合的界面用它。
 - 结算、掉血、生成东西这些只有节点图能做：脚本发信号，节点图去办。`examples/clientgame` 的输赢就是这样结算的。
 - **节点图 → 脚本：发信号（一次性的消息）。** 游戏 7.1 的服务器节点【发送客户端脚本信号】。节点图里写 `f.sendSignal('client:名字', 玩家, ...参数)`：名字前面加 `client:`，第二个参数是发给哪个玩家；脚本里 `script:RegisterServerSignalHandler("名字", function(name, params) ... end)` 收，`params` 是参数的表（`params[1]` 是第一个）。信号照常用 `scene_add_signal` 定义（同一个信号既能在节点图之间发，也能发给脚本）。上机验过不带参数和带一个字符串（2026-10-13，`examples/clientsignal`）。
+
+- **信号可以带好几个值，十八种类型都行（2026-10-13 上机验过，`examples/signalparams`）。** `scene_add_signal` 的 `parameters: [{name, type}]`，类型是 `integer`、`float`、`boolean`、`string`、`vector3`、`entity`、`guid`、`prefabId`、`configId`，或者它们的列表（`integerList`、`stringList`……）。三条路都通：
+
+  | 路线 | 发 | 收 |
+  |---|---|---|
+  | 节点图 → 节点图 | `const S = defineSignal('SP_note', [['n','int'], ['who','entity']] as const)`，`f.sendSignal(S, 7n, 实体)` | `.onSignal(S, (evt, f) => {...})`，值是 `evt.params.n`、`evt.params.who` |
+  | 脚本 → 节点图 | `local s = game.ServerSignal("SP_report")`，按定义的顺序 `s:AddInt(42) s:AddFloat(0.5) s:AddString("hello") s:AddVector3({x=1,y=2.5,z=-3}) s:AddBool(true) s:AddIntList({3,4,5})`，最后 `s:SendSignal()` | 同上，`defineSignal` 里照定义写类型（`int`、`float`、`str`、`vec3`、`bool`、`int_list`……） |
+  | 节点图 → 脚本 | 另声明一个名字带 `client:`、第一个参数是玩家的：`const C = defineSignal('client:SP_reply', [['player','entity'], ['points','int'], ...] as const)`，`f.sendSignal(C, 玩家, 42n, ...)` | `script:RegisterServerSignalHandler("SP_reply", function(name, params) ... end)`：`params[1]` 起按顺序是各个值 |
+
+  脚本收到的样子：整数是 Lua 整数，三维向量是带 `x`、`y`、`z` 的表，布尔值是布尔值，列表是从 1 开始的表，实体是一个数字。`scene_add_signal` 的回答里直接给出这个信号的 `defineSignal` 写法和 Lua 的 `Add…` 顺序；`scene_list_signals` 列出每个信号带什么。
   - 编译器（Genshin-TS）没有这个节点；工具在把图写进存档前，把 `client:` 开头的发送节点换成这个节点。它在编辑器里是【执行节点 → 界面控件组 → 发送客户端脚本信号】，有“信号名”和“目标玩家”两项。
   - 7.1 以前定义的信号没有这个节点的定义，工具会报 `SIGNAL_NOT_FOR_CLIENT_SCRIPTS`：把存档在编辑器里打开存一次（编辑器会补上），或者在副本上重新定义信号。
   - 要一直保持的状态（血量、分数）还是用自定义变量：信号只在发的那一刻有，界面重建以后收不回来。
@@ -246,7 +256,7 @@ dot:SetAnchoredPosition(40, 0)
 - 模拟器的“服务端规则”（收到脚本发来的某个信号时：设变量、给脚本发信号）会变成关卡实体上的一张节点图，源码在结果里。
 - **模板编号自动对上**：Lua 里凡是等于模拟器里模板编号的数字，都换成模板在这份存档里的编号；只动 Lua 自己的数字，字符串和注释里的不动。
 - 结果的 `notes` 列出模拟器里有、这边写不进去的东西（图片的填充和羽化、信号的第二个参数、游戏里不存在的按钮状态），`check` 是 `scene_check_client` 对导入后整份存档查出来的问题。
-- 然后 `playtest_start {mapPath}` 上真机。上机验过（2026-10-14）：脚本发信号、节点图设变量再发回、脚本收到，文字和模板都画出来了。
+- 然后 `playtest_start {mapPath}` 上真机。上机验过（2026-10-13）：脚本发信号、节点图设变量再发回、脚本收到，文字和模板都画出来了。
 
 两处模拟器和游戏不一样、导入时替你处理了的：模拟器把预设按钮的第一个状态叫“不可用”、第四个叫“选中”，编辑器里其实是“默认”和“不可用”；按键提示的键盘键和手柄键在它那里是反的。只读了它的存档格式，没有用它的代码。
 
@@ -259,12 +269,12 @@ dot:SetAnchoredPosition(40, 0)
 
 ## 别的规矩（上机量的）
 
-- **奇匠 Lv.1 的账号，客户端文本框也不显示**，和普通文本框一样；升到 Lv.2 就都有了（2026-10-14 实测，`examples/clienttext`：对齐、颜色、描边、背景、自适应、文本视窗的滚动条、脚本运行时改文字，全部按写的显示）。给 Lv.1 的账号做，数字用一排圆点、一根变长的条来表示。
+- **奇匠 Lv.1 的账号，客户端文本框也不显示**，和普通文本框一样；升到 Lv.2 就都有了（2026-10-13 实测，`examples/clienttext`：对齐、颜色、描边、背景、自适应、文本视窗的滚动条、脚本运行时改文字，全部按写的显示）。给 Lv.1 的账号做，数字用一排圆点、一根变长的条来表示。
 - 文字放不下时：开了 `autoSize` 会缩小并折行塞进框里；没开就只显示开头，后面的裁掉。文本视窗里文字太宽会自动折行。
 - **控件按给的顺序画，后面的盖住前面的**，也盖住平台自己的界面（小地图、技能键）。铺满全屏的底图会把它们全挡住。
 - **关卡里的传送不会重置界面**：试玩输入里的 `teleport` 之后控件还在、脚本没有重新启动。官方文档说“传送、断线重连时客户端控件会销毁重建”，至少同一关里的传送不是这样；断线重连没验过，稳妥起见脚本要能只凭自定义变量把界面重新画出来。
 - **这版 Lua 没有的**：`coroutine`、`io`、`package`、`load`、`loadfile`、`dofile`、`string.dump`，`os` 只剩 `time / date / clock / difftime`，`debug` 只剩 `traceback`（上机看过，前六样都是 `nil`）。`scene_set_client_script` 见到就拒绝。
-- **`require` 是有的**（2026-10-14 上机验过；之前这里写的“没有”是错的）：`local m = require("CV_util")` 运行文件名是 `CV_util.lua` 的那个脚本一次，拿到它 `return` 的东西。名字是脚本的文件名去掉 `.lua`，**大小写要一模一样**（`require("cv_util")` 找不到 `CV_util.lua`）。被 `require` 的脚本用 `scene_set_client_script` 放进存档就行，不用挂到控件上；它的 `OnStart` 这些不会被调用，只有顶层代码跑一遍。一局游戏可以拆成几个文件。要等一段时间用 `OnUpdate` 里累加 `dt`，或者 `game.TweenSequence()` 的 `AppendInterval`。
+- **`require` 是有的**（2026-10-13 上机验过；之前这里写的“没有”是错的）：`local m = require("CV_util")` 运行文件名是 `CV_util.lua` 的那个脚本一次，拿到它 `return` 的东西。名字是脚本的文件名去掉 `.lua`，**大小写要一模一样**（`require("cv_util")` 找不到 `CV_util.lua`）。被 `require` 的脚本用 `scene_set_client_script` 放进存档就行，不用挂到控件上；它的 `OnStart` 这些不会被调用，只有顶层代码跑一遍。一局游戏可以拆成几个文件。要等一段时间用 `OnUpdate` 里累加 `dt`，或者 `game.TweenSequence()` 的 `AppendInterval`。
 - 位置是控件中心相对它上一级中心的偏移，y 向上，单位是画布的格子；电脑上画布 1600 × 900（和 `scene_add_image` 的坐标一样），手机 1280 × 720，主机 1920 × 1080（见“四种设备各有各的画布”）。
 - **试玩里的点击可以按住**：输入里给 `{"at": 4, "click": [0.5, 0.8], "holdMs": 600}`，这 0.6 秒里鼠标一直按着，中间截的图能看到按钮“按下”的样子（`examples/clientmenu` 第 4.3 秒那张，按钮是黄的）。不给 `holdMs` 就是点一下。
 - 导入存档时，编辑器会把存档里的 Lua 写到存档旁边的 `external_lua_file\<文件名>`；工具写进存档的源码就是运行的那一份。
@@ -285,6 +295,5 @@ dot:SetAnchoredPosition(40, 0)
 ## 还没做的
 
 - 图片的填充和边缘羽化不能写进存档（工具只写遮罩开关），由脚本设，见“填充”。
-- 信号的参数只能有一个字符串（`scene_add_signal` 的限制），发给脚本的信号也一样。
 - 手机、主机上没验过：分设备的布局和手柄导航只做到“和编辑器写的一样”，本机只有电脑和键鼠。触屏点击多半和鼠标一样，但手机没有键盘，靠按键的玩法要在屏幕上放按钮。
 - 发布以后脚本是否照常打包上传，没验过（要发布才知道）。

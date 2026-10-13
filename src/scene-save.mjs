@@ -1256,16 +1256,35 @@ export function setClass({mapPath,name,allowJump,allowSprint,allowClimb,allowGli
 // number left out without a parameter, two with one) the player and the parameter.
 const SIGNAL_BASE=1610612736;
 const signalHead=(id,client)=>Buffer.concat([field(1,0,10001),field(2,0,client?20002:20000),field(3,0,22001),field(5,0,id)]);
-export function signalRecords({send,listen,client,script,name,serial,parameter}){
-  // parameter: the name of one string the signal carries. In the official sample 信号 the signal 平台 has one, 状态: a
-  // pin more in each of the three definitions (numbered after the twelve fixed pins), {4: {1: name, 2: 6, 3: 1, 4 5 6:
-  // those pin numbers}} in the register entry, and 2 instead of 1 in field 5 of each definition and field 6 of the entry.
-  // Other types and a second parameter are not written: no sample of the current format shows them on all three sides.
-  const has=parameter!==undefined,revision=has?2:1;
+// What a signal can carry: the eighteen types the editor's signal manager (服务器信号管理器) offers. A pin says its type
+// as {1: kind, 3: code, 4: code}, a list as {1: 10002, 3: code, 4: code, 102: {1: the type of one element}}; an entity
+// has no kind, a boolean adds {101: {1: 1}} (200001 in the definition for client graphs). The codes of the definition
+// for client graphs (向服务器节点图发送信号) are the client's, the other three definitions use the server's. Read from a
+// save in which every type was given to a signal by hand in the manager on 2026-10-13 (tests/fixtures/
+// editor-2026-10-13-signaltypes.gil). ts is the compiler's name of the type (defineSignal), lua the method of
+// ServerSignal that adds a value of it.
+const SIGNAL_TYPES={integer:{kind:2,server:3,client:3,ts:'int',lua:'AddInt'},float:{kind:4,server:5,client:7,ts:'float',lua:'AddFloat'},boolean:{kind:6,server:4,client:5,ts:'bool',lua:'AddBool'},
+  string:{kind:5,server:6,client:9,ts:'str',lua:'AddString'},vector3:{kind:7,server:12,client:11,ts:'vec3',lua:'AddVector3'},entity:{server:1,client:1,ts:'entity',lua:'AddEntity'},
+  guid:{kind:1,server:2,client:14,ts:'guid',lua:'AddGuid'},prefabId:{kind:1,server:21,client:19,ts:'prefab_id',lua:'AddPrefabId'},configId:{kind:1,server:20,client:18,ts:'config_id',lua:'AddConfigId'},
+  integerList:{of:'integer',server:8,client:4},floatList:{of:'float',server:10,client:8},booleanList:{of:'boolean',server:9,client:6},stringList:{of:'string',server:11,client:10},
+  vector3List:{of:'vector3',server:15,client:12},entityList:{of:'entity',server:13,client:2},guidList:{of:'guid',server:7,client:15},prefabIdList:{of:'prefabId',server:23,client:21},configIdList:{of:'configId',server:22,client:20}};
+for(const t of Object.values(SIGNAL_TYPES))if(t.of){t.ts=SIGNAL_TYPES[t.of].ts+'_list';t.lua=SIGNAL_TYPES[t.of].lua+'List';}
+export const SIGNAL_PARAMETER_TYPES=Object.keys(SIGNAL_TYPES);
+export function signalType(type,side){
+  const t=SIGNAL_TYPES[type],code=t[side];
+  return t.of?Buffer.concat([field(1,0,10002),field(3,0,code),field(4,0,code),field(102,2,field(1,2,signalType(t.of,side)))])
+    :Buffer.concat([...(t.kind?[field(1,0,t.kind)]:[]),field(3,0,code),field(4,0,code),...(type==='boolean'?[field(101,2,field(1,0,side==='client'?200001:1))]:[])]);
+}
+export function signalRecords({send,listen,client,script,name,serial,parameter,parameters}){
+  // parameters: what the signal carries, [{name, type}] in order; parameter is the short way to one string. In the
+  // official sample 信号 the signal 平台 has one string, 状态: a pin more in each of the three definitions (numbered
+  // after the twelve fixed pins), {4: {1: name, 2: type, 3: 1, 4 5 6: those pin numbers}} in the register entry, and 2
+  // instead of 1 in field 5 of each definition and field 6 of the entry. More parameters are more of the same: the
+  // place of each among the inputs (or after the three outputs of the event) in field 3 of its pin.
+  const carry=parameters??(parameter!==undefined?[{name:parameter,type:'string'}]:[]),count=carry.length,has=count>0,revision=has?2:1;
   const text=v=>Buffer.from(v,'utf8'),own=(id,isClient,count=revision)=>field(4,2,Buffer.concat([field(1,2,signalHead(id,isClient)),
     field(2,2,isClient?Buffer.concat([field(1,0,10001),field(2,0,20002),field(3,0,22000),field(5,0,2000)]):signalHead(id,false)),field(4,2,blank),field(5,0,count)]));
-  const stringType=n=>Buffer.concat([field(1,0,5),field(3,0,n),field(4,0,n)]);
-  const input=(type,n)=>has?[field(102,2,Buffer.concat([field(1,2,text(parameter)),field(2,0,1),field(3,2,field(1,0,3)),field(4,2,type),field(8,0,n)]))]:[];
+  const inputs=(side,first,pin)=>carry.map((p,i)=>field(102,2,Buffer.concat([field(1,2,text(p.name)),field(2,0,1),field(3,2,Buffer.concat([field(1,0,3),...(first+i?[field(2,0,first+i)]:[])])),field(4,2,signalType(p.type,side)),field(8,0,pin(i))])));
   const flow=(fid,kind,n)=>field(fid,2,Buffer.concat([field(2,0,1),field(3,2,field(1,0,kind)),field(4,2,blank),field(8,0,n)]));
   const nameTypeBody=Buffer.concat([field(1,0,5),field(7,2,field(1,0,4))]),nameDefault=Buffer.concat([field(1,0,6),field(2,0,1)]);
   const namePin=n=>field(106,2,Buffer.concat([field(1,2,text('信号名')),field(4,2,nameTypeBody),field(5,2,nameDefault),field(8,0,n)]));
@@ -1274,22 +1293,22 @@ export function signalRecords({send,listen,client,script,name,serial,parameter})
   const fourth=script?signalHead(script,false):null;
   const link=(code,slot,a,b,c=fourth)=>field(107,2,Buffer.concat([field(1,0,code),field(slot,2,Buffer.concat([field(1,2,text(name)),field(2,2,a),field(3,2,b),...(c?[field(4,2,c)]:[])]))]));
   const tail=(title,side)=>[field(200,2,text(title)),field(203,0,side),field(204,0,8)];
-  const sendDef=Buffer.concat([own(send,false),flow(100,1,serial),flow(101,2,serial+1),...input(stringType(6),serial+12),namePin(serial+2),link(1001,101,signalHead(listen,false),signalHead(client,true)),...tail('发送信号',1)]);
-  const listenDef=Buffer.concat([own(listen,false),flow(101,2,serial+3),out('事件源实体',0,entity,serial+5),out('事件源GUID',1,guidType,serial+6),out('信号来源实体',2,entity,serial+7),...(has?[out(parameter,3,stringType(6),serial+13)]:[]),namePin(serial+4),
+  const sendDef=Buffer.concat([own(send,false),flow(100,1,serial),flow(101,2,serial+1),...inputs('server',0,i=>serial+12+3*i),namePin(serial+2),link(1001,101,signalHead(listen,false),signalHead(client,true)),...tail('发送信号',1)]);
+  const listenDef=Buffer.concat([own(listen,false),flow(101,2,serial+3),out('事件源实体',0,entity,serial+5),out('事件源GUID',1,guidType,serial+6),out('信号来源实体',2,entity,serial+7),...carry.map((p,i)=>out(p.name,3+i,signalType(p.type,'server'),serial+13+3*i)),namePin(serial+4),
     link(1002,102,signalHead(send,false),signalHead(client,true)),...tail('监听信号',2)]);
-  const clientDef=Buffer.concat([own(client,true),flow(100,1,serial+8),flow(101,2,serial+9),...input(stringType(9),serial+14),
+  const clientDef=Buffer.concat([own(client,true),flow(100,1,serial+8),flow(101,2,serial+9),...inputs('client',0,i=>serial+14+3*i),
     field(106,2,Buffer.concat([field(2,0,1),field(3,2,field(1,0,5)),field(4,2,Buffer.concat([field(1,0,2),field(4,0,3)])),field(5,2,Buffer.concat([field(1,0,5),field(2,0,1),field(100,2,field(1,0,200124))])),field(8,0,serial+10)])),
     field(106,2,Buffer.concat([field(1,2,text('信号名')),field(2,0,1),field(3,2,Buffer.concat([field(1,0,5),field(2,0,1)])),field(4,2,Buffer.concat([field(1,0,5),field(4,0,9),field(7,2,field(1,0,4))])),field(5,2,nameDefault),field(8,0,serial+11)])),
     link(1001,101,signalHead(listen,false),signalHead(send,false)),...tail('向服务器节点图发送信号',1)]);
-  const carried=has?[field(4,2,Buffer.concat([field(1,2,text(parameter)),field(2,0,6),field(3,0,1),field(4,0,serial+12),field(5,0,serial+13),field(6,0,serial+14)]))]:[];
+  const carried=carry.map((p,i)=>field(4,2,Buffer.concat([field(1,2,text(p.name)),field(2,0,SIGNAL_TYPES[p.type].server),field(3,0,1),field(4,0,serial+12+3*i),field(5,0,serial+13+3*i),field(6,0,serial+14+3*i)])));
   const register=Buffer.concat([field(1,2,signalHead(send,false)),field(2,2,signalHead(listen,false)),field(3,2,text(name)),...carried,field(6,0,revision),field(7,2,signalHead(client,true))]);
-  const at=serial+(has?15:12);
+  const at=serial+12+3*count;
   const scriptDef=script?Buffer.concat([own(script,false,revision+1),flow(100,1,at),flow(101,2,at+1),
     field(102,2,Buffer.concat([field(1,2,text('目标玩家')),field(2,0,1),field(3,2,field(1,0,3)),field(4,2,entity),field(8,0,at+(has?5:4))])),
-    ...(has?[field(102,2,Buffer.concat([field(1,2,text(parameter)),field(2,0,1),field(3,2,Buffer.concat([field(1,0,3),field(2,0,1)])),field(4,2,stringType(6)),field(8,0,at+6)]))]:[]),
+    ...inputs('server',1,i=>at+6+i),
     field(106,2,Buffer.concat([field(1,2,text('信号名')),field(4,2,Buffer.concat([field(1,0,5),field(2,2,Buffer.concat([field(1,0,5),field(2,0,1),field(4,2,Buffer.concat([field(1,0,1),field(100,2,blank)])),field(105,2,field(1,2,text(name)))])),field(6,0,1),field(7,2,field(1,0,4))])),field(5,2,nameDefault),field(8,0,at+2)])),
     link(1006,108,signalHead(send,false),signalHead(client,true),signalHead(listen,false)),...tail('发送客户端脚本信号',1)]):null;
-  return {definitions:[sendDef,listenDef,clientDef,...(scriptDef?[scriptDef]:[])],heads:[signalHead(send,false),signalHead(listen,false),signalHead(client,true)],register,pins:(has?15:12)+(scriptDef?(has?7:5):0)};
+  return {definitions:[sendDef,listenDef,clientDef,...(scriptDef?[scriptDef]:[])],heads:[signalHead(send,false),signalHead(listen,false),signalHead(client,true)],register,pins:12+3*count+(scriptDef?(has?6+count:5):0)};
 }
 export {clientScriptSignalHeads} from './scene/signal-definitions.mjs';
 function signalState(root){
@@ -1298,20 +1317,28 @@ function signalState(root){
   // The highest pin serial in use: field 8 of every pin block of every definition.
   let serial=0;for(const d of definitions)for(const pin of fields(d).filter(f=>f.wire===2&&f.id>=100&&f.id<=106)){const n=varintOf(pin.data,8);if(n>serial)serial=n;}
   const register=parts.find(f=>f.id===5&&f.wire===2),names=register?fields(register.data).filter(f=>f.id===3&&f.wire===2).map(f=>fields(f.data).find(x=>x.id===3&&x.wire===2)?.data.toString('utf8')??''):[];
-  return {parts,ids,serial,register,names};
+  const codes=new Map(Object.entries(SIGNAL_TYPES).map(([type,t])=>[t.server,type]));
+  const carried=register?fields(register.data).filter(f=>f.id===3&&f.wire===2).map(f=>fields(f.data).filter(x=>x.id===4&&x.wire===2).map(x=>({name:fields(x.data).find(y=>y.id===1&&y.wire===2)?.data.toString('utf8')??'',type:codes.get(varintOf(x.data,2))??'unknown'}))):[];
+  return {parts,ids,serial,register,names,carried};
 }
 export function listSignals({mapPath}){
   const file=resolve(mapPath);
-  return {mapPath:file,signals:signalState(container(fs.readFileSync(file))).names,
+  const state=signalState(container(fs.readFileSync(file))),parameters=Object.fromEntries(state.names.map((n,i)=>[n,state.carried[i]]).filter(([,list])=>list?.length));
+  return {mapPath:file,signals:state.names,...(Object.keys(parameters).length?{parameters}:{}),
     note:'A server graph sends one with f.sendSignal(\'name\') and hears it with .onSignal(\'name\', (evt, f) => {...}) on any entity; every graph that listens runs.'};
 }
-export function addSignal({mapPath,name,parameter,outputName},workspace){
+export function addSignal({mapPath,name,parameter,parameters,outputName},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file);let root=container(bytes);
   if(fields(root).filter(f=>f.id===10&&f.wire===2).length!==1)fail('UNSUPPORTED_SAVE','The save does not have the node graph section this tool knows.');
   const state=signalState(root);
   if(state.names.includes(name))fail('DUPLICATE_SIGNAL_NAME','The save already has a signal with this name.',{name});
+  if(parameter!==undefined&&parameters!==undefined)fail('INVALID_SIGNAL_PARAMETERS','Give parameter (one string) or parameters (a list of {name, type}), not both.');
+  if(parameters){const seen=new Set();for(const p of parameters){
+    if(!SIGNAL_TYPES[p.type])fail('INVALID_SIGNAL_PARAMETERS','A signal cannot carry the type "'+p.type+'".',{types:SIGNAL_PARAMETER_TYPES});
+    if(seen.has(p.name))fail('INVALID_SIGNAL_PARAMETERS','Two parameters of the signal have the name "'+p.name+'".');seen.add(p.name);}
+    if(!parameters.length)parameters=undefined;}
   if(/^client:/.test(name))fail('INVALID_SIGNAL_NAME','A signal name cannot begin with "client:": in a graph that prefix says the signal goes to the client scripts (f.sendSignal(\'client:name\', player)).',{name});
-  const first=Math.max(SIGNAL_BASE,...state.ids)+1,made=signalRecords({send:first,listen:first+1,client:first+2,script:first+3,name,serial:state.serial+1,parameter});
+  const first=Math.max(SIGNAL_BASE,...state.ids)+1,made=signalRecords({send:first,listen:first+1,client:first+2,script:first+3,name,serial:state.serial+1,parameter,parameters});
   const heads=made.heads.map(h=>field(2,2,h)),entry=field(3,2,made.register);
   const register=state.register?(()=>{const items=fields(state.register.data);let last=-1;items.forEach((f,i)=>{if(f.id===2&&f.wire===2)last=i;});
     return Buffer.concat([...items.slice(0,last+1).map(f=>f.raw),...heads,...items.slice(last+1).map(f=>f.raw),entry]);})():Buffer.concat([...heads,entry]);
@@ -1319,6 +1346,11 @@ export function addSignal({mapPath,name,parameter,outputName},workspace){
   const before=state.parts.filter(f=>f.id<=2),after=state.parts.filter(f=>f.id>2&&f.id!==5),low=after.filter(f=>f.id<5),high=after.filter(f=>f.id>5);
   root=replace(root,10,2,Buffer.concat([...before.map(f=>f.raw),...made.definitions.map(d=>field(2,2,field(1,2,d))),...low.map(f=>f.raw),field(5,2,register),...high.map(f=>f.raw)]));
   const out=output(workspace,file,outputName,'-signal');fs.writeFileSync(out,wrap(bytes,root));
+  if(parameters){
+    const types=parameters.map(p=>"['"+p.name+"', '"+SIGNAL_TYPES[p.type].ts+"']").join(', '),values=parameters.map(p=>'<'+p.type+'>').join(', ');
+    return {mapPath:out,source:file,name,parameters,definitionIds:[first,first+1,first+2,first+3],
+      next:'Use mapPath in later calls. In a graph source declare it once, const S = defineSignal(\''+name+'\', ['+types+'] as const) (defineSignal is imported from genshin-ts/runtime/core like g), send it with f.sendSignal(S, '+values+') and hear it with .onSignal(S, (evt, f) => {...}), where the values are evt.params.'+parameters[0].name+(parameters.length>1?', evt.params.'+parameters[1].name+' and so on':'')+'. A client script (Lua) sends it with local s = game.ServerSignal("'+name+'") '+parameters.map(p=>'s:'+SIGNAL_TYPES[p.type].lua+'(...)').join(' ')+' s:SendSignal(), the values added in this order. To the client scripts of one player a graph sends it through a second declaration whose name begins with client: and whose first parameter is the player, const C = defineSignal(\'client:'+name+'\', [[\'player\', \'entity\'], '+types+'] as const) and f.sendSignal(C, player, '+values+'); a script hears it with script:RegisterServerSignalHandler("'+name+'", function(name, params) ... end), params[1] being the first value.'};
+  }
   return {mapPath:out,source:file,name,...(parameter!==undefined?{parameter}:{}),definitionIds:[first,first+1,first+2,first+3],
     next:'Use mapPath in later calls. A graph sends it with f.sendSignal(\''+name+'\''+(parameter!==undefined?', <a string>':'')+') and any graph hears it with .onSignal(\''+name+'\', (evt, f) => {...})'+(parameter!==undefined?'; the string it carries is the parameter "'+parameter+'" of the event (a number travels as text: f.dataTypeConversion(n, \'str\'))':'')+'. This is how one thing tells many: the sender does not know who listens. To the client scripts (Lua) of one player a graph sends it with f.sendSignal(\'client:'+name+'\', player'+(parameter!==undefined?', <a string>':'')+'), and a script hears it with script:RegisterServerSignalHandler("'+name+'", function(name, params) ... end).'};
 }
@@ -2212,7 +2244,7 @@ function clientScripts(root){
 }
 export const CLIENT_SCRIPT_TYPES=Object.keys(SCRIPT_TYPES);
 // What the Lua of this version does not have: found here rather than as a fault in play. From the official API page,
-// and looked at in play (2026-10-14: coroutine, io, package, load, loadfile and dofile are nil; require is there, and
+// and looked at in play (2026-10-13: coroutine, io, package, load, loadfile and dofile are nil; require is there, and
 // takes the file name of another script of the save without ".lua", letter for letter).
 const LUA_FORBIDDEN=[[/\bcoroutine\s*\./,'coroutine.* is not available'],[/\bio\s*\./,'io.* is not available'],[/\bstring\s*\.\s*dump\b/,'string.dump is not available'],
   [/\bos\s*\.\s*(?!time\b|date\b|clock\b|difftime\b)[A-Za-z_]+/,'of os only time, date, clock and difftime are available'],[/\bdebug\s*\.\s*(?!traceback\b)[A-Za-z_]+/,'of debug only traceback is available'],
@@ -2364,7 +2396,7 @@ function settleClientRecords(made,paths){
 }
 // Which controls reach beyond the canvas of a phone (1280 x 720, the smallest of the four) as they are given. The same
 // numbers serve every device unless devices says otherwise, and an interface laid out on the computer's 1600 x 900 puts
-// what stands near its edges off a phone's screen (seen in the editor's own preview, 2026-10-14: a row of counters at
+// what stands near its edges off a phone's screen (seen in the editor's own preview, 2026-10-13: a row of counters at
 // the top of the computer's screen stood above the phone's). Only controls hung on the centre all the way up are
 // judged: one with anchors of its own follows an edge and is where it should be on every canvas.
 function beyondPhone(controls){

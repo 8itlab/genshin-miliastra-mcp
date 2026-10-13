@@ -806,7 +806,7 @@ class Run:
 
     def log_still_ticked(self):
         # The same save is still open and the run before ticked the same rows: the editor keeps them ticked, and
-        # ticking them again is half a minute (seen 2026-10-14: 33 of the 95 seconds of a round that changed only Lua).
+        # ticking them again is half a minute (seen 2026-10-13: 33 of the 95 seconds of a round that changed only Lua).
         # playtest_status leaves the marker when such a run came back without a single line of log: tick anew then.
         marker = self.dir.parent / 'log-not-kept'
         if marker.exists():

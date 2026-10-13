@@ -25,7 +25,7 @@
 | 3.3 | 跟随运动器 | ✅ 上机验证过（`follow`：金币飞向玩家，`examples/kingdom4`、`examples/hop`） | 追踪速度等参数还只能用官方样例那一组 |
 | 3.4 | 自定义挂接点 | 📖 🔧 | 挂接点组件（种类码 21） |
 | 3.5 | 单位状态 | ✅ 描边状态上机验证过（`scene_add_unit_status`；物件绿色描边、角色白色描边） | 其它种类的单位状态（加属性、持续伤害等） |
-| 3.6 | 信号 | ✅ 不带参数的信号和带一个字符串参数的信号都上机验证过（`scene_add_signal` 的 `parameter`；`examples/kingdom4`、`examples/farm`） | 其它类型的参数、多个参数：当前版本的三节点写法里没有样例在三处都给出写法，所以没做 |
+| 3.6 | 信号 | ✅ 不带参数、带一个字符串（`parameter`）、带好几个各种类型的参数（`parameters`，编辑器给的十八种类型）都上机验证过（`examples/kingdom4`、`examples/farm`、`examples/signalparams`） | — |
 | 3.7 | 过滤器图 | ✅ 上机验证过（`scene_add_graph` kind boolFilter + 选项的 `filterGraphId`；为假时选项不显示） | — |
 | 3.8 | 投射运动器、本地投射物 | ✅ 投射运动器（直线、抛物线）和命中检测上机验证过（`scene_add_components` 的 `projectile`、`hitDetection`，和官方样例三个元件逐字节相同；`examples/shoot`） | 跟随（追踪）投射物；本地投射物（只能由技能的客户端图创建的那一种） |
 | 3.9 | 能力单元 | ✅ 直接攻击上机验证过（`abilityUnits`；`examples/kingdom4` 的弓铺射怪）；✅ 恢复生命也上机验证过（`f.recoverHp`，屏幕上的生命值 8492 → 9992） | 攻击盒攻击型 |

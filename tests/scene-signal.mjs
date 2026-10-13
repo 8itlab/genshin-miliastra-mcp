@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {container,fields} from '../src/scene/wire.mjs';
-import {signalRecords,addSignal,listSignals,clientScriptSignalHeads} from '../src/scene-save.mjs';
+import {signalRecords,signalType,addSignal,listSignals,clientScriptSignalHeads,SIGNAL_PARAMETER_TYPES} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-signal-'));
 const pick=prefix=>path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith(prefix)));
@@ -61,6 +61,33 @@ try{
   const onStored=addSignal({mapPath:fixture('editor-2026-10-13-signal4.gil'),name:'more'},workspace);
   assert.deepEqual(onStored.definitionIds,[B+4,B+5,B+6,B+7]);
   assert.ok(definitions(onStored.mapPath)[4].equals(signalRecords({send:B+4,listen:B+5,client:B+6,script:B+7,name:'more',serial:23}).definitions[0]));
+  // Several parameters of any type. A save in which the eighteen types the signal manager offers were given to two
+  // signals by hand (PR_win eight, PR_lose ten): the type of every parameter pin this tool writes, in each of the four
+  // definitions, is byte for byte the editor's, and so are the places of the pins and the types in the register.
+  const typed=fixture('editor-2026-10-13-signaltypes.gil'),byHand=definitions(typed),listed=listSignals({mapPath:typed});
+  assert.deepEqual(listed.parameters.PR_win.map(p=>p.type),['integer','float','vector3','entity','floatList','entityList','prefabIdList','configIdList']);
+  assert.deepEqual(listed.parameters.PR_lose.map(p=>p.type),['boolean','guid','string','prefabId','configId','integerList','stringList','vector3List','booleanList','guidList']);
+  assert.equal(listed.parameters.PR_win[0].name,'score');
+  assert.equal(new Set([...listed.parameters.PR_win,...listed.parameters.PR_lose].map(p=>p.type)).size,SIGNAL_PARAMETER_TYPES.length);
+  const pins=(d,id)=>fields(d).filter(f=>f.id===id&&f.wire===2).map(f=>{const parts=fields(f.data);return {name:parts.find(x=>x.id===1)?.data.toString('utf8'),place:parts.find(x=>x.id===3).data,type:parts.find(x=>x.id===4).data};});
+  for(const [k,name] of [[0,'PR_win'],[1,'PR_lose']]){
+    const carry=listed.parameters[name],made=signalRecords({send:B,listen:B+1,client:B+2,script:B+3,name,serial:1,parameters:carry}).definitions;
+    // In the save the definitions stand send, listen, client for each signal and then the two for client scripts.
+    const theirs=[byHand[k*3],byHand[k*3+1],byHand[k*3+2],byHand[6+k]];
+    for(const [i,pinId] of [[0,102],[1,103],[2,102],[3,102]]){
+      const mine=pins(made[i],pinId),hand=pins(theirs[i],pinId);assert.equal(mine.length,hand.length,name+' definition '+i);
+      mine.forEach((p,j)=>{assert.equal(p.name,hand[j].name);assert.ok(p.type.equals(hand[j].type),name+' definition '+i+' type of '+p.name);assert.ok(p.place.equals(hand[j].place),name+' definition '+i+' place of '+p.name);});}
+    assert.equal(new Set(made.flatMap(d=>fields(d).filter(f=>f.wire===2&&f.id>=100&&f.id<=106).map(f=>Number(fields(f.data).find(x=>x.id===8).value)))).size,made.reduce((n,d)=>n+fields(d).filter(f=>f.wire===2&&f.id>=100&&f.id<=106).length,0),'every pin has its own number');
+  }
+  assert.ok(signalType('booleanList','client').equals(pins(byHand[5],102)[8].type));
+  // Written into a save and read back; the answer says how to send and read them.
+  const scored=addSignal({mapPath:second.mapPath,name:'scored',parameters:[{name:'points',type:'integer'},{name:'where',type:'vector3'},{name:'who',type:'entity'},{name:'tags',type:'stringList'}]},workspace);
+  assert.deepEqual(listSignals({mapPath:scored.mapPath}).parameters,{scored:[{name:'points',type:'integer'},{name:'where',type:'vector3'},{name:'who',type:'entity'},{name:'tags',type:'stringList'}]});
+  assert.ok(scored.next.includes("defineSignal('scored', [['points', 'int'], ['where', 'vec3'], ['who', 'entity'], ['tags', 'str_list']] as const)")&&scored.next.includes('s:AddInt(...) s:AddVector3(...) s:AddEntity(...) s:AddStringList(...) s:SendSignal()'),scored.next);
+  const afterScored=addSignal({mapPath:scored.mapPath,name:'then'},workspace),numbers=definitions(afterScored.mapPath).flatMap(d=>fields(d).filter(f=>f.wire===2&&f.id>=100&&f.id<=106).map(f=>Number(fields(f.data).find(x=>x.id===8).value)));
+  assert.equal(new Set(numbers).size,numbers.length,'pin numbers repeat after a signal with several parameters');
+  assert.throws(()=>addSignal({mapPath:plain,name:'x',parameters:[{name:'a',type:'integer'},{name:'a',type:'float'}]},workspace),e=>e.code==='INVALID_SIGNAL_PARAMETERS');
+  assert.throws(()=>addSignal({mapPath:plain,name:'x',parameter:'a',parameters:[{name:'b',type:'float'}]},workspace),e=>e.code==='INVALID_SIGNAL_PARAMETERS');
   assert.throws(()=>addSignal({mapPath:plain,name:'client:x'},workspace),e=>e.code==='INVALID_SIGNAL_NAME');
   assert.throws(()=>addSignal({mapPath:second.mapPath,name:'night'},workspace),e=>e.code==='DUPLICATE_SIGNAL_NAME');
   assert.ok(fs.readFileSync(plain).equals(before),'the source save was changed');
