@@ -1129,7 +1129,13 @@ class Run:
         # A key input is two events, down and up; one with repeat {every, until} is that pair again and again.
         for i in self.req.get('inputs', []):
             if not i.get('key'):
-                events.append((float(i['at']), 'key', i))
+                # A click that is held (holdMs given, longer than a tap) is two events like a key, so that screenshots
+                # can be taken while the button is down: the pressed look of a button is only there in between.
+                if i.get('click') and float(i.get('holdMs', 0)) > 150:
+                    events.append((float(i['at']), 'mousedown', i))
+                    events.append((round(float(i['at']) + min(float(i['holdMs']), 60000) / 1000, 3), 'mouseup', i))
+                else:
+                    events.append((float(i['at']), 'key', i))
                 continue
             hold = min(float(i.get('holdMs', 120)), 60000) / 1000
             repeat, at = i.get('repeat'), float(i['at'])
@@ -1223,6 +1229,15 @@ class Run:
                     self.result['burstFramesDropped'] = self.result.get('burstFramesDropped', 0) + 1
                 else:
                     self.frame(start)
+            elif kind == 'mousedown':
+                left, top, right, bottom = self.window('game')['rect']
+                x, y = left + data['click'][0] * (right - left), top + data['click'][1] * (bottom - top)
+                vx, vy, vw, vh = (user.GetSystemMetrics(i) for i in (76, 77, 78, 79))
+                self._send(self._mouse(0x8000 | 0x4000 | 1, round((x - vx) * 65535 / (vw - 1)), round((y - vy) * 65535 / (vh - 1))))
+                time.sleep(0.08)
+                self._send(self._mouse(2))
+            elif kind == 'mouseup':
+                self._send(self._mouse(4))
             elif kind == 'shot':
                 self.shot('game', f't{int(at):03d}', t=round(time.time() - start, 1))
             elif kind == 'read':

@@ -10,7 +10,7 @@ import { buildSignalNodeIdMapFromFields } from 'genshin-ts/injector/signal_nodes
 import { inspectEntities } from './scene/inspect.mjs';
 import { inspectBattleConfigurations } from './scene/battle-config.mjs';
 import { inspectUIConfigurations } from './scene/ui-config.mjs';
-import {signalDefinitionFingerprints} from './scene/signal-definitions.mjs';
+import {signalDefinitionFingerprints,clientScriptSignalHeads} from './scene/signal-definitions.mjs';
 import {inspectSignalContract} from './scene/signal-contract.mjs';
 import {inspectPrefabs} from './scene/prefabs.mjs';
 
@@ -74,9 +74,34 @@ export function inspectGia(bytes) {
   const graph=loadGiaGraph(bytes,proto.rootMessage,proto.nodeGraphMessage);
   return {id:Number(graph.id.id),name:graph.name,nodeCount:graph.nodes?.length||0,editorCount:graphEditorCount(graph),type:Number(graph.id.type),kind:Number(graph.id.kind),nodePayloadHash:graphNodePayloadHash(graph,proto.nodeGraphMessage),topology:graphTopology(graph,proto.nodeGraphMessage)};
 }
+// A signal to the client scripts (Lua) of one player. The compiler has no node for it (发送客户端脚本信号, new in game
+// 7.1), but the node is the send node of the signal in all but the definition it names: the name of the signal, then
+// the player as its first data pin and the parameters after (read from a node placed and wired by hand, 2026-10-13).
+// So a graph writes f.sendSignal('client:NAME', player, ...parameters), and here, before the graph goes into the save,
+// such a node is given the definition 发送客户端脚本信号 of NAME in that save and the name without the prefix.
+const CLIENT_SIGNAL=/^client:/;
+function textOf(value){return typeof value?.bString?.val==='string'?value.bString:value?.bConcreteValue?.value?textOf(value.bConcreteValue.value):null;}
+export function toClientScriptSignals(gilBytes,giaBytes){
+  const {rootMessage}=loadGiaProto(),root=rootMessage.decode(giaBytes.subarray(20,giaBytes.length-4)),graph=root?.graph?.graph?.inner?.graph;
+  const named=(graph?.nodes??[]).filter(n=>n.genericId?.nodeId===300000).map(n=>({node:n,text:(n.pins??[]).filter(p=>p?.i1?.kind===5).map(p=>textOf(p.value)).find(Boolean)})).filter(x=>x.text&&CLIENT_SIGNAL.test(x.text.val));
+  if(!named.length)return giaBytes;
+  const heads=clientScriptSignalHeads(gilBytes);
+  for(const {node,text} of named){
+    const name=text.val.replace(CLIENT_SIGNAL,''),head=heads.get(name);
+    if(!head)fail('SIGNAL_NOT_FOR_CLIENT_SCRIPTS',heads.size||listedSignals(gilBytes).includes(name)?'The save has no definition 发送客户端脚本信号 for this signal: the signal was defined before game 7.1. Open the save in the editor and save it once (the editor adds the definition), or define the signal with scene_add_signal on a copy.':'The save has no signal of this name: scene_add_signal defines it.',{signal:name,sentAs:text.val,signals:[...heads.keys()]});
+    // The player is the first data pin: without it the node sends to nobody.
+    if(!(node.pins??[]).some(p=>p?.i1?.kind===3&&!(p.i1.index>0)))fail('SIGNAL_WITHOUT_PLAYER','A signal to client scripts names the player it goes to: f.sendSignal(\'client:'+name+'\', player, ...).',{signal:name});
+    for(const id of [node.genericId,node.concreteId])if(id)Object.assign(id,head);
+    text.val=name;
+  }
+  const payload=Buffer.from(rootMessage.encode(root).finish()),header=Buffer.from(giaBytes.subarray(0,20));
+  header.writeUInt32BE(payload.length+20,0);header.writeUInt32BE(payload.length,16);
+  return Buffer.concat([header,payload,giaBytes.subarray(-4)]);
+}
+function listedSignals(gilBytes){const payload=gilBytes.subarray(20,-4),found=[];parseMessage(payload,0,payload.length,0,0,0,0,0,0,0,found);return [...buildSignalNodeIdMapFromFields(payload,found).keys()];}
 export function inject(bytes, giaBytes, targetId) {
   // Keep upstream non-empty target checks enabled; never patch arbitrary binary fields.
-  const result=createInjector({lang:'en-US'}).injectBytes({gilBytes:bytes,giaBytes,targetId});
+  const result=createInjector({lang:'en-US'}).injectBytes({gilBytes:bytes,giaBytes:toClientScriptSignals(bytes,giaBytes),targetId});
   inspectBytes(result.bytes);
   return Buffer.from(result.bytes);
 }

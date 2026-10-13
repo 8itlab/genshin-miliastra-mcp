@@ -1,0 +1,305 @@
+{
+ "about": "The variables of a client script, of every type the editor offers, and the values a control gives them; seen in play on 2026-10-13. One script, CV_probe, with twenty-one variables (an integer, a float, a boolean, a string, a vector3, a list of each, the ids guid, configId, prefabId and controlId and lists of them, an entity, a list of entities, and one that is not public), stands on the root and on the control a. Each prints what script:GetParam gives it. On the root it prints the script's own values: whole = number:42, speed = number:1.5, on = boolean:true, label = string:abc, at = (1.0,2.0,3.0), nums = {number:7,number:9}, flags = {boolean:true,boolean:false}, spots = {(4.0,5.0,6.0)}, guid 123, config 456, prefab 789, target = number:0, who = number:0. On a it prints the values a gives (script: {name, values}): 99, 2.25, false, hi, (7.0,2.0,3.0), {7,8}, {3.5}, {false}, {y,z}, {(9.0,5.0,6.0)}, 124, 457, 790, {55}, {66}, {77}; hidden, which is not public, is 5 in both. A vector3 is a table with the keys x, y and z; a list is a table counted from 1. target is given as the name of the control b: the script reads a run-time id (3, not the number in the save), and game.GetClientUIControl(id) is the control (it prints 'target is b'; others, a list of two controls, gives b and a; the control's own id is script.object.id). The example also writes what this machine cannot show: b has another place and size on a phone and another place on a console (devices), a and b say where the stick of a gamepad goes (navigation), and log is a text window without its scroll bar; these are byte for byte what the editor writes when configured by hand, and were played only on a computer.",
+ "dir": "clientvars",
+ "namePrefix": "CV_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 8,
+ "screenshotsAt": [
+  4
+ ],
+ "inputs": [],
+ "scenes": [],
+ "generator": "gen_clientvars.py",
+ "clientScripts": [
+  {
+   "name": "CV_probe",
+   "file": "cv_probe.lua",
+   "variables": [
+    {
+     "name": "whole",
+     "type": "integer",
+     "value": 42,
+     "public": true
+    },
+    {
+     "name": "speed",
+     "type": "float",
+     "value": 1.5,
+     "public": true
+    },
+    {
+     "name": "on",
+     "type": "boolean",
+     "value": true,
+     "public": true
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "value": "abc",
+     "public": true
+    },
+    {
+     "name": "at",
+     "type": "vector3",
+     "value": [
+      1,
+      2,
+      3
+     ],
+     "public": true
+    },
+    {
+     "name": "nums",
+     "type": "integerList",
+     "value": [
+      7,
+      9
+     ],
+     "public": true
+    },
+    {
+     "name": "rates",
+     "type": "floatList",
+     "value": [
+      2.5
+     ],
+     "public": true
+    },
+    {
+     "name": "flags",
+     "type": "booleanList",
+     "value": [
+      true,
+      false
+     ],
+     "public": true
+    },
+    {
+     "name": "names",
+     "type": "stringList",
+     "value": [
+      "x"
+     ],
+     "public": true
+    },
+    {
+     "name": "spots",
+     "type": "vector3List",
+     "value": [
+      [
+       4,
+       5,
+       6
+      ]
+     ],
+     "public": true
+    },
+    {
+     "name": "target",
+     "type": "controlId",
+     "public": true
+    },
+    {
+     "name": "others",
+     "type": "controlIdList",
+     "public": true
+    },
+    {
+     "name": "guid",
+     "type": "guid",
+     "value": 123,
+     "public": true
+    },
+    {
+     "name": "config",
+     "type": "configId",
+     "value": 456,
+     "public": true
+    },
+    {
+     "name": "prefab",
+     "type": "prefabId",
+     "value": 789,
+     "public": true
+    },
+    {
+     "name": "guids",
+     "type": "guidList",
+     "value": [
+      5
+     ],
+     "public": true
+    },
+    {
+     "name": "configs",
+     "type": "configIdList",
+     "value": [
+      6
+     ],
+     "public": true
+    },
+    {
+     "name": "prefabs",
+     "type": "prefabIdList",
+     "value": [
+      7
+     ],
+     "public": true
+    },
+    {
+     "name": "who",
+     "type": "entity"
+    },
+    {
+     "name": "team",
+     "type": "entityList"
+    },
+    {
+     "name": "hidden",
+     "type": "integer",
+     "value": 5
+    }
+   ]
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "CV_ui",
+   "script": "CV_probe",
+   "controls": [
+    {
+     "name": "a",
+     "kind": "image",
+     "image": 100138,
+     "colour": "#ffd040",
+     "position": [
+      -200,
+      0
+     ],
+     "size": [
+      90,
+      90
+     ],
+     "navigation": {
+      "right": "b"
+     },
+     "script": {
+      "name": "CV_probe",
+      "values": {
+       "whole": 99,
+       "speed": 2.25,
+       "on": false,
+       "label": "hi",
+       "at": [
+        7,
+        2,
+        3
+       ],
+       "nums": [
+        7,
+        8
+       ],
+       "rates": [
+        3.5
+       ],
+       "flags": [
+        false
+       ],
+       "names": [
+        "y",
+        "z"
+       ],
+       "spots": [
+        [
+         9,
+         5,
+         6
+        ]
+       ],
+       "target": "b",
+       "others": [
+        "b",
+        "a"
+       ],
+       "guid": 124,
+       "config": 457,
+       "prefab": 790,
+       "guids": [
+        55
+       ],
+       "configs": [
+        66
+       ],
+       "prefabs": [
+        77
+       ]
+      }
+     }
+    },
+    {
+     "name": "b",
+     "kind": "image",
+     "image": 100138,
+     "colour": "#40a0ff",
+     "position": [
+      200,
+      0
+     ],
+     "size": [
+      90,
+      90
+     ],
+     "navigation": {
+      "left": "a",
+      "right": "none"
+     },
+     "devices": {
+      "mobile": {
+       "position": [
+        150,
+        0
+       ],
+       "size": [
+        70,
+        70
+       ]
+      },
+      "console": {
+       "position": [
+        260,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "name": "log",
+     "kind": "textWindow",
+     "position": [
+      0,
+      -250
+     ],
+     "size": [
+      400,
+      120
+     ],
+     "text": {
+      "content": "client variables",
+      "align": "right",
+      "scrollbar": false
+     }
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CvStage"
+  }
+ ]
+}

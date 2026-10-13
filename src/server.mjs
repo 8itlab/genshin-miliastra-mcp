@@ -221,8 +221,12 @@ playtest_status gives the outcome.
    scene_set_client_script puts a Lua script into the save, scene_add_client_ui a tree of client controls with the
    script on its root (pictures, mouse areas, grids, buttons), scene_add_client_template a control the script makes
    copies of at run time; the script draws the controls and changes them every frame if it wants. A graph tells it
-   something by setting a custom variable (the script hears the change), it tells a graph by a signal
-   (game.ServerSignal(name):SendSignal(), heard with .onSignal). playtest_start returns what the script prints
+   something that lasts by setting a custom variable (the script hears the change) and something of the moment by
+   a signal to the player's scripts (f.sendSignal('client:NAME', player), heard with
+   script:RegisterServerSignalHandler); it tells a graph by a signal (game.ServerSignal(name):SendSignal(), heard
+   with .onSignal). One script serves several controls when its variables are public and each control gives its
+   own values (script: {name, values}). The canvas is 1600 x 900 on a computer and 1280 x 720 on a phone: hang
+   what belongs at an edge on that edge with anchor, or give the control devices {mobile: {...}}. playtest_start returns what the script prints
    with the prints of the graphs, a fault in the script among them with its line. scene_remove_client takes an
    interface, a template or a script out again. Read read_knowledge {id:"client-lua.zh-CN"} before writing one:
    OnUpdate runs only after script:EnableUpdate(true), a tween does nothing until :Play(), a preset button needs
@@ -269,8 +273,8 @@ Worked examples, readable through the server: read_knowledge {id:"example-events
 {id:"example-hop"}, {id:"example-farm"}, {id:"example-checks"}, {id:"example-skills"}, {id:"example-shop"},
 {id:"example-drops"}, {id:"example-buttons"}, {id:"example-strike"}, {id:"example-raid"}, {id:"example-potion"},
 {id:"example-shoot"}, {id:"example-kingdom5"}, {id:"example-brain"}, {id:"example-skirmish"}, {id:"example-kingdom6"},
-{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"} give every
-tool call in order with its arguments and the source of every graph, recorded from a real run. All twenty-two have been played in the game.
+{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"} give every
+tool call in order with its arguments and the source of every graph, recorded from a real run. All of them have been played in the game.
 examples/doors is a gate that opens and closes again with two motion devices; examples/images is a screen that speaks without
 words (a row of lives made of image controls that a graph switches off and on, bars that show a value, a ring, a picture that starts hidden).
 examples/hazards is what pickups and hazards do to a character (a status that speeds up, one that holds in place, a bumper that

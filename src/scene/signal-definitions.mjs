@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {fields,one} from './wire.mjs';
+import {container,fields,one} from './wire.mjs';
 import {loadGiaProto} from 'genshin-ts/injector/proto';
 
 function describeDefinition(raw){
@@ -37,4 +37,16 @@ export function signalDefinitionFingerprints(payload,parsed,signals){
   }
  }
  return result;
+}
+
+const num=(b,id)=>{const f=fields(b).find(x=>x.id===id&&x.wire===0);return f?Number(f.value):null;};
+// The definitions 发送客户端脚本信号 of a save, by the name of the signal: what a node that sends to client scripts names.
+export function clientScriptSignalHeads(bytes){
+  const out=new Map();
+  for(const section of fields(container(bytes)).filter(f=>f.id===10&&f.wire===2))for(const group of fields(section.data).filter(f=>f.id===2&&f.wire===2))for(const d of fields(group.data).filter(f=>f.id===1&&f.wire===2)){
+    try{const links=fields(d.data).find(f=>f.id===107&&f.wire===2);if(!links||num(links.data,1)!==1006)continue;
+      const named=fields(links.data).find(f=>f.id===108&&f.wire===2),head=one(one(d.data,4),1);
+      out.set(fields(named.data).find(f=>f.id===1&&f.wire===2).data.toString('utf8'),{class:num(head,1),type:num(head,2),kind:num(head,3),nodeId:num(head,5)});}catch{}
+  }
+  return out;
 }

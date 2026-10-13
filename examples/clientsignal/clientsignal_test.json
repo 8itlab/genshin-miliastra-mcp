@@ -1,0 +1,58 @@
+{
+ "about": "A node graph sends a signal to the client scripts (Lua) of a player: the server node 发送客户端脚本信号 of game 7.1; seen in play on 2026-10-13. Two signals are defined with scene_add_signal, CS_ping and CS_tell (which carries one string, word). The graph writes f.sendSignal('client:CS_ping', player) at level second 9 and f.sendSignal('client:CS_tell', player, 'hello') at second 13: the prefix client: says the signal goes to the scripts of that player, and the player is the argument after the name. The script registers script:RegisterServerSignalHandler(name, function(name, params) ... end) for both in OnStart and prints what arrives: 'CS_LUA got CS_ping with 0 params' in the same second as the graph's CS_SENT ping, 'CS_LUA got CS_tell word hello' with CS_SENT tell. The lamp on the screen is grey at the start, green after the first signal and yellow after the second. The compiler has no such node: the server replaces the send node by it when it writes the graph into the save, and scene_add_signal writes the definition the node needs (a fourth one beside send, listen and send-to-server, byte for byte the one the 7.1 editor adds to a signal).",
+ "dir": "clientsignal",
+ "namePrefix": "CS_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 13,
+ "screenshotsAt": [
+  2,
+  7,
+  11
+ ],
+ "inputs": [],
+ "scenes": [],
+ "generator": "gen_clientsignal.py",
+ "signals": [
+  "CS_ping",
+  {
+   "name": "CS_tell",
+   "parameter": "word"
+  }
+ ],
+ "clientScripts": [
+  {
+   "name": "CS_main",
+   "file": "cs_main.lua"
+  }
+ ],
+ "clientUis": [
+  {
+   "name": "CS_ui",
+   "script": "CS_main",
+   "controls": [
+    {
+     "name": "lamp",
+     "kind": "image",
+     "image": 106025,
+     "position": [
+      0,
+      300
+     ],
+     "size": [
+      90,
+      90
+     ]
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "CsStage"
+  }
+ ]
+}

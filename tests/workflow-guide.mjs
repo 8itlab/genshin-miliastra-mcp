@@ -111,6 +111,22 @@ try{
  const broken=await sent('write_graphs',{mapPath:both.mapPath,graphs:[{graphId:stageGraph.graphId,code:src(stageGraph.graphId,stageGraph.name,'C')},{graphId:shared.graphId,code:'this is not a graph'}]});
  assert.equal(broken.written.length,1);assert.equal(broken.failed.graphId,shared.graphId);assert.equal(broken.failed.position,1);
  assert.match(String(broken.failed.code),/TYPECHECK_FAILED|BUILD_FAILED/);
+ // A signal to the client scripts of a player: the graph writes f.sendSignal('client:NAME', player, ...) and the node
+ // that goes into the save is the 发送客户端脚本信号 of that signal (its fourth definition), named without the prefix.
+ const toScripts=(name,args)=>"import { g } from 'genshin-ts/runtime/core'\ng.server({id:"+stageGraph.graphId+",name:'"+stageGraph.name+"'}).on('whenEntityIsCreated',(evt,f)=>{for(const player of f.getListOfPlayerEntitiesOnTheField())f.sendSignal('client:"+name+"'"+args+");})\n";
+ const sentTo=await sent('write_graphs',{mapPath:both.mapPath,graphs:[{graphId:stageGraph.graphId,code:toScripts('guide_lever',",player,'left'")}]});
+ assert.equal(sentTo.failed,undefined,JSON.stringify(sentTo.failed));
+ const {container:open,fields:parts}=await import('../src/scene/wire.mjs'),{clientScriptSignalHeads}=await import('../src/scene/signal-definitions.mjs');
+ const saved=fs.readFileSync(sentTo.mapPath),leverNode=clientScriptSignalHeads(saved).get('guide_lever').nodeId;
+ assert.deepEqual(told.definitionIds.at(-1),leverNode);
+ const graphOf=parts(open(saved)).filter(f=>f.id===10).flatMap(x=>parts(x.data).filter(f=>f.wire===2)).flatMap(x=>parts(x.data).filter(f=>f.id===1&&f.wire===2)).map(x=>x.data).find(g2=>parts(g2).some(f=>f.id===2&&f.wire===2&&f.data.toString('utf8').endsWith(stageGraph.name)));
+ const heads=parts(graphOf).filter(f=>f.id===3&&f.wire===2).map(n=>Number(parts(parts(n.data).find(f=>f.id===2&&f.wire===2).data).find(f=>f.id===5).value));
+ assert.ok(heads.includes(leverNode),'the node that sends to client scripts is not in the graph: '+heads.join(','));
+ assert.ok(graphOf.includes(Buffer.from('guide_lever'))&&!graphOf.includes(Buffer.from('client:guide_lever')),'the node still carries the prefix');
+ const nobody=await sent('write_graphs',{mapPath:both.mapPath,graphs:[{graphId:stageGraph.graphId,code:toScripts('guide_nobody',",player")}]});
+ assert.equal(nobody.failed?.code,'SIGNAL_NOT_FOR_CLIENT_SCRIPTS');
+ const unaddressed=await sent('write_graphs',{mapPath:both.mapPath,graphs:[{graphId:stageGraph.graphId,code:toScripts('guide_lever',"")}]});
+ assert.equal(unaddressed.failed?.code,'SIGNAL_WITHOUT_PLAYER');
  const chests=(await sent('scene_search_assets',{query:'宝箱',group:'交互机关'})).assets;
  assert.ok(chests.some(a=>a.presetStatus?.statusId===100010060),'asset search does not show the preset status of the chest');
 }finally{await client.close();fs.rmSync(workspace,{recursive:true,force:true});}

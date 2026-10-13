@@ -156,6 +156,66 @@ try{
   assert.deepEqual(listClientScripts({mapPath:noCard.mapPath}).scripts.map(x=>x.name),['menu']);
   assert.deepEqual(listInterface({mapPath:noCard.mapPath}).clientTemplates.map(t=>t.name),['dot']);
   assert.throws(()=>removeClient({mapPath:noCard.mapPath,ui:'menu'},workspace),e=>e.code==='CLIENT_UI_NOT_FOUND');
+  // What was configured by hand in a second pass (tests/fixtures/editor-2026-10-13-clientmore.gil): values a control
+  // gives the public variables of its scripts (every type), a rectangle of its own on each of the four devices, where
+  // the stick of a gamepad goes from a control, the settings of a text window.
+  const more=path.join(root,'tests','fixtures','editor-2026-10-13-clientmore.gil'),moreRoot=container(fs.readFileSync(more));
+  const hand2=new Map(fields(section(more,9)).filter(f=>f.id===502).map(f=>[number(f.data,501),f.data])),as2=id=>({states:statesOf(hand2.get(id))}),K2=B+42;
+  for(const spec of [
+    {id:K2,name:'容器节点',kind:'container',children:[43,44,45,47].map(n=>B+n),rect:null,scripts:[{id:B+2,values:[{name:'greet',type:'string',value:'hi'},{name:'count',type:'integer',value:99}]}]},
+    {id:B+43,name:'img',kind:'image',parent:K2,rect:{...as2(B+43),unsynced:true},image:100138},
+    {id:B+44,name:'win',kind:'textWindow',parent:K2,rect:as2(B+44),text:{content:'hello',align:'right',scrollbar:false}},
+    {id:B+45,name:'box',kind:'container',parent:K2,children:[B+46],rect:as2(B+45),focusable:true,navigation:{right:B+47,up:B+45,down:'none'}},
+    {id:B+47,name:'box2',kind:'container',parent:K2,rect:as2(B+47),focusable:true,navigation:{left:B+45},scripts:[{id:B+3,values:[
+      {name:'变量_4',type:'integerList',value:[7,8]},{name:'变量_1',type:'float',value:2.25},{name:'变量_3',type:'vector3',value:[7,2,3]},{name:'变量_5',type:'stringList',value:['y']},
+      {name:'变量_6',type:'controlId',value:B+45},{name:'变量_7',type:'floatList',value:[3.5]},{name:'变量_9',type:'vector3List',value:[[9,5,6]]},{name:'变量_14',type:'guid',value:124},
+      {name:'变量_16',type:'configId',value:457},{name:'变量_2',type:'boolean',value:false},{name:'变量_8',type:'booleanList',value:[false]},{name:'变量_15',type:'guidList',value:[55]},
+      {name:'变量_17',type:'configIdList',value:[66]},{name:'变量_18',type:'prefabId',value:790},{name:'变量_19',type:'prefabIdList',value:[77]},{name:'变量_20',type:'controlIdList',value:[B+45]}]}]}])
+    assert.ok(clientControlRecord(spec).equals(hand2.get(spec.id)),'the '+spec.kind+' "'+spec.name+'" of the second pass differs from the one configured in the editor');
+  // The four rectangles of the image: the same control stands 245 left of the middle on a computer, 307 on a phone,
+  // 849 on a console and 418 on a phone with a gamepad (typed in the editor as x = 555, 333, 111 and 222: the four
+  // canvases are 1600, 1280, 1920 and 1280 wide).
+  assert.deepEqual(statesOf(hand2.get(B+43)).map(st=>Math.round(st.position[0])),[-245,-307,-849,-418]);
+  // The variables of a script, every type the editor offers: one script with a value in each kind of list, the other
+  // with the ids, lists of ids and what the editor makes of a variable nobody filled.
+  const scriptOf=(file,n)=>fields(section(file,50)).filter(x=>x.id===1)[n].data,vars=path.join(root,'tests','fixtures','editor-2026-10-13-clientvars.gil');
+  const everyType=[{name:'变量_1',type:'float',value:1.5,public:true},{name:'变量_2',type:'boolean',value:true,public:true},{name:'变量_3',type:'vector3',value:[1,2,3],public:true},
+    {name:'变量_4',type:'integerList',value:[7,9],public:true},{name:'变量_5',type:'stringList',value:['x'],public:true},{name:'变量_6',type:'controlId',value:B+43,public:true},
+    {name:'变量_7',type:'floatList',value:[2.5],public:true},{name:'变量_8',type:'booleanList',value:[true],public:true},{name:'变量_9',type:'vector3List',value:[[4,5,6]],public:true},
+    {name:'变量_10',type:'vector3List'},{name:'变量_11',type:'vector3List'},{name:'变量_12',type:'entity',public:true},{name:'变量_13',type:'entityList'},{name:'变量_14',type:'guid',value:123,public:true},
+    {name:'变量_15',type:'guidList'},{name:'变量_16',type:'configId',value:456,public:true},{name:'变量_17',type:'configIdList'},{name:'变量_18',type:'prefabId',value:789},{name:'变量_19',type:'prefabIdList'},{name:'变量_20',type:'controlIdList'}];
+  const first=scriptOf(vars,1);
+  assert.ok(clientScriptRecord({id:B+3,name:'KS_b',file:'KS_b.lua',source:sub(first,5).toString('utf8'),variables:everyType}).equals(first),'the script with a variable of every type differs');
+  const second=scriptOf(more,1);
+  assert.ok(clientScriptRecord({id:B+3,name:'KS_b',file:'KS_b.lua',source:sub(second,5).toString('utf8'),variables:[
+    {name:'变量_1',type:'float',value:1.5,public:true},{name:'变量_2',type:'boolean',value:true,public:true},{name:'变量_3',type:'vector3',value:[1,2,3],public:true},{name:'变量_6',type:'controlId',value:B+43,public:true},
+    {name:'变量_10',type:'integer',public:true},{name:'变量_11',type:'string',public:true},{name:'变量_12',type:'entity',public:true},{name:'变量_13',type:'entityList',value:[null]},{name:'变量_14',type:'guid',value:123,public:true},
+    {name:'变量_15',type:'guidList',value:[5],public:true},{name:'变量_16',type:'configId',value:456,public:true},{name:'变量_17',type:'configIdList',value:[6],public:true},{name:'变量_18',type:'prefabId',value:789,public:true},
+    {name:'变量_19',type:'prefabIdList',value:[7],public:true},{name:'变量_20',type:'controlIdList',value:[B+47],public:true}]}).equals(second),'the script with ids, lists of ids and unfilled variables differs');
+  assert.deepEqual(listClientScripts({mapPath:more}).scripts[1].variables.slice(0,5),[{name:'变量_1',type:'float',public:true},{name:'变量_2',type:'boolean',public:true},{name:'变量_3',type:'vector3',public:true},{name:'变量_6',type:'controlId',public:true},{name:'变量_10',type:'integer',public:true}]);
+  // The same through the tools: values by the name of the variable, controls by their names, devices by theirs.
+  const tuned=setClientScript({mapPath:dot.mapPath,name:'tune',source:'function OnStart()\n  print(script:GetParam("speed"))\nend\n',variables:[{name:'speed',type:'float',value:1.5,public:true},{name:'target',type:'controlId',public:true},
+    {name:'others',type:'controlIdList',public:true},{name:'tags',type:'stringList',value:['a'],public:true},{name:'secret',type:'integer',value:1}]},workspace);
+  const pad=addClientUi({mapPath:tuned.mapPath,name:'pad',script:{name:'tune',values:{speed:3}},controls:[
+    {name:'a',kind:'container',position:[-200,0],focusable:true,navigation:{right:'b',left:'none'},script:{name:'tune',values:{speed:2.25,target:'b',others:['b','row/c'],tags:['x','y']}}},
+    {name:'b',kind:'container',position:[200,0],focusable:true,navigation:{left:'a'},devices:{mobile:{position:[150,0],size:[120,120]},console:{position:[260,0]}}},
+    {name:'row',kind:'container',children:[{name:'c',kind:'image',navigation:{up:'a'}}]},
+    {name:'log',kind:'textWindow',size:[300,200],text:{content:'hello',align:'right',scrollbar:false}}]},workspace);
+  const padMade=new Map(fields(section(pad.mapPath,9)).filter(f=>f.id===502).map(f=>[number(f.data,501),f.data])),at=n=>pad.controls.find(c=>c.path===n).controlId;
+  assert.ok(clientControlRecord({id:at('a'),name:'a',kind:'container',parent:pad.rootId,rect:{position:[-200,0],size:[150,150]},focusable:true,navigation:{right:at('b'),left:'none'},
+    scripts:[{id:tuned.scriptId,values:[{name:'speed',type:'float',value:2.25},{name:'target',type:'controlId',value:at('b')},{name:'others',type:'controlIdList',value:[at('b'),at('row/c')]},{name:'tags',type:'stringList',value:['x','y']}]}]}).equals(padMade.get(at('a'))),'names of controls become ids in what a control gives a script and in where the stick goes');
+  const plain={position:[200,0],size:[150,150]};
+  assert.ok(clientControlRecord({id:at('b'),name:'b',kind:'container',parent:pad.rootId,focusable:true,navigation:{left:at('a')},rect:{unsynced:true,states:[plain,{position:[150,0],size:[120,120]},{position:[260,0],size:[150,150]},plain]}}).equals(padMade.get(at('b'))),'a control with a rectangle of its own on two devices');
+  assert.ok(clientControlRecord({id:at('row/c'),name:'c',kind:'image',parent:at('row'),rect:{position:[0,0],size:[80,80]},focusable:true,navigation:{up:at('a')}}).equals(padMade.get(at('row/c'))),'a control the stick is sent from is one it can stand on');
+  assert.ok(clientControlRecord({id:at('log'),name:'log',kind:'textWindow',parent:pad.rootId,rect:{position:[0,0],size:[300,200]},text:{content:'hello',align:'right',scrollbar:false}}).equals(padMade.get(at('log'))));
+  assert.ok(clientControlRecord({id:pad.rootId,name:'容器节点',kind:'container',children:['a','b','row','log'].map(at),rect:null,scripts:[{id:tuned.scriptId,values:[{name:'speed',type:'float',value:3}]}]}).equals(padMade.get(pad.rootId)),'the root gives its script a value');
+  for(const [controls,code] of [[[{name:'a',kind:'image',script:{name:'tune',values:{nobody:1}}}],'VARIABLE_NOT_FOUND'],[[{name:'a',kind:'image',script:{name:'tune',values:{secret:2}}}],'VARIABLE_NOT_PUBLIC'],
+    [[{name:'a',kind:'image',script:{name:'tune',values:{speed:'fast'}}}],'INVALID_VARIABLE'],[[{name:'a',kind:'image',script:{name:'tune',values:{target:'nobody'}}}],'CONTROL_NOT_FOUND'],
+    [[{name:'a',kind:'image',navigation:{left:'b'}},{name:'b',kind:'image'}],'NOT_FOCUSABLE'],[[{name:'a',kind:'image',navigation:{left:'c'}},{name:'r',kind:'container',children:[{name:'c',kind:'image',focusable:true}]},{name:'s',kind:'container',children:[{name:'c',kind:'image',focusable:true}]}],'CONTROL_NOT_FOUND'],
+    [[{name:'a',kind:'image',text:{scrollbar:false}}],'INVALID_CONTROL'],[[{name:'a',kind:'text',text:{scrollbar:false}}],'INVALID_CONTROL']])
+    assert.throws(()=>addClientUi({mapPath:tuned.mapPath,name:'x',controls},workspace),e=>e.code===code,code);
+  for(const bad of [{name:'v',type:'colour'},{name:'v',type:'float',value:'1'},{name:'v',type:'entity',value:1},{name:'v',type:'vector3',value:[1,2]},{name:'v',type:'integerList',value:[1.5]},{name:'v',type:'guid',value:-1}])
+    assert.throws(()=>setClientScript({mapPath:blank,name:'s',source:'print(1)\n',variables:[bad]},workspace),e=>e.code==='INVALID_VARIABLE',JSON.stringify(bad));
   // The debug log of a play: what a graph prints is field 22 of a record, what a client script prints field 23.
   const record=(seconds,body)=>field(1,2,Buffer.concat([field(1,0,382),field(3,0,seconds),body]));
   const logBody=Buffer.concat([record(9,Buffer.concat([field(7,2,Buffer.concat([field(1,0,1),field(2,0,1073741825)])),field(22,2,Buffer.concat([field(1,0,382),field(2,2,Buffer.from('CU_CLICK'))]))])),

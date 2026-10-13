@@ -1246,16 +1246,23 @@ export function setClass({mapPath,name,allowJump,allowSprint,allowClimb,allowGli
 // register: the heads of all definitions ({2: head}...) and then one {3: {1: send, 2: listen, 3: name, 6: 1, 7: client}}
 // per signal. Ids start at 1610612737. Only signals without parameters are written here; the three definitions and the
 // register entry of the official sample 信号 are reproduced byte for byte.
+// Since game 7.1 a signal has a fourth definition, 发送客户端脚本信号: the server node that sends the signal to the
+// client scripts (Lua) of one player. The editor adds it to every signal of a save it opens (seen 2026-10-13 on four
+// saves of ours: tests/fixtures/editor-2026-10-13-signal4.gil and -signal4plain.gil): a definition with an input pin
+// 目标玩家 before the parameter, the name of the signal as the value of its name pin, links to its three siblings
+// under 1006/108, its own id as a fourth link in each of the three, and one more than they have in field 5. It is not
+// in the register. Its pins take the serial numbers after the three definitions': in, out, the name, then (one
+// number left out without a parameter, two with one) the player and the parameter.
 const SIGNAL_BASE=1610612736;
 const signalHead=(id,client)=>Buffer.concat([field(1,0,10001),field(2,0,client?20002:20000),field(3,0,22001),field(5,0,id)]);
-export function signalRecords({send,listen,client,name,serial,parameter}){
+export function signalRecords({send,listen,client,script,name,serial,parameter}){
   // parameter: the name of one string the signal carries. In the official sample 信号 the signal 平台 has one, 状态: a
   // pin more in each of the three definitions (numbered after the twelve fixed pins), {4: {1: name, 2: 6, 3: 1, 4 5 6:
   // those pin numbers}} in the register entry, and 2 instead of 1 in field 5 of each definition and field 6 of the entry.
   // Other types and a second parameter are not written: no sample of the current format shows them on all three sides.
   const has=parameter!==undefined,revision=has?2:1;
-  const text=v=>Buffer.from(v,'utf8'),own=(id,isClient)=>field(4,2,Buffer.concat([field(1,2,signalHead(id,isClient)),
-    field(2,2,isClient?Buffer.concat([field(1,0,10001),field(2,0,20002),field(3,0,22000),field(5,0,2000)]):signalHead(id,false)),field(4,2,blank),field(5,0,revision)]));
+  const text=v=>Buffer.from(v,'utf8'),own=(id,isClient,count=revision)=>field(4,2,Buffer.concat([field(1,2,signalHead(id,isClient)),
+    field(2,2,isClient?Buffer.concat([field(1,0,10001),field(2,0,20002),field(3,0,22000),field(5,0,2000)]):signalHead(id,false)),field(4,2,blank),field(5,0,count)]));
   const stringType=n=>Buffer.concat([field(1,0,5),field(3,0,n),field(4,0,n)]);
   const input=(type,n)=>has?[field(102,2,Buffer.concat([field(1,2,text(parameter)),field(2,0,1),field(3,2,field(1,0,3)),field(4,2,type),field(8,0,n)]))]:[];
   const flow=(fid,kind,n)=>field(fid,2,Buffer.concat([field(2,0,1),field(3,2,field(1,0,kind)),field(4,2,blank),field(8,0,n)]));
@@ -1263,7 +1270,8 @@ export function signalRecords({send,listen,client,name,serial,parameter}){
   const namePin=n=>field(106,2,Buffer.concat([field(1,2,text('信号名')),field(4,2,nameTypeBody),field(5,2,nameDefault),field(8,0,n)]));
   const out=(label,place,type,n)=>field(103,2,Buffer.concat([field(1,2,text(label)),field(2,0,1),field(3,2,Buffer.concat([field(1,0,4),...(place?[field(2,0,place)]:[])])),field(4,2,type),field(8,0,n)]));
   const entity=Buffer.concat([field(3,0,1),field(4,0,1)]),guidType=Buffer.concat([field(1,0,1),field(3,0,2),field(4,0,2)]);
-  const link=(code,slot,a,b)=>field(107,2,Buffer.concat([field(1,0,code),field(slot,2,Buffer.concat([field(1,2,text(name)),field(2,2,a),field(3,2,b)]))]));
+  const fourth=script?signalHead(script,false):null;
+  const link=(code,slot,a,b,c=fourth)=>field(107,2,Buffer.concat([field(1,0,code),field(slot,2,Buffer.concat([field(1,2,text(name)),field(2,2,a),field(3,2,b),...(c?[field(4,2,c)]:[])]))]));
   const tail=(title,side)=>[field(200,2,text(title)),field(203,0,side),field(204,0,8)];
   const sendDef=Buffer.concat([own(send,false),flow(100,1,serial),flow(101,2,serial+1),...input(stringType(6),serial+12),namePin(serial+2),link(1001,101,signalHead(listen,false),signalHead(client,true)),...tail('发送信号',1)]);
   const listenDef=Buffer.concat([own(listen,false),flow(101,2,serial+3),out('事件源实体',0,entity,serial+5),out('事件源GUID',1,guidType,serial+6),out('信号来源实体',2,entity,serial+7),...(has?[out(parameter,3,stringType(6),serial+13)]:[]),namePin(serial+4),
@@ -1274,8 +1282,15 @@ export function signalRecords({send,listen,client,name,serial,parameter}){
     link(1001,101,signalHead(listen,false),signalHead(send,false)),...tail('向服务器节点图发送信号',1)]);
   const carried=has?[field(4,2,Buffer.concat([field(1,2,text(parameter)),field(2,0,6),field(3,0,1),field(4,0,serial+12),field(5,0,serial+13),field(6,0,serial+14)]))]:[];
   const register=Buffer.concat([field(1,2,signalHead(send,false)),field(2,2,signalHead(listen,false)),field(3,2,text(name)),...carried,field(6,0,revision),field(7,2,signalHead(client,true))]);
-  return {definitions:[sendDef,listenDef,clientDef],heads:[signalHead(send,false),signalHead(listen,false),signalHead(client,true)],register,pins:has?15:12};
+  const at=serial+(has?15:12);
+  const scriptDef=script?Buffer.concat([own(script,false,revision+1),flow(100,1,at),flow(101,2,at+1),
+    field(102,2,Buffer.concat([field(1,2,text('目标玩家')),field(2,0,1),field(3,2,field(1,0,3)),field(4,2,entity),field(8,0,at+(has?5:4))])),
+    ...(has?[field(102,2,Buffer.concat([field(1,2,text(parameter)),field(2,0,1),field(3,2,Buffer.concat([field(1,0,3),field(2,0,1)])),field(4,2,stringType(6)),field(8,0,at+6)]))]:[]),
+    field(106,2,Buffer.concat([field(1,2,text('信号名')),field(4,2,Buffer.concat([field(1,0,5),field(2,2,Buffer.concat([field(1,0,5),field(2,0,1),field(4,2,Buffer.concat([field(1,0,1),field(100,2,blank)])),field(105,2,field(1,2,text(name)))])),field(6,0,1),field(7,2,field(1,0,4))])),field(5,2,nameDefault),field(8,0,at+2)])),
+    link(1006,108,signalHead(send,false),signalHead(client,true),signalHead(listen,false)),...tail('发送客户端脚本信号',1)]):null;
+  return {definitions:[sendDef,listenDef,clientDef,...(scriptDef?[scriptDef]:[])],heads:[signalHead(send,false),signalHead(listen,false),signalHead(client,true)],register,pins:(has?15:12)+(scriptDef?(has?7:5):0)};
 }
+export {clientScriptSignalHeads} from './scene/signal-definitions.mjs';
 function signalState(root){
   const parts=fields(one(root,10)),definitions=parts.filter(f=>f.id===2&&f.wire===2).flatMap(f=>fields(f.data).filter(x=>x.id===1&&x.wire===2).map(x=>x.data));
   const ids=definitions.map(d=>{try{return varintOf(one(one(d,4),1),5);}catch{return 0;}});
@@ -1294,7 +1309,8 @@ export function addSignal({mapPath,name,parameter,outputName},workspace){
   if(fields(root).filter(f=>f.id===10&&f.wire===2).length!==1)fail('UNSUPPORTED_SAVE','The save does not have the node graph section this tool knows.');
   const state=signalState(root);
   if(state.names.includes(name))fail('DUPLICATE_SIGNAL_NAME','The save already has a signal with this name.',{name});
-  const first=Math.max(SIGNAL_BASE,...state.ids)+1,made=signalRecords({send:first,listen:first+1,client:first+2,name,serial:state.serial+1,parameter});
+  if(/^client:/.test(name))fail('INVALID_SIGNAL_NAME','A signal name cannot begin with "client:": in a graph that prefix says the signal goes to the client scripts (f.sendSignal(\'client:name\', player)).',{name});
+  const first=Math.max(SIGNAL_BASE,...state.ids)+1,made=signalRecords({send:first,listen:first+1,client:first+2,script:first+3,name,serial:state.serial+1,parameter});
   const heads=made.heads.map(h=>field(2,2,h)),entry=field(3,2,made.register);
   const register=state.register?(()=>{const items=fields(state.register.data);let last=-1;items.forEach((f,i)=>{if(f.id===2&&f.wire===2)last=i;});
     return Buffer.concat([...items.slice(0,last+1).map(f=>f.raw),...heads,...items.slice(last+1).map(f=>f.raw),entry]);})():Buffer.concat([...heads,entry]);
@@ -1302,8 +1318,8 @@ export function addSignal({mapPath,name,parameter,outputName},workspace){
   const before=state.parts.filter(f=>f.id<=2),after=state.parts.filter(f=>f.id>2&&f.id!==5),low=after.filter(f=>f.id<5),high=after.filter(f=>f.id>5);
   root=replace(root,10,2,Buffer.concat([...before.map(f=>f.raw),...made.definitions.map(d=>field(2,2,field(1,2,d))),...low.map(f=>f.raw),field(5,2,register),...high.map(f=>f.raw)]));
   const out=output(workspace,file,outputName,'-signal');fs.writeFileSync(out,wrap(bytes,root));
-  return {mapPath:out,source:file,name,...(parameter!==undefined?{parameter}:{}),definitionIds:[first,first+1,first+2],
-    next:'Use mapPath in later calls. A graph sends it with f.sendSignal(\''+name+'\''+(parameter!==undefined?', <a string>':'')+') and any graph hears it with .onSignal(\''+name+'\', (evt, f) => {...})'+(parameter!==undefined?'; the string it carries is the parameter "'+parameter+'" of the event (a number travels as text: f.dataTypeConversion(n, \'str\'))':'')+'. This is how one thing tells many: the sender does not know who listens.'};
+  return {mapPath:out,source:file,name,...(parameter!==undefined?{parameter}:{}),definitionIds:[first,first+1,first+2,first+3],
+    next:'Use mapPath in later calls. A graph sends it with f.sendSignal(\''+name+'\''+(parameter!==undefined?', <a string>':'')+') and any graph hears it with .onSignal(\''+name+'\', (evt, f) => {...})'+(parameter!==undefined?'; the string it carries is the parameter "'+parameter+'" of the event (a number travels as text: f.dataTypeConversion(n, \'str\'))':'')+'. This is how one thing tells many: the sender does not know who listens. To the client scripts (Lua) of one player a graph sends it with f.sendSignal(\'client:'+name+'\', player'+(parameter!==undefined?', <a string>':'')+'), and a script hears it with script:RegisterServerSignalHandler("'+name+'", function(name, params) ... end).'};
 }
 
 // Global timers (全局计时器) are defined in section 12: {1: name, 2: seconds, 3: 1 for a countdown, 501: place in the list}.
@@ -2018,9 +2034,12 @@ const clientState=(s,i)=>field(501,2,Buffer.concat([i?field(501,0,i):Buffer.allo
   field(504,2,s?pair(s.position[0],s.position[1]):Buffer.alloc(0)),
   field(505,2,s?pair(s.size[0],s.size[1]):Buffer.alloc(0)),field(506,2,pair(...(s?.pivot??[0.5,0.5]))),field(508,2,s?.rotation?field(3,5,f32(s.rotation)):Buffer.alloc(0))]))]));
 // rect: {position, size, scale, pivot, rotation, anchorMin, anchorMax} from the centre of what holds it (or {states}:
-// one for each of the four platforms), or nothing for one that fills what holds it.
+// one for each of the four devices, in the order of the editor's four buttons: a computer, a phone, a console, a
+// phone with a gamepad), or nothing for one that fills what holds it. The last number (504) says the four are kept
+// the same (同步信息至所有设备); a control given its own rectangle on some device has it not (unsynced). Each device
+// has a canvas of its own size, seen in the editor 2026-10-13: 1600 x 900, 1280 x 720, 1920 x 1080, 1280 x 720.
 const clientRect=(id,rect,kind)=>field(505,2,uiBlock(11,Buffer.concat([field(12,2,Buffer.alloc(0)),field(501,0,2)]),1,12,[field(503,2,uiBlock(13,Buffer.concat([
-  field(12,2,Buffer.concat([...[0,1,2,3].map(i=>clientState(rect?.states?rect.states[i]:rect,i)),field(502,0,kind),field(504,0,1)])),field(501,0,2)]),4,12,[field(503,0,1),ownedBy(id)]))]));
+  field(12,2,Buffer.concat([...[0,1,2,3].map(i=>clientState(rect?.states?rect.states[i]:rect,i)),field(502,0,kind),rect?.unsynced?Buffer.alloc(0):field(504,0,1)])),field(501,0,2)]),4,12,[field(503,0,1),ownedBy(id)]))]));
 // slot: the number a record of a template carries; template: the record is the template itself.
 const clientHead=(id,name,children,parent,slot,template)=>Buffer.concat([field(501,0,id),field(502,2,uiBlock(11,field(501,0,id),1,5)),
   slot?field(502,2,uiBlock(12,field(501,0,slot),2,6)):Buffer.alloc(0),template?field(502,2,uiBlock(14,Buffer.alloc(0),4,4)):Buffer.alloc(0),
@@ -2045,8 +2064,14 @@ const flag=(id,on)=>on?field(id,0,1):Buffer.alloc(0);
 // - a grid: grid {itemTemplate, horizontal, itemSize, spacing, padding: [top, bottom, left, right], scrollbar, fixed, preview};
 // - a preset button: button {normal, hover, pressed, disabled: ids of controls it holds, enabled, sound};
 // - a key hint: keys {keyboard, pad}; an interface effect: effect {id, sound, below}; a reference: template.
+// Read from a second save configured by hand (tests/fixtures/editor-2026-10-13-clientmore.gil):
+// - a script on a control is its id, or {id, values: [{name, type, value}]} when the control gives public variables
+//   of the script values of its own (the order they were given in);
+// - navigation {left, right, up, down}: where the stick of a gamepad goes from this control, the id of a control or
+//   "none" (left out: the nearest one, as the editor has it);
+// - a text window: text.scrollable and text.scrollbar (both on unless false), and text.align.
 export function clientControlRecord({id,name,kind,parent,children,rect,script,scripts,rootForm,image,colour,mask,itemTemplate,template,slot,isTemplate,active,visible,focusable,
-    isolateNavigation,blockKeys,blockCursor,showCursor,text,grid,button,keys,effect}){
+    isolateNavigation,blockKeys,blockCursor,showCursor,text,grid,button,keys,effect,navigation}){
   const marker=Buffer.concat([field(17,2,Buffer.alloc(0)),field(501,0,7)]);
   const shown=Buffer.concat([field(17,2,flag(503,visible===false)),field(501,0,7),flag(502,active===false)]);
   const carried=scripts??(script?[script]:[]),isRoot=rootForm??(!parent&&!isTemplate&&!slot);
@@ -2054,9 +2079,11 @@ export function clientControlRecord({id,name,kind,parent,children,rect,script,sc
   // The settings of a text: 501 the least size when the size adapts, 502 that it adapts, 504 the colour of the letters,
   // 505 the colour behind them, 506 that they have no outline, 507 the colour of the outline, 508 and 509 where the
   // text stands across and up (none: left, top), 510 the text, 512 the size of the letters.
-  const words=(window)=>{const t=text??{},across=align[t.align??'centre'],up=valign[t.valign??'middle'];
-    return Buffer.concat([window?field(62,2,Buffer.concat([field(502,0,1),field(503,0,1)])):Buffer.alloc(0),field(501,0,t.minFontSize??20),flag(502,t.autoSize),field(503,0,12),field(504,0,t.colour??0xffffffff),field(505,0,t.background??0xffffff),
-      flag(506,t.outline===false),field(507,0,t.outlineColour??0x33333333),...(window?[]:[across?field(508,0,across):Buffer.alloc(0),up?field(509,0,up):Buffer.alloc(0)]),
+  // A text window has two switches more (62: 502 that it scrolls, 503 that its bar shows) and stands its text left
+  // unless told otherwise; it has no place up and down.
+  const words=(window)=>{const t=text??{},across=align[t.align??(window?'left':'centre')],up=valign[t.valign??'middle'];
+    return Buffer.concat([window?field(62,2,Buffer.concat([flag(502,t.scrollable!==false),flag(503,t.scrollbar!==false)])):Buffer.alloc(0),field(501,0,t.minFontSize??20),flag(502,t.autoSize),field(503,0,12),field(504,0,t.colour??0xffffffff),field(505,0,t.background??0xffffff),
+      flag(506,t.outline===false),field(507,0,t.outlineColour??0x33333333),across?field(508,0,across):Buffer.alloc(0),...(window?[]:[up?field(509,0,up):Buffer.alloc(0)]),
       field(510,2,t.content?field(501,2,Buffer.from(t.content,'utf8')):Buffer.alloc(0)),window?field(511,0,1):Buffer.alloc(0),field(512,0,t.fontSize??20),field(513,0,20)]);};
   const g=grid??{},b=button??{},e=effect??{};
   const own={
@@ -2081,23 +2108,71 @@ export function clientControlRecord({id,name,kind,parent,children,rect,script,sc
     grid:[clientBlock(92,Buffer.concat([flag(501,!g.horizontal),field(502,2,pair(...(g.itemSize??[50,50]))),field(503,2,pair(...(g.spacing??[8,8]))),field(504,2,pair((g.padding??[20,20,20,20])[0],(g.padding??[20,20,20,20])[1])),field(505,2,pair((g.padding??[20,20,20,20])[2],(g.padding??[20,20,20,20])[3])),
       (g.itemTemplate??itemTemplate)?field(506,0,g.itemTemplate??itemTemplate):Buffer.alloc(0),flag(507,g.scrollbar!==false),field(508,0,1),field(509,0,g.fixed??1),flag(510,g.fixed!==undefined),field(511,0,g.preview??5),field(512,0,1)]),id)],
     reference:[clientBlock(89,template?field(501,0,template):Buffer.alloc(0),id)]}[kind];
+  // Where the stick goes: 501 left, 502 right, 503 up, 504 down, each the id of a control or all bits set for nowhere.
+  const towards=(at,to)=>to===undefined?Buffer.alloc(0):field(at,0,to==='none'?0xffffffffffffffffn:to);
   return Buffer.concat([clientHead(id,name,children,parent,slot,isTemplate),
     field(505,2,uiBlock(14,marker,4,86,[field(503,2,uiBlock(14,shown,5,86,[field(503,0,1),ownedBy(id)]))])),
     clientRect(id,kind==='fullscreenAnimation'?null:rect,CLIENT_KINDS[kind]),
-    clientBlock(83,carried.length?Buffer.concat([flag(501,isRoot),...carried.map(s=>field(502,2,field(1,2,field(1,0,s))))]):Buffer.alloc(0),id),
-    ...own,clientBlock(90,flag(505,focusable),id)]);
+    clientBlock(83,carried.length?Buffer.concat([flag(501,isRoot),...carried.map(s=>field(502,2,Buffer.concat([field(1,2,field(1,0,s.id??s)),...(s.values??[]).map(v=>field(3,2,controlValue(v)))])))]):Buffer.alloc(0),id),
+    ...own,clientBlock(90,Buffer.concat([towards(501,navigation?.left),towards(502,navigation?.right),towards(503,navigation?.up),towards(504,navigation?.down),flag(505,focusable)]),id)]);
 }
-// A variable of a script (脚本变量, read with script:GetParam(name)): {2: name, 3: type, 4: its value as the node graphs
-// write one, 5: 1 when a control may set its own value (公开), 7 and 8: 6, 10: a code of the type}. Two kinds were
-// made by hand and read back, a string and an integer.
+// The types a variable of a script can have (脚本变量, the twenty the editor offers). type: the number of the type
+// as the node graphs have it; kind: how its value is held (a value of kind k stands in field 100 + k, a list in 109);
+// code: the number the client gives the type (field 10 of the variable, and what a control names it by); as: what a
+// control holds a value of it as, when that is not the type itself (a control id is held as an integer); of: what a
+// list holds. Each was added once in the editor and read back (tests/fixtures/editor-2026-10-13-clientvars.gil and
+// -clientmore.gil).
+const SCRIPT_TYPES={
+  integer:{type:3,kind:2,code:3},float:{type:5,kind:4,code:7},boolean:{type:4,kind:6,code:5},string:{type:6,kind:5,code:9},vector3:{type:12,kind:7,code:11},
+  entity:{type:1,kind:1,code:1},guid:{type:2,kind:1,code:14},configId:{type:20,kind:1,code:18},prefabId:{type:21,kind:1,code:19},controlId:{type:3,kind:2,code:22,as:3},
+  integerList:{type:8,of:'integer',code:4},floatList:{type:10,of:'float',code:8},booleanList:{type:9,of:'boolean',code:6},stringList:{type:11,of:'string',code:10},vector3List:{type:15,of:'vector3',code:12},
+  entityList:{type:13,of:'entity',code:2},guidList:{type:7,of:'guid',code:15},configIdList:{type:22,of:'configId',code:20},prefabIdList:{type:23,of:'prefabId',code:21},controlIdList:{type:8,of:'integer',code:23,as:4}};
+// A value as given, checked against its type: what is wrong with it, or nothing.
+function scriptValueFault(type,value){
+  const t=SCRIPT_TYPES[type];
+  if(t.of)return Array.isArray(value)&&value.length<=100?value.map(v=>t.of==='entity'?(v===null?null:'an entity of a list has no value to give beforehand (null)'):scriptValueFault(t.of,v)).find(Boolean)??null:'a list takes an array (up to 100)';
+  if(type==='entity')return 'an entity has no value to give beforehand: a script is handed one while the game runs';
+  if(type==='float')return Number.isFinite(value)?null:'a float takes a number';
+  if(type==='boolean')return typeof value==='boolean'?null:'a boolean takes true or false';
+  if(type==='string')return typeof value==='string'&&value.length<=200?null:'a string takes a text (up to 200 characters)';
+  if(type==='vector3')return Array.isArray(value)&&value.length===3&&value.every(Number.isFinite)?null:'a vector3 takes [x, y, z]';
+  if(type==='integer')return Number.isInteger(value)&&Math.abs(value)<=2147483647?null:'an integer takes a whole number';
+  return Number.isInteger(value)&&value>=0&&value<=0xffffffff?null:'an id takes a whole number, 0 or more';
+}
+const vector3=v=>Buffer.concat([1,2,3].map(i=>v[i-1]?field(i,5,f32(v[i-1])):Buffer.alloc(0)));
+// A value as the node graphs write one: {1: kind, 2: 1 when it holds something, 4: its type, 100 + kind: what it holds}.
+// One the editor made and nobody filled (an integer, a string, an entity, a list) has neither the 2 nor anything held.
+function scriptValue(type,value){
+  const t=SCRIPT_TYPES[type];
+  const held=t.of?Buffer.concat((value??[]).map(v=>field(1,2,scriptValue(t.of,v??undefined)))):
+    t.kind===2?(value?field(1,0,BigInt.asUintN(64,BigInt(value))):Buffer.alloc(0)):t.kind===4?(value?field(1,5,f32(value)):Buffer.alloc(0)):t.kind===5?(value?field(1,2,Buffer.from(value,'utf8')):Buffer.alloc(0)):
+    t.kind===6?flag(1,value):t.kind===7?(value?.some(Boolean)?field(1,2,vector3(value)):Buffer.alloc(0)):(value?field(1,0,value):Buffer.alloc(0));
+  return Buffer.concat([field(1,0,t.of?10002:t.kind),flag(2,held.length),field(4,2,Buffer.concat([field(1,0,1),field(100,2,field(1,0,t.type))])),field(t.of?109:100+t.kind,2,held)]);
+}
+// A variable of a script (read with script:GetParam(name)): {2: name, 3: type, 4: its value, 5: 1 when a control may
+// set its own value (公开), 7 and 8: 6, 10: the code of the type}.
 function scriptVariable(v){
-  if(typeof v.name!=='string'||!/^[^\s]{1,40}$/.test(v.name))fail('INVALID_VARIABLE','A script variable is {name, type: "integer" | "string", value, public}.',{variable:v});
-  let value,type,kind,code;
-  if(v.type==='integer'){if(!Number.isInteger(v.value??0)||Math.abs(v.value??0)>2147483647)fail('INVALID_VARIABLE','An integer variable takes a whole number.',{variable:v});type=3;kind=2;code=3;value=field(102,2,v.value?field(1,0,BigInt.asUintN(64,BigInt(v.value))):Buffer.alloc(0));}
-  else if(v.type==='string'){if(typeof (v.value??'')!=='string'||(v.value??'').length>200)fail('INVALID_VARIABLE','A string variable takes a text.',{variable:v});type=6;kind=5;code=9;value=field(105,2,v.value?field(1,2,Buffer.from(v.value,'utf8')):Buffer.alloc(0));}
-  else fail('INVALID_VARIABLE','A script variable is an integer or a string (the other types are not written yet).',{variable:v});
-  return Buffer.concat([field(2,2,Buffer.from(v.name,'utf8')),field(3,0,type),field(4,2,Buffer.concat([field(1,0,kind),field(2,0,1),field(4,2,Buffer.concat([field(1,0,1),field(100,2,field(1,0,type))])),value])),
-    flag(5,v.public),field(7,0,6),field(8,0,6),field(10,0,code)]);
+  if(typeof v.name!=='string'||!/^[^\s]{1,40}$/.test(v.name)||!SCRIPT_TYPES[v.type])fail('INVALID_VARIABLE','A script variable is {name, type, value, public}; type is one of '+Object.keys(SCRIPT_TYPES).join(', ')+'.',{variable:v});
+  const fault=v.value===undefined?null:scriptValueFault(v.type,v.value);
+  if(fault)fail('INVALID_VARIABLE','The value does not fit the type: '+fault+'.',{variable:v});
+  const t=SCRIPT_TYPES[v.type];
+  return Buffer.concat([field(2,2,Buffer.from(v.name,'utf8')),field(3,0,t.type),field(4,2,scriptValue(v.type,v.value)),flag(5,v.public),field(7,0,6),field(8,0,6),field(10,0,t.code)]);
+}
+// The value a control gives a public variable of a script on it: {2: name, 3: {1: code, 2: {1: c, 2: {1: c, 2: {}},
+// 10 + c: the value}}, 4: 1, 5: {1: code, 2: {1: c, 2: {}}}}, c being the code of what the value is held as. Numbers
+// and switches of a list are packed into one field; texts and vectors stand one after another; an id of a
+// configuration or of a prefab is field 2 of what holds it.
+function controlValue({name,type,value}){
+  const t=SCRIPT_TYPES[type];if(!t||type==='entity'||type==='entityList')fail('INVALID_VARIABLE','A control cannot give a variable of this type a value.',{name,type});
+  const c=t.as??t.code,list=Array.isArray(value)?value:[];
+  const held={3:()=>value?field(1,0,BigInt.asUintN(64,BigInt(value))):Buffer.alloc(0),7:()=>value?field(1,5,f32(value)):Buffer.alloc(0),5:()=>flag(1,value),9:()=>field(1,2,Buffer.from(value,'utf8')),11:()=>field(1,2,vector3(value)),
+    4:()=>list.length?field(1,2,Buffer.concat(list.map(n=>varint(BigInt.asUintN(64,BigInt(n)))))):Buffer.alloc(0),8:()=>list.length?field(1,2,Buffer.concat(list.map(f32))):Buffer.alloc(0),6:()=>list.length?field(1,2,Buffer.from(list.map(Number))):Buffer.alloc(0),
+    10:()=>Buffer.concat(list.map(x=>field(1,2,Buffer.from(x,'utf8')))),12:()=>Buffer.concat(list.map(x=>field(1,2,vector3(x)))),
+    14:()=>value?field(1,0,value):Buffer.alloc(0),18:()=>value?field(2,0,value):Buffer.alloc(0),19:()=>value?field(2,0,value):Buffer.alloc(0),
+    15:()=>list.length?field(1,2,Buffer.concat(list.map(n=>varint(n)))):Buffer.alloc(0),20:()=>Buffer.concat(list.map(n=>field(1,2,field(2,0,n)))),21:()=>Buffer.concat(list.map(n=>field(1,2,field(2,0,n))))}[c]();
+  const as=Buffer.concat([field(1,0,c),field(2,2,Buffer.alloc(0))]);
+  return Buffer.concat([field(2,2,Buffer.from(name,'utf8')),field(3,2,Buffer.concat([field(1,0,t.code),field(2,2,Buffer.concat([field(1,0,c),field(2,2,as),field(10+c,2,held)]))])),field(4,0,1),
+    field(5,2,Buffer.concat([field(1,0,t.code),field(2,2,as)]))]);
 }
 // The variables stand in the record twice, as fields 7 and as fields 8 (as the editor wrote them once 应用修改 was pressed).
 export const clientScriptRecord=({id,name,file,source,variables=[]})=>Buffer.concat([field(1,0,id),field(2,2,Buffer.from(name,'utf8')),field(3,2,Buffer.from(file,'utf8')),field(5,2,Buffer.from(source,'utf8')),
@@ -2119,9 +2194,12 @@ function clientTrees(root,records){
 function clientScripts(root){
   const section=fields(root).find(f=>f.id===50&&f.wire===2);
   if(!section)fail('UNSUPPORTED_SAVE','This save was written by a game version older than 7.1, which has no client scripts. Open it in the editor and save it once.');
+  const typeOf=code=>Object.keys(SCRIPT_TYPES).find(n=>SCRIPT_TYPES[n].code===code)??'unknown';
   return fields(section.data).filter(f=>f.id===1&&f.wire===2).map(f=>{const text=id=>fields(f.data).find(x=>x.id===id&&x.wire===2)?.data.toString('utf8')??'';
-    return {raw:f,id:varintOf(f.data,1),name:text(2),file:text(3),source:text(5)};});
+    const variables=fields(f.data).filter(x=>x.id===7&&x.wire===2).map(x=>({name:fields(x.data).find(y=>y.id===2&&y.wire===2)?.data.toString('utf8')??'',type:typeOf(varintOf(x.data,10)),public:varintOf(x.data,5)===1}));
+    return {raw:f,id:varintOf(f.data,1),name:text(2),file:text(3),source:text(5),variables};});
 }
+export const CLIENT_SCRIPT_TYPES=Object.keys(SCRIPT_TYPES);
 // What the Lua of this version cannot have, from the official API page: found here rather than as a silent failure in play.
 const LUA_FORBIDDEN=[[/\bcoroutine\s*\./,'coroutine.* is not available'],[/\bio\s*\./,'io.* is not available'],[/\bstring\s*\.\s*dump\b/,'string.dump is not available'],
   [/\bos\s*\.\s*(?!time\b|date\b|clock\b|difftime\b)[A-Za-z_]+/,'of os only time, date, clock and difftime are available'],[/\bdebug\s*\.\s*(?!traceback\b)[A-Za-z_]+/,'of debug only traceback is available'],
@@ -2165,7 +2243,7 @@ export function setClientScript({mapPath,name,source,sourceFile,file:asFile,vari
 export function listClientScripts({mapPath,includeSource=false}){
   const file=resolve(mapPath),root=container(fs.readFileSync(file)),records=uiRecords(root);
   const carried=id=>records.filter(r=>r.content.includes(83)&&fields(r.raw.data).some(f=>f.id===505&&f.wire===2&&varintOf(f.data,502)===83&&f.data.includes(Buffer.concat([field(1,0,id)])))).map(r=>r.name);
-  return {mapPath:file,scripts:clientScripts(root).map(s=>({scriptId:s.id,name:s.name,file:s.file,lines:s.source.split('\n').length,on:carried(s.id),...(includeSource?{source:s.source}:{})})),
+  return {mapPath:file,scripts:clientScripts(root).map(s=>({scriptId:s.id,name:s.name,file:s.file,lines:s.source.split('\n').length,on:carried(s.id),...(s.variables.length?{variables:s.variables}:{}),...(includeSource?{source:s.source}:{})})),
     note:'A client script is Lua 5.3 that runs on the player\'s machine on a client control (scene_add_client_ui). read_knowledge {id:"client-lua.zh-CN"} says how one is written; the full API is the official page 附录/客户端控件API文档 (search_knowledge "客户端控件API").'};
 }
 // The templates of client controls a save has: {id, name}. The id is the 控件模板索引 a script gives
@@ -2190,18 +2268,27 @@ function clientRecords(list,parent,take,known,scripts,slots,made,paths,trail=[])
     only(['image','colour','opacity','mask'],['image'],'an image');only(['itemTemplate','grid'],['grid'],'a grid');only(['template'],['reference'],'a reference');
     only(['text'],['text','textWindow'],'a text box or a text window');only(['states','enabled','sound'],['presetButton'],'a preset button');only(['key','padKey'],['keyHint'],'a key hint');
     only(['effect','effectSound','below'],['animation','fullscreenAnimation'],'an interface effect');only(['showCursor','blockKeys','blockCursor','isolateNavigation'],['container'],'a container');
+    if(c.devices&&c.kind==='fullscreenAnimation')fail('INVALID_CONTROL','An effect that fills the screen has no rectangle to differ by device.',{name:c.name});
+    if(c.text&&c.kind!=='textWindow'&&(c.text.scrollable!==undefined||c.text.scrollbar!==undefined))fail('INVALID_CONTROL','scrollable and scrollbar go with a text window.',{name:c.name,kind:c.kind});
     const named=key=>{if(c[key]===undefined)return undefined;const hit=known.find(t=>t.name===c[key]);
       if(!hit)fail('TEMPLATE_NOT_FOUND','The save has no client control template of this name. Add it first: scene_add_client_template.',{name:c.name,[key]:c[key],templates:known.map(t=>t.name)});return hit.id;};
-    const carried=[...(c.script!==undefined?[c.script]:[]),...(c.scripts??[])].map(n=>{const hit=scripts.find(x=>x.name===n);
-      if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{name:c.name,script:n,scripts:scripts.map(x=>x.name)});return hit.id;});
+    // A script on the control: its name, or {name, values} when the control gives public variables values of its own.
+    const carried=[...(c.script!==undefined?[c.script]:[]),...(c.scripts??[])].map(e=>{const n=typeof e==='string'?e:e?.name,hit=scripts.find(x=>x.name===n);
+      if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{name:c.name,script:n,scripts:scripts.map(x=>x.name)});return {id:hit.id,script:hit,given:e?.values};});
     const t=c.text,g=c.grid;
     if(g?.rows!==undefined&&g?.columns!==undefined)fail('INVALID_CONTROL','A grid has a fixed number of rows (it then scrolls sideways) or of columns (it scrolls up and down), not both.',{name:c.name});
     const id=take(c.name);paths.push({name:c.name,kind:c.kind,path:[...trail,c.name].join('/'),controlId:id,...(c.kind==='fullscreenAnimation'?{}:{position,size})});
-    const rect=c.rectStates?{states:c.rectStates}:{position,size,scale:c.scale,pivot:c.pivot,rotation:c.rotation,anchorMin:c.anchor?.min,anchorMax:c.anchor?.max};
-    const record={id,name:c.name,kind:c.kind,parent,rect,slot:slots?.(),rootForm:false,scripts:carried,active:c.active,visible:c.visible,focusable:c.focusable,
+    // What is said of the control is its rectangle on a computer; devices says where it differs on the other three.
+    const base={position,size,scale:c.scale,pivot:c.pivot,rotation:c.rotation,anchorMin:c.anchor?.min,anchorMax:c.anchor?.max};
+    const onDevice=d=>{const o=c.devices?.[d];if(!o)return base;
+      if(o.position&&(Math.abs(o.position[0])>3200||Math.abs(o.position[1])>1800)||o.size&&!(Math.abs(o.size[0])<=3200&&Math.abs(o.size[1])<=1800))fail('INVALID_RECT','The position or the size given for a device is out of range.',{name:c.name,device:d});
+      return {...base,...(o.position?{position:o.position}:{}),...(o.size?{size:o.size}:{}),...(o.scale?{scale:o.scale}:{}),...(o.pivot?{pivot:o.pivot}:{}),...(o.rotation!==undefined?{rotation:o.rotation}:{}),...(o.anchor?{anchorMin:o.anchor.min,anchorMax:o.anchor.max}:{})};};
+    const rect=c.rectStates?{states:c.rectStates}:c.devices?{unsynced:true,states:[base,...CLIENT_DEVICES.slice(1).map(onDevice)]}:base;
+    // A control the stick is sent from or to has to be one the stick can stand on.
+    const record={id,name:c.name,kind:c.kind,parent,rect,slot:slots?.(),rootForm:false,scripts:carried,active:c.active,visible:c.visible,focusable:c.focusable??(c.navigation?true:undefined),towards:c.navigation,
       isolateNavigation:c.isolateNavigation,blockKeys:c.blockKeys,blockCursor:c.blockCursor,showCursor:c.showCursor,
       image:c.image,colour:c.colour!==undefined||c.opacity!==undefined?tint(c.colour,c.opacity,c.name):undefined,mask:c.mask,template:named('template'),
-      text:t&&{content:t.content,fontSize:t.fontSize,minFontSize:t.minFontSize,autoSize:t.autoSize,align:t.align,valign:t.valign,outline:t.outline,
+      text:t&&{content:t.content,fontSize:t.fontSize,minFontSize:t.minFontSize,autoSize:t.autoSize,align:t.align,valign:t.valign,outline:t.outline,scrollable:t.scrollable,scrollbar:t.scrollbar,
         colour:t.colour!==undefined||t.opacity!==undefined?tint(t.colour,t.opacity,c.name):undefined,
         background:t.background!==undefined?tint(t.background,t.backgroundOpacity??1,c.name):undefined,
         outlineColour:t.outlineColour!==undefined?tint(t.outlineColour,t.outlineOpacity??1,c.name):undefined},
@@ -2220,6 +2307,34 @@ function clientRecords(list,parent,take,known,scripts,slots,made,paths,trail=[])
     }
     return id;});
 }
+// The four devices a control has a rectangle for, in the order the records hold them, and the canvas of each.
+const CLIENT_DEVICES=['pc','mobile','console','mobileGamepad'];
+const CLIENT_CANVAS={pc:[1600,900],mobile:[1280,720],console:[1920,1080],mobileGamepad:[1280,720]};
+// Once every control of a tree has its id: what names another control (where the stick goes, a variable that holds
+// the id of a control) gets the id, and the values a control gives the variables of its scripts are checked against
+// the variables the script has.
+function settleClientRecords(made,paths){
+  const find=(ref,asked)=>{const byPath=paths.filter(p=>p.path===ref),hits=byPath.length?byPath:paths.filter(p=>p.name===ref);
+    if(hits.length!==1)fail('CONTROL_NOT_FOUND',hits.length?'Several controls have this name: give the path (holder/name).':'No control of this interface has this name or path.',{...asked,given:ref,controls:paths.map(p=>p.path)});
+    return hits[0].controlId;};
+  for(const r of made){
+    if(r.towards){r.navigation={};
+      for(const side of ['left','right','up','down']){const to=r.towards[side];if(to===undefined)continue;
+        if(to==='none'){r.navigation[side]='none';continue;}
+        const id=find(to,{control:r.name,navigation:side});
+        if(!made.find(m=>m.id===id).focusable)fail('NOT_FOCUSABLE','The stick can only be sent to a control it can stand on: give that control focusable: true.',{control:r.name,navigation:side,to});
+        r.navigation[side]=id;}}
+    r.scripts=(r.scripts??[]).map(s=>{if(typeof s==='number')return s;
+      return {id:s.id,values:Object.entries(s.given??{}).map(([name,given])=>{const asked={control:r.name,script:s.script.name,variable:name},v=s.script.variables.find(x=>x.name===name);
+        if(!v)fail('VARIABLE_NOT_FOUND','The script has no variable of this name (scene_set_client_script gives a script its variables).',{...asked,variables:s.script.variables.map(x=>x.name)});
+        if(!v.public)fail('VARIABLE_NOT_PUBLIC','A control can only give a value to a variable the script declares public.',asked);
+        if(v.type==='entity'||v.type==='entityList'||v.type==='unknown')fail('INVALID_VARIABLE','A control cannot give a variable of this type a value.',{...asked,type:v.type});
+        // The id of a control, said by its name or its path in this interface.
+        const value=v.type==='controlId'&&typeof given==='string'?find(given,asked):v.type==='controlIdList'&&Array.isArray(given)?given.map(x=>typeof x==='string'?find(x,asked):x):given;
+        const fault=scriptValueFault(v.type,value);if(fault)fail('INVALID_VARIABLE','The value does not fit the type of the variable ('+v.type+'): '+fault+'.',{...asked,given});
+        return {name,type:v.type,value};})};});
+  }
+}
 // Puts a tree of client controls on the screen: the container in the layout, a root that fills the screen and carries
 // the script, and the controls under it. ids: for the test that rebuilds the official sample (the editor numbers
 // controls as they were made, which is not the order they stand in).
@@ -2229,12 +2344,13 @@ export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hid
   if(!layout)fail('UNSUPPORTED_SAVE','The save has no default layout to add to.');
   if(!records.some(r=>r.name==='ClientUIRootHierarchyRoot'))fail('UNSUPPORTED_SAVE','This save was written by a game version older than 7.1, which has no client controls. Open it in the editor and save it once.');
   if(records.some(r=>r.name===name))fail('DUPLICATE_CONTROL_NAME','The interface already has a control with this name.',{name});
-  const scripts=clientScripts(root),wanted=[...(script!==undefined?[script]:[]),...more],onRoot=wanted.map(n=>{const hit=scripts.find(s=>s.name===n);
-    if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{script:n,scripts:scripts.map(s=>s.name)});return hit;});
+  const scripts=clientScripts(root),wanted=[...(script!==undefined?[script]:[]),...more],onRoot=wanted.map(e=>{const n=typeof e==='string'?e:e?.name,hit=scripts.find(s=>s.name===n);
+    if(!hit)fail('SCRIPT_NOT_FOUND','The save has no client script of this name. Add it first: scene_set_client_script.',{script:n,scripts:scripts.map(s=>s.name)});return {id:hit.id,script:hit,given:e?.values};});
   let next=Math.max(...records.map(r=>r.id))+1;const take=key=>ids?.[key]??next++;
   const containerId=take(name),rootId=take('容器节点'),made=[],paths=[];
-  const rootRecord={id:rootId,name:'容器节点',kind:'container',rect:null,scripts:onRoot.map(s=>s.id),rootForm:true,showCursor,blockKeys,blockCursor,isolateNavigation};made.push(rootRecord);
+  const rootRecord={id:rootId,name:'容器节点',kind:'container',rect:null,scripts:onRoot,rootForm:true,showCursor,blockKeys,blockCursor,isolateNavigation};made.push(rootRecord);
   rootRecord.children=clientRecords(controls,rootId,take,clientTemplates(records),scripts,null,made,paths);
+  settleClientRecords(made,paths);
   const fresh=made.map(clientControlRecord);
   const section=fields(one(root,9));let lastOfLayout=-1,lastRecord=-1;
   section.forEach((f,i)=>{if(f.id===502&&f.wire===2){lastRecord=i;if(varintOf(f.data,504)===layout.id)lastOfLayout=i;}});
@@ -2252,7 +2368,7 @@ export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hid
     return out;});
   root=replace(root,9,2,Buffer.concat(rebuilt));
   const out=output(workspace,file,outputName,'-clientui');fs.writeFileSync(out,wrap(bytes,root));
-  return {mapPath:out,source:file,containerId,rootId,name,scripts:onRoot.map(s=>({name:s.name,scriptId:s.id})),controls:paths,
+  return {mapPath:out,source:file,containerId,rootId,name,scripts:onRoot.map(s=>({name:s.script.name,scriptId:s.id})),controls:paths,
     templates:clientTemplates(uiRecords(root)).map(t=>({templateIndex:t.id,name:t.name})),
     next:'Use mapPath in later calls. In the script, script.object is the root (a container that fills the screen) and '+(paths.length?'script.object:GetChild("'+paths[0].name+'")':'script.object:GetChild(name)')+' finds a control under it by name (a child of a child through its own GetChild). The controls are written as the editor makes them, empty: an image shows nothing until the script gives it a picture (control:SetImage(Enum.ImageSource.StaticReference, id), ids from image_catalog) and a colour (control.imageColor = Color(r, g, b)). Controls stand in the order given, later ones over earlier ones. On an account of 奇匠 level 1 a client text box shows nothing either (seen in play, 2026-10-13): say it with pictures.'};
 }
@@ -2272,6 +2388,7 @@ export function addClientTemplate({mapPath,name,outputName,...spec},workspace){
   const made=[],paths=[];
   clientRecords([{kind:'container',...spec,name,position:[0,0]}],0,()=>next++,known,clientScripts(root),()=>++slot,made,paths);
   made[0].isTemplate=true;made[0].parent=undefined;
+  settleClientRecords(made,paths);
   const fresh=made.map(clientControlRecord),templateId=made[0].id;
   const section=fields(one(root,9));let placed=false;
   const idsOf=b=>{const out=[];let p=0;while(p<b.length){let n=0,shift=0;for(;;){const v=b[p++];n+=(v&127)*2**shift;shift+=7;if(!(v&128))break;}out.push(n);}return out;};

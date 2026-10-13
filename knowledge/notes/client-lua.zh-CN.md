@@ -8,11 +8,12 @@
 
 | 工具 | 做什么 |
 |---|---|
-| `scene_set_client_script {name, source, variables}` | 把一段 Lua 放进存档副本；同名的就替换（编号不变，挂着它的控件不用动） |
+| `scene_set_client_script {name, source, variables}` | 把一段 Lua 放进存档副本；同名的就替换（编号不变，挂着它的控件不用动）；`variables` 是脚本变量，二十种类型 |
 | `scene_add_client_template {template}` | 加一个控件模板：脚本运行时照它造拷贝，网格视窗拿它当列表项，模板引用控件显示它 |
 | `scene_add_client_ui {name, script, controls}` | 在屏幕上放一棵客户端控件树：一个铺满全屏的容器，根上挂着脚本，下面是你给的控件 |
 | `scene_remove_client {ui \| template \| script}` | 拿掉一个界面、模板或脚本。要改一个已有的界面，就拿掉再照新的样子加一次 |
-| `scene_list_client_scripts`、`scene_list_interface` | 读回脚本（`includeSource` 带源码）、控件树（`clientInterfaces`）和模板（`clientTemplates`） |
+| `scene_list_client_scripts`、`scene_list_interface` | 读回脚本（变量的名字和类型；`includeSource` 带源码）、控件树（`clientInterfaces`）和模板（`clientTemplates`） |
+| `scene_add_signal` + 节点图里 `f.sendSignal('client:名字', 玩家)` | 节点图给脚本发一次性的消息（见“和节点图怎么通”） |
 
 顺序：先脚本，再模板（模板可以带脚本），最后界面（界面里的网格和引用要叫得出模板的名字）。
 
@@ -68,12 +69,42 @@ end
 | `grid` | 网格视窗 | 会滚动的列表，列表项是模板的拷贝（`itemTemplate`）；`grid: {columns 或 rows, itemSize, spacing, padding, scrollbar}`；脚本 `RefreshItems(个数, function(control, index) end)` 填内容 |
 | `reference` | 模板引用控件 | 把一个模板显示在这里（`template`）；脚本能从它读出模板的编号 `referencedPrefabIndex` |
 | `keyHint` | 按键提示 | 按当前设备显示一个键：`key`（奇匠按键的序号，1 到 10 是数字键）、`padKey` |
-| `text` / `textWindow` | 文本框 / 能滚动的文本视窗 | `text: {content, fontSize, colour, background, outline, align, valign, autoSize}`；**奇匠 Lv.1 的账号不显示** |
+| `text` / `textWindow` | 文本框 / 能滚动的文本视窗 | `text: {content, fontSize, colour, background, outline, align, valign, autoSize}`；文本视窗另有 `scrollable`（能不能滚）、`scrollbar`（显不显示滚动条），没有 `valign`；**奇匠 Lv.1 的账号不显示** |
 | `animation` / `fullscreenAnimation` | 界面动效 | `effect`（动效编号，编辑器里列着：10001001 雷能量满值1、10001002 火能量满值1……）、`effectSound`、`below`；一出现就在播 |
 
-每个控件都能给：`position`、`size`、`scale`、`rotation`（度）、`pivot`、`anchor: {min, max}`、`active: false`（一开始不存在，脚本 `SetActive(true)` 才出现）、`visible: false`（只是不画）、`script`（挂在它自己身上的脚本）。
+每个控件都能给：`position`、`size`、`scale`、`rotation`（度）、`pivot`、`anchor: {min, max}`、`active: false`（一开始不存在，脚本 `SetActive(true)` 才出现）、`visible: false`（只是不画）、`script`（挂在它自己身上的脚本，也可以连它的变量取值一起给，见“脚本变量”）、`devices`（别的设备上不一样的位置和大小，见下）、`navigation`（手柄摇杆往哪走，见下）。
 
-每一种、每一项设置写出来的记录，都和在编辑器里手配的逐字节相同；除了文字（一级账号看不到）和文本视窗，都在游戏里看过（2026-10-13，`examples/clientlist`、`examples/clientmenu`）。
+每一种、每一项设置写出来的记录，都和在编辑器里手配的逐字节相同；除了文字（一级账号看不到）、文本视窗、别的设备上的布局和手柄导航（本机只有电脑和键鼠），都在游戏里看过（2026-10-13，`examples/clientlist`、`examples/clientmenu`、`examples/clientvars`）。
+
+### 四种设备各有各的画布
+
+编辑器里每个控件的“变换”有四个设备按钮，默认“同步信息至所有设备”。四种设备的画布大小不一样（2026-10-13 在编辑器里量的）：
+
+| 设备 | `devices` 里的名字 | 画布 |
+|---|---|---|
+| 电脑 | （控件本身写的就是它） | 1600 × 900 |
+| 手机 | `mobile` | 1280 × 720 |
+| 主机 | `console` | 1920 × 1080 |
+| 手机接手柄 | `mobileGamepad` | 1280 × 720 |
+
+**同一组数字在四种设备上都照用**，所以离中心超过 640（横）或 360（竖）的控件在手机上就出屏幕了。两个办法：该贴边的东西用 `anchor` 挂到边上（比如右上角 `anchor: {min: [1, 1], max: [1, 1]}`，`position` 就是离那个角多远）；或者给 `devices`，只写不一样的那几项：
+
+```json
+{"name": "b", "kind": "image", "position": [600, 300], "size": [90, 90],
+ "devices": {"mobile": {"position": [480, 240], "size": [70, 70]}, "console": {"position": [720, 360]}}}
+```
+
+给了 `devices` 的控件就不再“同步”，没写的设备沿用控件本身的数字。写出的记录和编辑器里手调四种设备后存下来的逐字节相同；游戏里只看过电脑这一种。
+
+### 手柄摇杆往哪走
+
+`focusable: true` 的控件能被摇杆选中。默认摇杆往哪个方向推就去那个方向最近的可选控件；要指定就给 `navigation`：
+
+```json
+{"name": "a", "kind": "image", "focusable": true, "navigation": {"right": "b", "left": "none"}}
+```
+
+四个方向 `left / right / up / down`，值是同一个界面里另一个可选控件的名字（重名时写“上级/名字”的路径），或者 `"none"`（这个方向哪也不去）；没写的方向照旧找最近的。给了 `navigation` 的控件自动算可选；指向的控件必须自己写了 `focusable: true`。和编辑器手配的逐字节相同；本机没有手柄，游戏里没验过。
 
 ### 预设按钮要给齐状态
 
@@ -123,7 +154,34 @@ dot:SetAnchoredPosition(40, 0)
 {"name": "menu", "source": "...", "variables": [{"name": "title", "type": "string", "value": "Shop"}, {"name": "rows", "type": "integer", "value": 2}]}
 ```
 
-脚本里 `script:GetParam("rows")` 读。现在能定整数和字符串两种。
+脚本里 `script:GetParam("rows")` 读。编辑器给的二十种类型都能定：
+
+| `type` | `value` 怎么写 | 脚本里读到的 |
+|---|---|---|
+| `integer` / `float` | 数 | number |
+| `boolean` | `true` / `false` | boolean |
+| `string` | 文字 | string |
+| `vector3` | `[x, y, z]` | 以 `x`、`y`、`z` 为键的表：`v.x` |
+| `guid` / `configId` / `prefabId` | 编号 | number |
+| `controlId` | 默认值一般不写；由控件给（见下） | **运行时编号**，`game.GetClientUIControl(编号)` 换成控件；没给时是 0 |
+| `entity` | 不能预先给值 | 没给时读到 0 |
+| 上面每一种加 `List`（`integerList`、`stringList`、`vector3List`、`controlIdList`……） | 数组 | 从 1 数起的表 |
+
+### 同一个脚本挂在几个控件上，各给各的值
+
+变量标 `public: true`，挂这个脚本的控件就能给它另一个值，脚本读到的是自己所在控件给的那份；没给的读脚本的默认值：
+
+```json
+{"name": "speed", "type": "float", "value": 1.5, "public": true}
+```
+
+```json
+{"name": "a", "kind": "image", "script": {"name": "spin", "values": {"speed": 2.25, "target": "b", "others": ["b", "row/c"]}}}
+```
+
+`controlId` 类型的变量在这里直接写同一个界面里控件的名字（或“上级/名字”路径），工具换成编号。根上的脚本同样可以给：`scene_add_client_ui {script: {name, values}}`。没标 `public` 的变量控件给不了（工具会拒绝）。
+
+二十种类型的定义、十六种能给值的类型在控件上的取值，都和编辑器里手配的逐字节相同；并在游戏里逐个读回打印过（2026-10-13，`examples/clientvars`：根上读到默认值，控件 `a` 上读到它自己的那份，`target` 换成的控件名字是 `b`）。
 
 ## 和节点图怎么通
 
@@ -131,7 +189,10 @@ dot:SetAnchoredPosition(40, 0)
 - **界面 → 节点图：发信号。** 脚本 `game.ServerSignal("名字"):SendSignal()`，节点图用 `.onSignal('名字', (evt, f) => {...})` 收，信号要先用 `scene_add_signal` 定义。带参数：信号定义时给 `parameter`，脚本 `signal:AddString("hello")` 再发，节点图里 `defineSignal('名字', [['word','str']] as const)` 后读 `evt.params.word`（上机验过字符串）。
 - **整块界面的开关：** `scene_add_client_ui` 给 `hidden: true`，节点图用 `f.modifyUiControlStatusWithinTheInterfaceLayout(玩家, containerId, UIControlGroupStatus.On)` 打开。打开的那一刻它的脚本才启动；关掉时控件销毁。背包、商店、暂停菜单这种整块开合的界面用它。
 - 结算、掉血、生成东西这些只有节点图能做：脚本发信号，节点图去办。`examples/clientgame` 的输赢就是这样结算的。
-- 我们用的 Genshin-TS 版本里没有【发送客户端脚本信号】这个节点，所以节点图不能直接给脚本发一次性的消息；用“改一个自定义变量、脚本监听”代替（要传一次性事件，就让变量每次加一）。
+- **节点图 → 脚本：发信号（一次性的消息）。** 游戏 7.1 的服务器节点【发送客户端脚本信号】。节点图里写 `f.sendSignal('client:名字', 玩家, ...参数)`：名字前面加 `client:`，第二个参数是发给哪个玩家；脚本里 `script:RegisterServerSignalHandler("名字", function(name, params) ... end)` 收，`params` 是参数的表（`params[1]` 是第一个）。信号照常用 `scene_add_signal` 定义（同一个信号既能在节点图之间发，也能发给脚本）。上机验过不带参数和带一个字符串（2026-10-13，`examples/clientsignal`）。
+  - 编译器（Genshin-TS）没有这个节点；工具在把图写进存档前，把 `client:` 开头的发送节点换成这个节点。它在编辑器里是【执行节点 → 界面控件组 → 发送客户端脚本信号】，有“信号名”和“目标玩家”两项。
+  - 7.1 以前定义的信号没有这个节点的定义，工具会报 `SIGNAL_NOT_FOR_CLIENT_SCRIPTS`：把存档在编辑器里打开存一次（编辑器会补上），或者在副本上重新定义信号。
+  - 要一直保持的状态（血量、分数）还是用自定义变量：信号只在发的那一刻有，界面重建以后收不回来。
 
 ## 输入
 
@@ -146,7 +207,8 @@ dot:SetAnchoredPosition(40, 0)
 - **控件按给的顺序画，后面的盖住前面的**，也盖住平台自己的界面（小地图、技能键）。铺满全屏的底图会把它们全挡住。
 - **关卡里的传送不会重置界面**：试玩输入里的 `teleport` 之后控件还在、脚本没有重新启动。官方文档说“传送、断线重连时客户端控件会销毁重建”，至少同一关里的传送不是这样；断线重连没验过，稳妥起见脚本要能只凭自定义变量把界面重新画出来。
 - **这版 Lua 没有的**：`coroutine`、`io`、`require`、`string.dump`，`os` 只剩 `time / date / clock / difftime`，`debug` 只剩 `traceback`。`scene_set_client_script` 见到就拒绝。要等一段时间用 `OnUpdate` 里累加 `dt`，或者 `game.TweenSequence()` 的 `AppendInterval`。
-- 位置是控件中心相对它上一级中心的偏移，画布 1600 × 900，y 向上；和 `scene_add_image` 的坐标一样。
+- 位置是控件中心相对它上一级中心的偏移，y 向上，单位是画布的格子；电脑上画布 1600 × 900（和 `scene_add_image` 的坐标一样），手机 1280 × 720，主机 1920 × 1080（见“四种设备各有各的画布”）。
+- **试玩里的点击可以按住**：输入里给 `{"at": 4, "click": [0.5, 0.8], "holdMs": 600}`，这 0.6 秒里鼠标一直按着，中间截的图能看到按钮“按下”的样子（`examples/clientmenu` 第 4.3 秒那张，按钮是黄的）。不给 `holdMs` 就是点一下。
 - 导入存档时，编辑器会把存档里的 Lua 写到存档旁边的 `external_lua_file\<文件名>`；工具写进存档的源码就是运行的那一份。
 
 ## 范例
@@ -156,11 +218,13 @@ dot:SetAnchoredPosition(40, 0)
 - `examples/clientlist`：模板、网格视窗、模板引用、按键提示和静态图片；运行时照模板造控件。
 - `examples/clientmenu`：脚本变量、模板自带脚本、子控件上的脚本、有按下样子的预设按钮、旋转缩放、一开始不激活的控件。
 - `examples/clientcheck`：故意出错，看日志里是什么样；隐藏的容器由节点图打开；信号带参数；传送。
+- `examples/clientvars`：每种类型的脚本变量、控件各自的取值、控件编号换成控件；另带一个分设备布局、手柄导航和文本视窗的写法。
+- `examples/clientsignal`：节点图给脚本发信号（不带参数和带一个字符串），脚本收到后换灯的颜色。
 
 ## 还没做的
 
-- 脚本变量只有整数和字符串；控件上给公开变量另设值还没有。
-- 四种设备（电脑、手机等）各自的布局：现在四种写成一样的。
-- 手柄导航的上下左右目标、文本视窗自己的滚动设置、图片的填充方式。
-- 手机上没验过：触屏点击多半和鼠标一样，但手机没有键盘，靠按键的玩法要在屏幕上放按钮。
+- 图片的填充方式（平铺、九宫格等）：现在都是编辑器的默认，要别的由脚本设 `imageType`。
+- 信号的参数只能有一个字符串（`scene_add_signal` 的限制），发给脚本的信号也一样。
+- 手机、主机上没验过：分设备的布局和手柄导航只做到“和编辑器写的一样”，本机只有电脑和键鼠。触屏点击多半和鼠标一样，但手机没有键盘，靠按键的玩法要在屏幕上放按钮。
+- 文本视窗没在游戏里看过（一级账号不显示文字）。
 - 发布以后脚本是否照常打包上传，没验过（要发布才知道）。
