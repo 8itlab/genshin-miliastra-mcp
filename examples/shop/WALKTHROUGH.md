@@ -30,13 +30,7 @@ The platform's own shop on a stall, the whole resource loop without a graph doin
 16. `scene_add_shop` `{"name":"SH_fruit","prefab":"SH_stall","sell":[{"item":"SH_apple","currency":"SH_coin","price":5,"stock":4},{"item":"SH_pear","currency":"SH_coin","price":8}],"buy":[{"item":"SH_apple","currency":"SH_coin","price":3}]}` → `{"name":"SH_fruit","shopTemplateId":1136656385}`
 17. `scene_add_components` `{"prefab":"SH_stall","optionTab":{"areas":[{"size":[8,4,8]}],"options":[{"text":"开店","icon":20}]}}`
 18. `scene_list_prefabs` `{}`
-19. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+19. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 20. `scene_list_components` `{"prefab":"SH_stall"}`
 21. `inspect_map` `{}`
 22. [UI] `playtest_start` `{"graphNames":["_GSTS_ShStage","_GSTS_ShStall","_GSTS_ShHero"],"durationSeconds":28,"screenshotsAt":[4.5,7.5,10,12,14.2,16.5,19.5,22.5,25.5],"inputs":[{"at":3,"key":"f"},{"at":6,"click":[0.198,0.26]},{"at":9,"clickText":"购买"},{"at":11,"click":[0.5,0.92]},{"at":13,"clickText":"批量出售"},{"at":15.5,"click":[0.567,0.333]},{"at":18.5,"click":[0.91,0.953]},{"at":21,"clickText":"确认"},{"at":24,"click":[0.5,0.92]}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

@@ -34,13 +34,7 @@ for(let i=0;i<calls.length;i++){
     const limit=report.limits[graphIndex++];
     sources.push({graph:limit.graph,nodes:limit.nodeCount,code:group[1].arguments.code,target:group[0].arguments.targetGraphId});
     if(graphIndex===1){
-      out.push((++n)+'. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：');
-      out.push('   - `create_project` `'+JSON.stringify({projectId:group[0].arguments.projectId,targetGraphId:'<scene_add_graph 返回的 graphId>'})+'`');
-      out.push('   - `update_logic` `{projectId, code: <源码，见第二节>}`');
-      out.push('   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数');
-      out.push('   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256');
-      out.push('   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档');
-      out.push('   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。');
+      out.push((++n)+'. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。');
     }
     i+=PER_GRAPH.length-1;continue;
   }
@@ -48,7 +42,6 @@ for(let i=0;i<calls.length;i++){
     // All the graphs in one call (a round with batch: true): the sources go to the second part, as with the five steps.
     for(const g of c.arguments.graphs){const limit=report.limits[graphIndex++];sources.push({graph:limit.graph,nodes:limit.nodeCount,code:g.code,target:g.graphId});}
     out.push((++n)+'. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 '+c.arguments.graphs.length+' 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。');
-    out.push('   一张图一张图调的时候，是对每张图做这五步：`create_project` `{projectId, mapPath, targetGraphId}` → `update_logic` `{projectId, code}` → `build_project` `{projectId}` → `preview_changes` `{projectId, buildId, destination:"copy"}` → `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`。');
     continue;
   }
   if(report.dry&&c.name==='scene_build_blocks'&&calls[i-1]?.name!=='scene_build_blocks')out.push((++n)+'. [UI] `editor_open_map` `{mapPath}`：在编辑器里打开底图的副本（演练时跳过）');

@@ -23,13 +23,7 @@ What stops a character, and a pad that flings one. Four walls of building blocks
 9. `scene_add_graph` `{"name":"WlStage"}` → `{"graphId":1073741825,"name":"_GSTS_WlStage"}`
 10. `scene_add_components` `{"prefab":"WL_pad","launcher":{"areas":[{"radius":1.2,"offset":[0,0.5,0]}],"speed":14}}`
 11. `scene_list_prefabs` `{}`
-12. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+12. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 13. `scene_list_components` `{"prefab":"WL_pad"}`
 14. `inspect_map` `{}`
 15. [UI] `playtest_start` `{"graphNames":["_GSTS_WlStage"],"durationSeconds":19,"screenshotsAt":[2.5,5,10,10.5,13.6,14,14.4,14.8,15.5,17],"inputs":[{"at":3,"key":"d","holdMs":3000},{"at":7,"teleport":[21,0.4,0]},{"at":8,"key":"d","holdMs":2500},{"at":12,"teleport":[-13,0.4,0]},{"at":13,"key":"d","holdMs":1300}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

@@ -42,7 +42,7 @@
 5. 平台的系统：`scene_add_signal`、`scene_add_global_timer`、`scene_add_skill`、`scene_add_creature_skill`、`scene_set_creature_logic`、`scene_add_currency`、`scene_add_item`、`scene_add_shop`、`scene_add_unit_status`、`scene_add_environment`、`scene_add_light`。
 6. 客户端界面（游戏 7.1）：`scene_set_client_script` 放 Lua 脚本，`scene_add_client_ui` 摆它控制的客户端控件；会动、收鼠标和按键的界面和 2D 玩法用它（`knowledge/notes/client-lua.zh-CN.md`）。
 7. 屏幕上的东西（服务器控件）：`scene_add_progress_bar`（横条、竖条、圆环，可显示数字）、`scene_add_image`（图从 `image_catalog` 里挑）、`scene_add_timer_display`、`scene_add_button`；控件可以一开始隐藏，由节点图开关。
-8. 写规则：`search_node_docs` → `create_project` → `update_logic` → `build_project` → `preview_changes` → `apply_build`（一个项目一张图）；源码都写好之后用 `write_graphs` 一次把多张图写进去。很多步设置可以放进一次 `scene_batch`。
+8. 写规则：`search_node_docs` 查节点，`write_graphs` 把一张或多张图的源码编译并写进存档。很多步设置可以放进一次 `scene_batch`。
 9. 反馈：`effect_catalog`、`sound_catalog`、`music_catalog` 查编号，图里放特效、音效、换音乐（做法见 `knowledge/notes/feedback.zh-CN.md`）。
 10. 试玩：`playtest_start`（按键、点鼠标、转视角、点屏幕上的字、把玩家放到指定位置、记录轨迹、读屏幕文字、截图和连拍、录音、录像）→ `playtest_status`，读日志也要看截图；`playtest_frames` 逐帧看动作。
 11. 发布前：`publish_kit` 出封面、四张图、标题、简介和检查表。发布本身由创作者在游戏里做。
@@ -56,7 +56,7 @@
 - 数据是用到时才取的：先 `removeEntity` 再用从那个实体读的值，读到的是空。
 - 平台的定时器比钟慢约 4.5%；日志文件在试玩结束时才写出来，所以试玩脚本不能按“看到某条打印再做某事”来写，只能按时间。
 - 节点图大小上限 3000（折算数）、每秒运算量上限约 1400、日志窗口最多勾 10 张图。事件驱动的小图离这些线很远。
-- 编译器写不出枚举类型的空列表；一个项目只写一张图（多张图用 `write_graphs`）。
+- 编译器写不出枚举类型的空列表。
 - 巡逻模板：2026-10-09 游戏更新后，导入存档会清空造物的巡逻模板。指挥怪走位用自定义仇恨。
 - 造物索敌距离很短（5 米外不动）；自定义仇恨下，对不是敌人的目标设仇恨无效。
 - 技能自己的冷却配置没做成（图里用 `f.setCharacterSkillCd` 可以给冷却）；长按、连段、瞄准三种技能没做。

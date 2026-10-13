@@ -87,13 +87,7 @@ Finds out in the game whether mechanism assets the official samples never touch 
 73. `scene_add_components` `{"prefab":"PS_30_10005057","variables":[{"name":"sid","type":"integer","value":100010570},{"name":"aid","type":"integer","value":10005057}]}`
 74. `scene_add_components` `{"prefab":"PS_31_10005014","variables":[{"name":"sid","type":"integer","value":100010140},{"name":"aid","type":"integer","value":10005014}]}`
 75. `scene_list_prefabs` `{}`
-76. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+76. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 77. `scene_list_components` `{"prefab":"PS_00_10005002"}`
 78. `inspect_map` `{}`
 79. [UI] `playtest_start` `{"graphNames":["_GSTS_PsStage","_GSTS_PsThing"],"durationSeconds":52,"screenshotsAt":[2.7,4.4,6.2,8.7,10.4,12.2,14.7,16.4,18.2,20.7,22.4,24.2,26.7,28.4,30.2,32.7,34.4,36.2,38.7,40.4,42.2,44.7,46.4,48.2],"inputs":[]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

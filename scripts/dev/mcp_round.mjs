@@ -1,4 +1,4 @@
-// Acceptance run: rebuild Kingdom v2 from the Codex-era map using MCP tools only.
+// A whole round through MCP tools only: a level built on a blank save from a test json of examples/, then played.
 // The one non-MCP step is generating the graph source from the GUIDs, which stands in for the AI writing code.
 // Env: ROUND_OUT (progress json), ROUND_ARGS (json: day, night, coins, durationSeconds, screenshotsAt, screenshotWidth, inputs, scenes = piece-list files in examples/kingdom, generator = graph generator script there, generatorArgs = more arguments for it, prefabs = scene_add_prefab arguments (their ids reach the generator as 'prefab:<name>'), hostilePairs = scene_set_faction_hostility pairs, dir = folder under examples (default kingdom), namePrefix = prefix of the pieces whose GUIDs the generator gets (default KV_), baseName = name of the save to start from, sceneOffset = scene_build_blocks offset, addGraph = scene_add_graph arguments, generatorData = extra entries for the generator's guids.json, level = scene_set_level_settings arguments, patrolTemplates = scene_set_patrol templates instead of kv_patrol.json, camera = scene_set_camera arguments, components = scene_add_components arguments, bars = scene_add_progress_bar arguments, statuses = scene_add_unit_status arguments, environments = scene_add_environment arguments, lights = scene_add_light arguments, classes = scene_set_class arguments, signals = signal names for scene_add_signal, spawn = scene_set_spawn arguments, points = scene_add_preset_point arguments, timers = scene_add_global_timer arguments, clocks = scene_add_timer_display arguments, graphs = several graphs {key, name, attachTo | attachToPrefab} instead of addGraph)
 import fs from 'node:fs';
@@ -11,6 +11,7 @@ const root=process.cwd(),out=process.env.ROUND_OUT,args=JSON.parse(fs.readFileSy
 const kingdom=path.join(root,'examples',args.dir||'kingdom'),read=f=>JSON.parse(fs.readFileSync(path.join(kingdom,f),'utf8'));
 const workspace=path.join(root,'workspace','round-'+Date.now());
 const client=new Client({name:'kingdom-round',version:'1'});
+if(args.batch===false)process.env.MILIASTRA_STEP_TOOLS='1';
 const transport=new StdioClientTransport({command:process.execPath,args:[path.join(root,'src/server.mjs')],cwd:root,env:{...process.env,MILIASTRA_WORKSPACE:workspace},stderr:'pipe'});
 const report={workspace,calls:[]};const save=()=>fs.writeFileSync(out,JSON.stringify(report,null,1));
 async function call(name,a){
@@ -63,11 +64,7 @@ try{
     found.sort((a,b)=>String(a.modifiedAt).localeCompare(String(b.modifiedAt)));
     if(found.length>1)(report.warnings??=[]).push('baseName matches '+found.length+' saves; using the oldest, '+found[0].path);
     base={mapPath:found[0].path};
-  }else{
-    const paths=read('kv_paths.json'),edits=[];
-    for(const [pathId,points] of Object.entries(paths))for(const [waypointId,position] of Object.entries(points))edits.push({pathId:Number(pathId),waypointId:Number(waypointId),position});
-    base=await call('scene_move_path_points',{mapPath:path.join(root,'workspace','construction','build-115','candidate.gil'),edits,outputName:'kingdom-base'});
-  }
+  }else throw new Error('the test json needs baseName: the name of a blank save made in the game (我的奇域 > 新建存档) and saved once');
   if(args.camera)base.mapPath=(await call('scene_set_camera',{mapPath:base.mapPath,...args.camera,outputName:'kingdom-base-camera'})).mapPath;
   // ROUND_DRY=1 rehearses everything that does not touch the game window: no editor, no scene import, no playtest. The
   // scene pieces are then missing from the save, which is fine for graphs that only use prefabs.
@@ -77,10 +74,8 @@ try{
   // (A level with nothing to place, a check of the screen alone, has no pack to import.)
   if(!dry&&scenes.length){const imported=await finish((await call('scene_import_assets',{packs:scenes.map(s=>s.name)})).runId);report.dropped=imported.droppedPieces;}
   const listed=await call('scene_list_entities',dry?{mapPath:base.mapPath,namePrefix:args.namePrefix||'KV_'}:{namePrefix:args.namePrefix||'KV_'});report.entities=listed.total;report.save=listed.mapPath;
-  // Patrol templates only when asked for: since the game update of 2026-10-09 the game drops them when it imports a save.
-  const patrol=args.patrolTemplates?await call('scene_set_patrol',{mapPath:listed.mapPath,namePrefix:'KV_enemy',templates:args.patrolTemplates,outputName:'kingdom-patrol'}):{mapPath:listed.mapPath,changed:[]};report.patrolled=patrol.changed.length;
   // Things the graph creates at run time at a chosen size: one prefab each (args.prefabs = scene_add_prefab arguments).
-  let mapPath=patrol.mapPath;const extra=[];
+  let mapPath=listed.mapPath;const extra=[];
   // Rehearsing, the scene was not imported, so a prefab made from a placed creature (fromEntity) is stood in for by an
   // object (dryAsset, or a coin): the graphs and components still go through every tool, only the creature is missing.
   for(const [i,{dryAsset,...prefab}] of (args.prefabs||[]).entries()){
@@ -185,8 +180,8 @@ try{
     const tag=graph.key||'kingdom',guids=path.join(workspace,'guids-'+tag+'.json'),source=path.join(workspace,tag+'.ts');
     fs.writeFileSync(guids,JSON.stringify(Object.fromEntries([...listed.entities.map(e=>[e.name,e.guid]),...prefabs.map(p=>['prefab:'+p.name,p.prefabId]),['graph:id',graph.graphId],['graph:name',graph.name],...graphs.filter(g=>g.key).map(g=>['graph:'+g.key,g.graphId]),...extra,...Object.entries(args.generatorData||{})])));
     execFileSync(process.env.MILIASTRA_PYTHON||'python',[path.join(kingdom,args.generator||'gen_kingdom_v2.py'),guids,source,String(args.day),String(args.night),String(args.coins),...(args.generatorArgs||[]).map(String),...(graph.key?[graph.key]:[])]);
-    // args.batch: all graphs go in one write_graphs call after the loop instead of five calls each.
-    if(args.batch){const code=fs.readFileSync(source,'utf8');report.sources[graph.graphId]=code;if(before[graph.graphId]!==code)batch.push({graphId:graph.graphId,code});continue;}
+    // All graphs go in one write_graphs call after the loop; batch: false takes the five steps for each instead.
+    if(args.batch!==false){const code=fs.readFileSync(source,'utf8');report.sources[graph.graphId]=code;if(before[graph.graphId]!==code)batch.push({graphId:graph.graphId,code});continue;}
     const project=await call('create_project',{projectId:tag.toLowerCase(),mapPath,targetGraphId:graph.graphId});
     await call('update_logic',{projectId:project.projectId,code:fs.readFileSync(source,'utf8')});
     const build=await call('build_project',{projectId:project.projectId});

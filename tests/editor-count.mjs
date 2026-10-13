@@ -18,6 +18,7 @@ fs.mkdirSync(mapDir,{recursive:true});const mapPath=path.join(mapDir,'1073741825
 const service=new Service({workspace:path.join(root,'workspace'),saveRoots:[path.join(root,'saves')]});
 const source=body=>`/// <reference types="genshin-ts" />
 import { g } from 'genshin-ts/runtime/core'
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 g.server({id:1073741825,name:'_GSTS_Count',variables:{tick:0n,sum:0}})
 .on('whenEntityIsCreated',(evt,f)=>{
   ${body}

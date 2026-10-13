@@ -122,8 +122,6 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 |---|---|
 | `get_capabilities` | 版本、功能、限制、路径、写入开关 |
 | `list_maps` / `inspect_map` | 存档发现、真实图 ID、名称、类型、节点数；同名的存档会标出来 |
-| `create_project` / `get_project` | 保存原件和工作副本，读取代码与配置 |
-| `update_logic` | 更新单个入口代码和目标图 ID |
 | `search_node_docs` | 搜索依赖自带的中英文节点定义（`queries` 一次查多个词） |
 | `effect_catalog` / `sound_catalog` / `music_catalog` | 平台自带的特效（限时 1986、循环 1209）、音效（1997）、背景音乐（188）：按中文名字查编号，特效带缩略图，结果里有节点图里的用法。名字和编号是从编辑器的资产库里抄下来的 |
 | `scene_search_assets` / `scene_asset_images` | 2468 种官方物件的图鉴：按名字查（`queries` 一次查多个词，查不到会给相近的名字）、按编号看缩略图 |
@@ -150,13 +148,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `playtest_frames` | 把一次试玩里某一段的截图裁到同一块区域、标上秒数、拼成一张图：逐帧看动作（武器在不在手上、落刀和伤害数字对不对得上、飞刀是不是手松开时出去的）。打印看不出这些 |
 | `publish_kit` | 发布前的准备：从试玩截图里出封面和四张图（1600×900）、标题、描述、标签和一张对照官方要求的检查表，放进一个文件夹。真正的发布由创作者自己在游戏里做 |
 | `search_knowledge` / `read_knowledge` | 离线搜索官方综合指南、教程、常见问题、48 份官方教学存档的拆解和教学视频文字稿（`knowledge/`）；总结见 [千星奇域是怎么搭游戏的](docs/HOW_MILIASTRA_BUILDS_GAMES.zh-CN.md) |
-| `validate_project` | TypeScript 校验和缺失目标提示 |
-| `build_project` | 快照构建，导出一份 GIA 和编译日志 |
-| `preview_changes` | 校验目标，返回前后差异和目标 SHA-256 |
-| `apply_build` | 哈希比对、备份、替换、回读检查 |
-| `write_graphs` | 一次调用把多张节点图的源码合在一起编译、一遍写进存档（结果等于对每张图做上面五步，三十七张图约二十秒）；哪张编译不过就停在哪张并报出来；只改了几张就只发那几张 |
-| `restore_backup` | 校验当前哈希，恢复备份并保留撤销副本 |
-| `get_test_results` | 构建和写入记录；游戏内状态明确为未测试 |
+| `write_graphs` | 写节点图：一次调用把一张或多张图的源码类型检查、编译、写进存档副本（三十七张图约二十秒），返回可以试玩的存档和每张图的节点数；哪张编译不过就停在哪张并报出错误；只改了几张就只发那几张。早先分五步做的那组工具（建项目、改源码、构建、预览、写入）默认不再列出，要用时设环境变量 `MILIASTRA_STEP_TOOLS=1` |
 | `list_editor_windows` | 枚举原神与千星沙箱窗口、实际窗口 ID 和坐标 |
 | `capture_editor_window` | 返回 MCP 内联 PNG、原图文件、缩放比例和质量提示 |
 | `focus_editor_window` | 将指定编辑器窗口置于前台并返回新截图 |
@@ -215,9 +207,9 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 - 要特效先查 `effect_catalog`（按名字，如“烟花”“受击 火”“提示”），要声音查 `sound_catalog`，要音乐查 `music_catalog`；结果里有节点图里的写法。每个玩家动作都该有声音和画面的回应，做法见 `knowledge/notes/feedback.zh-CN.md`。
 - 先定镜头再摆景。`scene_list_cameras` 读出存档里镜头离角色多远、视角多大，`scene_set_camera` 可以改（写到存档副本），`fixedView` 把视角锁死（侧视、俯视的游戏都要锁，否则玩家一动鼠标镜头就转走）。画面在角色处的高度约为 2×距离×tan(视角/2)：6 米、45° 只有 5 米高，房子都装不下；14 米约 11.6 米高，适合横版远景。镜头一开始在角色背后，横版游戏要在开局用 `teleportPlayer` 把角色传送成面朝 +z（朝向 [0,0,0]），镜头才会在 −z 一侧横着看；`yawRange` 定不住这个方向。王国样例的完整做法见 `examples/kingdom/gen_kv3_scene.py` 开头的说明。
 - 游戏过程中才出现的东西（金币、买下后出现的城墙、跟着玩家走的标记）用元件：`scene_add_prefab` 把任意物件按指定缩放做成元件，节点图用 `f.createPrefab(元件编号, 位置, …)` 在任意位置生成，大小就是设定的大小；`scene_list_prefabs` 列出存档里的元件。会被招募、会被生成的造物也用元件：先在场景里摆一只不创建的怪，再用 `scene_add_prefab` 的 `fromEntity` 把它做成元件。
-- 全新的空白地图也能直接开工：`scene_add_graph` 在存档里建一张空的服务器节点图并挂到关卡实体（新地图没有节点图，`create_project` 需要一张来写）。完整例子见 `scripts/dev/fresh_map_round.mjs`。王国样例整套从空白地图搭起。第二个样例“金币冲刺”在 `examples/dash/`（俯视镜头、随机金币、追人的史莱姆）。
+- 全新的空白地图也能直接开工：`scene_add_graph` 在存档里建一张空的服务器节点图并挂到关卡实体（新地图没有节点图，`write_graphs` 需要一张来写）。完整例子见 `scripts/dev/fresh_map_round.mjs`。王国样例整套从空白地图搭起。第二个样例“金币冲刺”在 `examples/dash/`（俯视镜头、随机金币、追人的史莱姆）。
 - 谁打谁由阵营决定：`scene_list_factions` 看存档里的阵营和敌对关系，`scene_set_faction_hostility` 改。新地图里玩家、物件、造物三个阵营两两敌对，己方造物会去打节点图生成的物件；多数玩法应该改成只让玩家和造物敌对（`hostilePairs: [[1,3]]`）。
-- 要指挥怪去打谁、往哪儿走：`scene_set_level_settings` 把关卡的仇恨类型改成自定义（`aggroMode: "custom"`），节点图里用 `f.setTheAggroValueOfSpecifiedEntity(目标, 怪, 数值)` 下指令，怪会从远处直接跑向目标（玩家角色、己方单位、物件都可以）。`scene_set_patrol` 的巡逻做法在 2026-10-09 游戏更新后已失效。
+- 要指挥怪去打谁、往哪儿走：`scene_set_level_settings` 把关卡的仇恨类型改成自定义（`aggroMode: "custom"`），节点图里用 `f.setTheAggroValueOfSpecifiedEntity(目标, 怪, 数值)` 下指令，怪会从远处直接跑向目标（玩家角色、己方单位、物件都可以）。沿路径巡逻的做法在 2026-10-09 游戏更新后失效了（导入存档时巡逻模板被清空），对应的工具已经拿掉。
 - 物件图鉴里同名的很多（光“乔木”就有几十种）。`scene_search_assets` 的结果带 `hasImage`；选型前用 `scene_asset_images` 按编号取缩略图看一眼（一次最多 12 个，返回名字、分组、尺寸和图）。图里每个物件都缩放到差不多大，只用来看长相，真实大小看尺寸。少数物件没有图（拍不出来的），工具会明说，这时再把候选导进练手存档看。
 - 每次导入都是新增，同一个包导两次会多出一份。反复调整时先在一个练手存档里做。
 - 拉伸方块时贴图也跟着拉伸，很大的面近看会糊。
@@ -230,11 +222,10 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 1. `editor_open_map`：把要用的存档导入并在编辑器里打开（已经开着目标存档就跳过）。
 2. `scene_build_blocks` + `scene_import_assets`：导入场景。要“之后再出现”的物件加 `createAtStart:false`。
 3. `scene_list_entities`：按名字读回实体编号。导入时编辑器会重新分配编号，包里写的不作数。返回的 `mapPath` 就是刚保存的那个存档。
-4. （要敌人自己走过去时）`scene_list_paths` 看存档里有哪些路径，`scene_move_path_points` 挪路径点，`scene_set_patrol` 让指定的怪沿路径走。后两个都写出一份新存档并返回它的 `mapPath`，不改官方存档。路径本身要先在编辑器的“路径管理”里画好，工具不能新建。
-5. `create_project`（`mapPath` 用上一步的存档）→ `update_logic` → `build_project` → `preview_changes` → `apply_build`。
-6. `playtest_start`（`mapPath` 用 `apply_build` 返回的 `target`）→ `playtest_status`。
+4. `write_graphs`（`mapPath` 用上一步的存档，`graphs` 里是每张图的编号和源码）：类型检查、编译、写进存档副本，返回可以试玩的存档。
+5. `playtest_start`（`mapPath` 用 `write_graphs` 返回的存档）→ `playtest_status`。
 
-节点图里：`f.createEntity(new guid(编号), [] as bigint[])` 把没创建的物件创建出来；`f.switchCreationPatrolTemplate(实体, 1n)` 让设了巡逻的怪出发，对每只怪只调用一次。
+节点图里：`f.createEntity(new guid(编号), [] as bigint[])` 把没创建的物件创建出来。
 
 `scripts/dev/mcp_round.mjs` 是照这个顺序把王国样例从头做一遍的客户端，可以当参考。
 
@@ -288,12 +279,6 @@ AI 调用顺序：
 
 
 `npm run test:input-guards` 检查截图凭据、缺失参数和越界坐标拒绝，不发送实际输入。`tests/editor-session.mjs` 是本地开发调试桥，使用随机口令，仅监听 loopback；不属于 MCP 发布服务。实际操作轨迹位于 `workspace/editor-live-trace.json`。
-
-## 编辑器准备与使用产物
-
-`build_project` 返回 GIA 文件路径，可以用于后续编辑器导入验证。`destination: copy` 只改项目里的 `working.gil`，**不会让正在运行的游戏立即改变**。
-
-显式配置 `MILIASTRA_ALLOW_LIVE_WRITE=1` 后可使用 `destination: live`；必须先预览，再传回 `expectedSha256` 应用。编辑器重新加载地图前不要保存，以免覆盖磁盘上的变更。第一版不自动重载，不自动验证挂载关系。
 
 ## 实验和验证
 

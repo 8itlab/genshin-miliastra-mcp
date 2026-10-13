@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 const [name,baseRel,graphId,change]=[process.env.B_NAME,process.env.B_BASE,Number(process.env.B_GRAPH),process.env.B_CHANGE];
 const root=process.cwd(),out=path.join(root,'workspace/construction',name),base=path.join(root,baseRel);
 const client=new Client({name:name+'-builder',version:'1'});

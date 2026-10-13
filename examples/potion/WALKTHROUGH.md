@@ -25,13 +25,7 @@ An item the player uses from the backpack: an item graph (scene_add_graph {kind:
 11. `scene_add_graph` `{"name":"PtDrink","kind":"item"}` → `{"graphId":1073741827,"name":"_GSTS_PtDrink"}`
 12. `scene_add_item` `{"name":"PT_potion","icon":90015,"category":"consumable","description":"喝下去得七枚币","useGraphId":1073741827}` → `{"name":"PT_potion","itemId":1107296257}`
 13. `scene_list_prefabs` `{}`
-14. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+14. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 15. `scene_list_components` `{"prefab":"player"}`
 16. `inspect_map` `{}`
 17. [UI] `playtest_start` `{"graphNames":["_GSTS_PtStage","_GSTS_PtHero","_GSTS_PtDrink"],"durationSeconds":16,"screenshotsAt":[2,4.5,7,9.5,12,14.5],"inputs":[{"at":3.5,"key":"b"},{"at":6,"click":[0.72,0.355]},{"at":8.5,"clickText":"使用"},{"at":11,"clickText":"确认"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

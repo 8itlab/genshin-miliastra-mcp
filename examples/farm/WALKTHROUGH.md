@@ -51,13 +51,7 @@ A third kind of game built with the same tools, after the structure of the offic
 37. `scene_add_timer_display` `{"name":"FM_clock","timer":"FM_round","position":[0,330]}` → `{"name":"FM_clock","controlId":1073741847}`
 38. `scene_add_progress_bar` `{"name":"FM_points","variable":"score","max":3,"position":[0,380],"size":[260,40]}` → `{"name":"FM_points","controlId":1073741850}`
 39. `scene_list_prefabs` `{}`
-40. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+40. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 41. `scene_list_components` `{"prefab":"FM_rake"}`
 42. `inspect_map` `{}`
 43. [UI] `playtest_start` `{"graphNames":["_GSTS_FmStage","_GSTS_FmRake","_GSTS_FmSeeds","_GSTS_FmPlot","_GSTS_FmRipe","_GSTS_FmStall","_GSTS_FmHero","_GSTS_FmPlayer","_GSTS_FmUse"],"durationSeconds":38,"screenshotsAt":[4,6,8,10.5,13,15,18,21,23,24.5,27,29,31,34],"inputs":[{"at":2,"key":"f"},{"at":3,"key":"d","holdMs":1550},{"at":5.5,"key":"e"},{"at":6.5,"key":"a","holdMs":3000},{"at":10,"key":"f"},{"at":11,"key":"d","holdMs":2380},{"at":14,"key":"e"},{"at":23.5,"key":"f"},{"at":24.5,"key":"d","holdMs":3200},{"at":28.5,"key":"f"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

@@ -29,13 +29,7 @@ Tries the normal (animated) skills of scene_add_skill in the game: a sword attac
 15. `scene_add_skill` `{"name":"SK_rake","type":"normal","animation":1006,"animationPortion":0.167,"graphId":1082130434}` → `{"graphId":1082130434,"name":"SK_rake","skillId":1098907650}`
 16. `scene_add_skill` `{"name":"SK_reach","type":"normal","animation":1025,"graphId":1082130435}` → `{"graphId":1082130435,"name":"SK_reach","skillId":1098907651}`
 17. `scene_list_prefabs` `{}`
-18. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+18. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 19. `scene_list_components` `{"prefab":"player"}`
 20. `inspect_map` `{}`
 21. [UI] `playtest_start` `{"graphNames":["_GSTS_SkStage","_GSTS_SkHero","_GSTS_SkSwing","_GSTS_SkRake","_GSTS_SkReach"],"durationSeconds":30,"screenshotsAt":[2.5,3.25,3.5,3.8,4.2,4.8,7.25,7.6,8.2,11.25,11.6,12.2,15.3,15.8,21.3],"inputs":[{"at":3,"key":"e"},{"at":7,"key":"q"},{"at":11,"key":"r"},{"at":14,"key":"d","holdMs":4000},{"at":15,"key":"e"},{"at":20,"key":"d","holdMs":4000},{"at":21,"key":"q"},{"at":25,"key":"d","holdMs":3000},{"at":26,"key":"r"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

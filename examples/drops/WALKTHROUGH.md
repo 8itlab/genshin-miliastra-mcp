@@ -29,13 +29,7 @@ Drops and loot: scene_add_prefab {drop} makes the thing that lies on the ground 
 15. `scene_add_prefab` `{"asset":20001554,"name":"DR_fallen","drop":{"item":"DR_apple","amount":1}}` → `{"name":"DR_fallen","prefabId":1077936130}`
 16. `scene_add_components` `{"prefab":"DR_chest","loot":{"dropPrefab":"DR_fallen","items":[{"item":"DR_apple","amount":2}]}}`
 17. `scene_list_prefabs` `{}`
-18. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+18. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 19. `scene_list_components` `{"prefab":"DR_chest"}`
 20. `inspect_map` `{}`
 21. [UI] `playtest_start` `{"graphNames":["_GSTS_DrStage","_GSTS_DrHero","_GSTS_DrPlayer"],"durationSeconds":17,"screenshotsAt":[1,3.5,5.5,8,10.8,13,15],"inputs":[{"at":4.5,"key":"f"},{"at":12,"key":"f"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

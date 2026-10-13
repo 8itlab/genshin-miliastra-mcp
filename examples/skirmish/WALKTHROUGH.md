@@ -66,7 +66,6 @@ Complex creatures that work by day, take their posts at night and fight, with th
 52. `scene_add_components` `{"prefab":"SK_knife","solid":false,"projectile":{"type":"tracking","velocity":[0,0,16],"turnDegreesPerSecond":720},"hitDetection":{"areas":[{"radius":0.5}],"trigger":"oncePerEntity","delaySeconds":0.05,"abilityUnit":"SK_pierce","layers":["hurtBox"],"factions":"hostile","continuous":{"speedAbove":5,"radius":0.5}},"abilityUnits":[{"name":"SK_pierce","attack":{"coefficient":0,"added":40}}]}`
 53. `scene_list_prefabs` `{}`
 54. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 22 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。
-   一张图一张图调的时候，是对每张图做这五步：`create_project` `{projectId, mapPath, targetGraphId}` → `update_logic` `{projectId, code}` → `build_project` `{projectId}` → `preview_changes` `{projectId, buildId, destination:"copy"}` → `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`。
 55. `playtest_start` `{"graphNames":["_GSTS_SkStage","_GSTS_SkUnit","_GSTS_SkFoe","_GSTS_SkWall","_GSTS_SkKnife"],"durationSeconds":96,"screenshotsAt":[6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92],"inputs":[],"readTextAt":[],"recordAudio":false,"bakeNavigation":true}`
 
 ## 二、各张节点图的源码

@@ -12,6 +12,7 @@ import {ROOT} from '../../src/core.mjs';
 import {sha} from '../../src/adapter.mjs';
 import {hostConfig,PROTOCOL} from '../../src/host/config.mjs';
 import {WorkspaceLease} from '../../dist/host/workspace-lease.js';
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 const workspace=path.join(ROOT,'workspace','test-runs','host-'+randomUUID());
 process.env.MILIASTRA_WORKSPACE=workspace;
 process.env.MILIASTRA_SAVE_ROOTS='[]';

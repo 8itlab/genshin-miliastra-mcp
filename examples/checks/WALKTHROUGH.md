@@ -53,13 +53,7 @@ One round that checks, in the game, the tools that were written offline against 
 39. `scene_add_global_timer` `{"name":"CK_round","seconds":30,"holder":"stage"}` → `{"name":"CK_round"}`
 40. `scene_add_timer_display` `{"name":"CK_clock","timer":"CK_round","position":[0,380]}` → `{"name":"CK_clock","controlId":1073741847}`
 41. `scene_list_prefabs` `{}`
-42. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+42. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 43. `scene_list_components` `{"prefab":"CK_coin"}`
 44. `inspect_map` `{}`
 45. [UI] `playtest_start` `{"graphNames":["_GSTS_CkStage","_GSTS_CkCoin","_GSTS_CkPost","_GSTS_CkStall","_GSTS_CkHasKey","_GSTS_CkHero","_GSTS_CkPing"],"durationSeconds":45,"screenshotsAt":[5,8,10,11,13,15,17,19,21,24,26,28,30,32,34,37,40,43],"inputs":[{"at":2,"key":"f"},{"at":6,"key":"d","holdMs":1500},{"at":8.5,"key":"e"},{"at":9.6,"key":"space"},{"at":10,"key":"d","holdMs":1700},{"at":15,"key":"d","holdMs":1900},{"at":19,"key":"f"},{"at":25,"key":"a","holdMs":1500}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

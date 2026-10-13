@@ -8,13 +8,8 @@
 - 临时文件放在环境变量 `MILIASTRA_SCRATCH` 指的目录（没设就用系统临时目录下的 `miliastra-dev`）；下面写的 `<临时目录>` 就是它。
 - 有些脚本是为某一次调查写的，参数和假设都很具体，用之前先读开头的注释。
 
-`build.mjs`、`mcp_playtest.mjs`、`mcp_scene_file.mjs` 是把单个步骤经真实 MCP 调一遍的小客户端（参数各读一个 json）。下面几个是做成正式工具之前的旧办法，留作对照：
+`build.mjs`、`mcp_playtest.mjs`、`mcp_scene_file.mjs` 是把单个步骤经真实 MCP 调一遍的小客户端（参数各读一个 json）。
 
-- `set_paths.mjs <源.gil> <输出.gil> <路径点.json>`：挪动存档里已有路径的路径点。王国 v2 的底图 `workspace\\construction\\kv-base\\base.gil` 就是用它从 build-115 候选存档加 `examples/kingdom/kv_paths.json` 生成的（两条路径：传送门→墙前、墙前→主堡）。
-- `patch_patrol.mjs <源.gil> <输出.gil> <名字前缀> <模板.json>`：把巡逻模板写进存档里名字以该前缀开头的造物。导入器会把包里的巡逻模板清空，所以导入后要补这一步。`patrol_look.mjs`、`patrol_hex.mjs` 用来查看路径和巡逻配置。
-- `guids.mjs <存档.gil> <名字前缀>`：按名字读回导入后的实体编号。
-- `set_activity_flag.mjs`：改某个元件“活动”属性的原始标志位（做对照实验用）。
-- `scale_paths.mjs`：把王国样例的两条巡逻路径挪到压缩后的布局。
 
 存档分析（只读，用来对比“编辑器手摆的”和“我们导入的”实体）：
 
@@ -71,7 +66,7 @@
 - `fresh_map_round.mjs`：在一张全新的空白地图上只用 MCP 工具走完整流程（建节点图、设阵营和仇恨、调镜头、做元件、写图、试玩）。用来验证“创作者的新地图不需要任何手工准备”。
 - `graph_trials.mjs`：把一批节点图源码依次交给编辑器校验并试玩，记录每张图的节点数和结果。节点数上限等结论是用它测出来的。环境变量 `TRIAL_GRAPH_ID`、`TRIAL_GRAPH_NAME` 指定地图里被替换的那张图，`TRIAL_SECONDS` 是每张图试玩多久（默认 5 秒只看编辑器收不收；设 30 秒可以看服务器让不让它一直跑，结果里有 `levelEndedAt`、`serverMessage`）。
 - `gen_load.py <guids.json> <输出目录>`：生成一批“只做一种事”的小图（只计数、平铺算式、循环、遍历实体查位置，各种频率），配合 `graph_trials.mjs` 测服务器的运算量界线。平台规则里那张表就是这样测的。
-- `gen_count.py <guids.json> <输出目录>`：测编辑器怎么数节点。每张图是近三千条打印语句加几十份同一种写法，编辑器拒绝时会报出它数到的数，和 `build_project` 的 `nodeCount` 相减就是这种写法多算了多少。`TRIAL_SECONDS=5` 跑 `graph_trials.mjs` 即可。
+- `gen_count.py <guids.json> <输出目录>`：测编辑器怎么数节点。每张图是近三千条打印语句加几十份同一种写法，编辑器拒绝时会报出它数到的数，和编译结果里的 `nodeCount` 相减就是这种写法多算了多少。`TRIAL_SECONDS=5` 跑 `graph_trials.mjs` 即可。
 - `gen_mem.py`：同一目的的第一版（两千条打印加一百份某种写法，只能看出通过还是被拒）。
 - `graph_stats.mjs <工作目录或 build.json>`：打印编译后图的节点数、引脚数、连线数和最多的几种节点；`node_dump.mjs <build.json> <节点类型号>`：打印某一种节点的原始内容。
 - 王国的测试脚本（`examples/kingdom/kv3_test_*.json`）现在从空白地图开始：`baseName` 是你在游戏里新建并保存过一次的空白存档的名字（“我的奇域 → 新建存档”，超限模式）。换机器时把它改成自己的存档名。探针脚本（`kv3_probe_*.json`）仍用最初那张旧底图。

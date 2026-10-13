@@ -21,6 +21,7 @@ try{
  const coin=(await call('scene_list_prefabs',{mapPath})).prefabs.find(p=>p.name==='small_coin').prefabId;
  const code=`/// <reference types="genshin-ts" />
 import { g } from 'genshin-ts/runtime/core'
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 g.server({id:${graph.graphId},name:'${graph.name}',variables:{lastTick:-1n}})
 .on('whenEntityIsCreated',(evt,f)=>{
   f.startTimer(evt.eventSourceEntity,'FRESH_CLOCK',true,[1]);

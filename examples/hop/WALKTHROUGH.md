@@ -49,13 +49,7 @@ A second kind of game built with the same tools: a platform course, side on. Wal
 35. `scene_add_timer_display` `{"name":"HP_clock","timer":"HP_time","position":[0,330]}` → `{"name":"HP_clock","controlId":1073741847}`
 36. `scene_add_progress_bar` `{"name":"HP_coins","variable":"score","max":4,"position":[0,380],"size":[260,40]}` → `{"name":"HP_coins","controlId":1073741850}`
 37. `scene_list_prefabs` `{}`
-38. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+38. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 39. `scene_list_components` `{"prefab":"HP_coin"}`
 40. `inspect_map` `{}`
 41. [UI] `playtest_start` `{"graphNames":["_GSTS_HpStage","_GSTS_HpCoin","_GSTS_HpFerry","_GSTS_HpLever","_GSTS_HpChest","_GSTS_HpBurn","_GSTS_HpHero","_GSTS_HpPlayer","_GSTS_HpBlink"],"durationSeconds":35,"screenshotsAt":[5,7.5,9.5,11,12.5,14,16,17.8,19,21,22.5,24,25.5,27,29,32],"inputs":[{"at":6,"key":"d","holdMs":4500},{"at":11.5,"key":"f"},{"at":17,"key":"d","holdMs":600},{"at":18.5,"key":"f"},{"at":20,"key":"d","holdMs":2400},{"at":23,"key":"e"},{"at":24.5,"key":"d","holdMs":400},{"at":26,"key":"f"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

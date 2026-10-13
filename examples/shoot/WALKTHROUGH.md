@@ -30,13 +30,7 @@ A ranged attack: a bolt prefab with projectile motion, hit detection (hurt boxes
 16. `scene_add_components` `{"prefab":"SH_bolt","solid":false,"projectile":{"type":"straight","velocity":[0,0,12]},"hitDetection":{"areas":[{"radius":0.5}],"trigger":"oncePerEntity","delaySeconds":0.15,"abilityUnit":"SH_strike","layers":["hurtBox"]},"abilityUnits":[{"name":"SH_strike","attack":{"coefficient":1,"added":60}}]}`
 17. `scene_add_components` `{"prefab":"SH_crate","hurtBox":{"areas":[{"size":[1.6,1.2,1.4],"offset":[0,0.6,0]}]}}`
 18. `scene_list_prefabs` `{}`
-19. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+19. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 20. `scene_list_components` `{"prefab":"SH_bolt"}`
 21. `inspect_map` `{}`
 22. [UI] `playtest_start` `{"graphNames":["_GSTS_ShtStage","_GSTS_ShtHero","_GSTS_ShtBolt","_GSTS_ShtCrate","_GSTS_ShtFire"],"durationSeconds":14,"screenshotsAt":[2.5,4.2,4.4,4.6,5,6.2,6.4,6.6,8.3,10,12],"inputs":[{"at":4,"key":"e"},{"at":6,"key":"e"},{"at":8,"key":"e"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

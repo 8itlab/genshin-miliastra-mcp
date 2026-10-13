@@ -106,7 +106,7 @@ The AI's work goes into a copy of the save; a playtest imports that copy as a ne
 4. **Things and what they can do**: `scene_add_prefab`, `scene_update_prefab`, `scene_add_components`, `scene_add_graph`.
 5. **Platform systems**: `scene_add_signal`, `scene_add_global_timer`, `scene_add_skill`, `scene_add_creature_skill`, `scene_set_creature_logic`, `scene_add_currency`, `scene_add_item`, `scene_add_shop`, `scene_add_unit_status`, `scene_add_environment`, `scene_add_light`.
 6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`; client interfaces in Lua with `scene_set_client_script` and `scene_add_client_ui`.
-7. **Rules**: `search_node_docs`, `create_project`, `update_logic`, `build_project`, `preview_changes`, `apply_build`, and `write_graphs` for many graphs at once; `scene_batch` for many settings in one call.
+7. **Rules**: `search_node_docs`, then `write_graphs` to type-check, compile and write one graph or many in one call; `scene_batch` for many settings in one call.
 8. **Feedback**: `effect_catalog`, `sound_catalog`, `music_catalog`.
 9. **Playtest**: `playtest_start`, `playtest_status`, `playtest_frames`.
 10. **Before publishing**: `publish_kit`.

@@ -5,6 +5,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { ROOT } from '../src/core.mjs';
 import { sha } from '../src/adapter.mjs';
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 
 process.env.MILIASTRA_WORKSPACE ||= path.join(ROOT,'workspace','test-runs','protocol-'+Date.now());
 const client=new Client({name:'miliastra-ai-protocol-test',version:'0.1.0'});

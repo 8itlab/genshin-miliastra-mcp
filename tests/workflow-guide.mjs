@@ -17,9 +17,12 @@ try{
  for(const name of [...named(workflow),...named(instructions)])assert.ok(tools.has(name),'the guide names a tool that does not exist: '+name);
  for(const name of ['scene_search_assets','scene_asset_images','scene_build_blocks','editor_open_map','scene_import_assets','scene_list_entities','scene_remove_entities','scene_set_camera','scene_add_prefab','scene_update_prefab',
   'scene_set_faction_hostility','scene_set_level_settings','scene_add_graph','scene_add_components','scene_add_progress_bar','scene_add_text_box','scene_add_image',
-  'scene_set_spawn','scene_add_preset_point','scene_add_respawn_point','scene_set_player_count','scene_set_revive','scene_set_class','scene_add_signal','scene_add_global_timer','scene_add_timer_display','scene_add_light','scene_add_environment','scene_add_unit_status','scene_add_skill','scene_add_currency','scene_add_item','scene_add_shop','scene_add_button','write_graphs','search_node_docs','effect_catalog','create_project','update_logic','build_project','preview_changes','apply_build','playtest_start','playtest_status','publish_kit'])
+  'scene_set_spawn','scene_add_preset_point','scene_add_respawn_point','scene_set_player_count','scene_set_revive','scene_set_class','scene_add_signal','scene_add_global_timer','scene_add_timer_display','scene_add_light','scene_add_environment','scene_add_unit_status','scene_add_skill','scene_add_currency','scene_add_item','scene_add_shop','scene_add_button','write_graphs','search_node_docs','effect_catalog','playtest_start','playtest_status','publish_kit'])
   assert.ok(workflow.includes(name),'the workflow leaves out '+name);
  assert.match(instructions,/miliastra:\/\/workflow/);assert.match(instructions,/miliastra:\/\/platform-rules/);
+ // One way to write graphs is shown: the step tools and the patrol tools (dead since the game update of 2026-10-09) are not on the list.
+ for(const gone of ['create_project','update_logic','build_project','preview_changes','apply_build','restore_backup','get_test_results','validate_project','get_project','scene_set_patrol','scene_list_paths','scene_move_path_points'])assert.ok(!tools.has(gone),gone+' is on the list of tools');
+ assert.ok(tools.has('write_graphs')&&tools.has('scene_set_client_script')&&tools.has('scene_add_client_ui'));
  assert.ok(![...tools].some(n=>n.startsWith('creator_'))&&!/creator_/.test(instructions+workflow),'the recipe system (creator_*) is off the tool list since 2026-10-12');
  // Several node searches in one call, each with its own results; what all of them repeat is said once.
  const docs=(await client.callTool({name:'search_node_docs',arguments:{queries:['createPrefab','teleportPlayer','zzzznothing'],limit:2}})).structuredContent;

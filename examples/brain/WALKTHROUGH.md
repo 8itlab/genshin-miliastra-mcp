@@ -44,7 +44,6 @@ Complex creatures (复杂造物) run by graphs, a first try in the game: scene_a
 30. `scene_add_components` `{"prefab":"BR_scout","variables":[{"name":"duty","type":"integer","value":0},{"name":"px","type":"float","value":2},{"name":"pz","type":"float","value":3}]}`
 31. `scene_list_prefabs` `{}`
 32. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 11 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。
-   一张图一张图调的时候，是对每张图做这五步：`create_project` `{projectId, mapPath, targetGraphId}` → `update_logic` `{projectId, code}` → `build_project` `{projectId}` → `preview_changes` `{projectId, buildId, destination:"copy"}` → `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`。
 33. `playtest_start` `{"graphNames":["_GSTS_BrStage","_GSTS_BrUnit"],"durationSeconds":56,"screenshotsAt":[5,7,10,12,14,16,19,21,23,27,30,33,36,38,40,42,44,46,50],"inputs":[],"readTextAt":[],"recordAudio":false,"bakeNavigation":true}`
 
 ## 二、各张节点图的源码

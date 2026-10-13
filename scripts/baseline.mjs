@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { ROOT } from '../src/core.mjs';
 import { sha, inspectBytes } from '../src/adapter.mjs';
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 
 const workspace=path.join(ROOT,'workspace');
 const runDir=path.join(workspace,'baselines',new Date().toISOString().replace(/[:.]/g,'-')+'-'+randomUUID());

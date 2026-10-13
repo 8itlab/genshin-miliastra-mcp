@@ -36,13 +36,7 @@ A sword attack that really hits: a normal skill (animation 1001, a sword in the 
 22. `scene_add_components` `{"prefab":"ST_slime","loot":{"dropPrefab":"ST_fallen","items":[{"item":"ST_apple","amount":3}]}}`
 23. `scene_add_components` `{"prefab":"player","variables":[{"name":"dead","type":"integer","value":0},{"name":"ax","type":"float","value":0},{"name":"az","type":"float","value":0},{"name":"bx","type":"float","value":0},{"name":"bz","type":"float","value":0}]}`
 24. `scene_list_prefabs` `{}`
-25. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+25. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 26. `scene_list_components` `{"prefab":"ST_crate"}`
 27. `inspect_map` `{}`
 28. [UI] `playtest_start` `{"graphNames":["_GSTS_StStage","_GSTS_StCrate","_GSTS_StSlime","_GSTS_StHero","_GSTS_StSwing"],"durationSeconds":27,"screenshotsAt":[2.5,4.4,4.8,7,9.4,9.8,12,16,17.8,20,21.8,25],"inputs":[{"at":4,"key":"e"},{"at":6.5,"key":"e"},{"at":9,"key":"e"},{"at":11.5,"key":"e"},{"at":14,"key":"e"},{"at":18.6,"key":"f"},{"at":22.6,"key":"f"}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）

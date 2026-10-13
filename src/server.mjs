@@ -179,14 +179,12 @@ playtest_status gives the outcome.
    examples/kingdom6 a whole game made of them.
    Verified in play; look at a fight from close up (a recording, frame by frame), not only at its prints.
 
-5. Rules (server node graphs written in Genshin-TS), one project per graph.
+5. Rules (server node graphs written in Genshin-TS).
    search_node_docs: what a graph can call and listen to, with every parameter explained; ask for everything a graph
    needs in one call (queries: ["createPrefab", "teleportPlayer", "when timer", ...]). effect_catalog: special effects.
-   create_project {mapPath: the last save so far, targetGraphId: the graph id scene_add_graph returned}
-   update_logic -> build_project -> preview_changes -> apply_build (destination "copy"; it returns the save to play).
-   For the next graph, create another project on the save apply_build returned.
-   write_graphs {mapPath, graphs: [{graphId, code}...]} does those five steps for every graph in one call and returns
-   the save with all of them written; use it once the sources exist, and the single steps while working on one graph.
+   write_graphs {mapPath: the last save so far, graphs: [{graphId: the id scene_add_graph returned, code}...]}
+   type-checks, compiles and writes every graph of the call and returns the save to play, with the size of each
+   graph; a graph with an error is named with its errors and the ones before it are written.
    It compiles the graphs of a call together (a level of forty graphs in a third of a minute): send them all in one
    call, and after a change only the graphs that changed, on the save that has the others.
    The target graph must exist in the map: an empty server graph, or one whose name starts with _GSTS.
@@ -197,7 +195,7 @@ playtest_status gives the outcome.
    things report to the stage entity, buttons to the player, skills to the character, the events of an item to the
    item's own item graph. read_knowledge {id:"event-receivers.zh-CN"} has the table; check it before writing a listener.
    Keep graphs small: the editor refuses a graph above 3000 by its own count, in which each read or write of a graph
-   variable is 4, each loop over a list 20 and each counting loop 15 (build_project returns that count as limits.editorCount and warns).
+   variable is 4, each loop over a list 20 and each counting loop 15 (write_graphs returns that count as limits.editorCount and warns).
    A graph has at most 100 variables.
    Keep the work per second small too: the server ends a level when, each second, nodes run plus about 20 for every
    round of a loop go above roughly 1400 (measured). Event-driven graphs stay far below this; a looping timer that
@@ -234,7 +232,7 @@ playtest_status gives the outcome.
    Verified in play (examples/kingdom5).
 
 7. Play.
-   [UI] playtest_start {mapPath: the save from the last apply_build, graphNames: every graph whose prints you want
+   [UI] playtest_start {mapPath: the save write_graphs returned, graphNames: every graph whose prints you want
    (only ticked graphs show in the log, ten at most), durationSeconds, screenshotsAt, inputs}. An input is a key, a
    mouse click or a click on a word on the screen (for the shop and the backpack); readTextAt returns the text on the
    screen at chosen seconds. recordAudio records the sound of the playtest (nobody is listening to it): playtest_status
@@ -299,7 +297,7 @@ entity, which works but is heavy and is not how the platform is meant to be used
 scripts/dev/mcp_round.mjs runs a whole example through MCP calls only.`;
 const core=await connectCore();
 const server=new McpServer({name:'miliastra-mcp',version:'0.1.0'}, {instructions:
-  'Tools for building a Miliastra Wonderland (原神·千星奇域) level end to end: scene, level settings, node-graph rules, and an automatic playtest that returns log prints and screenshots. Read miliastra://workflow first (the order of the steps and which tool does each) and miliastra://platform-rules before designing anything (what the engine really does, measured in playtests). Every tool that changes a save writes a copy and returns its mapPath; the creator\'s own save is never modified. Compiling is not testing: after apply_build run playtest_start and judge the prints and the screenshots yourself. Use real ids from inspect_map, scene_list_entities, scene_list_prefabs and scene_search_assets; never invent them. Local trusted source code only; the compiler is not a security sandbox.'});
+  'Tools for building a Miliastra Wonderland (原神·千星奇域) level end to end: scene, level settings, node-graph rules, and an automatic playtest that returns log prints and screenshots. Read miliastra://workflow first (the order of the steps and which tool does each) and miliastra://platform-rules before designing anything (what the engine really does, measured in playtests). Every tool that changes a save writes a copy and returns its mapPath; the creator\'s own save is never modified. Compiling is not testing: after write_graphs run playtest_start and judge the prints and the screenshots yourself. Use real ids from inspect_map, scene_list_entities, scene_list_prefabs and scene_search_assets; never invent them. Local trusted source code only; the compiler is not a security sandbox.'});
 for(const def of toolRegistry(null)) {
   server.registerTool(def.name,{description:def.description,inputSchema:def.shape,annotations:{readOnlyHint:def.readOnly,destructiveHint:!def.readOnly,openWorldHint:false}},async args=>{try{return await core.call(def.name,args);}catch(e){return toolError(e);}});
 }

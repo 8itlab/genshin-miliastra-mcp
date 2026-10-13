@@ -32,7 +32,6 @@ The fitting room: complex creatures stand in front of the camera, as their model
 18. `scene_add_components` `{"prefab":"FT_hili","variables":[{"name":"k","type":"integer","value":-2},{"name":"s","type":"integer","value":0}]}`
 19. `scene_list_prefabs` `{}`
 20. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, … 共 5 张]}`：对每张图依次编译并写进存档，返回全部写好、可以试玩的存档。
-   一张图一张图调的时候，是对每张图做这五步：`create_project` `{projectId, mapPath, targetGraphId}` → `update_logic` `{projectId, code}` → `build_project` `{projectId}` → `preview_changes` `{projectId, buildId, destination:"copy"}` → `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`。
 21. `playtest_start` `{"graphNames":["_GSTS_FtStage","_GSTS_FtUnit"],"durationSeconds":32,"screenshotsAt":[4,30],"bursts":[{"from":1,"to":31,"everyMs":125}],"burstWidth":1600,"inputs":[],"readTextAt":[],"recordAudio":false,"bakeNavigation":false}`
 
 ## 二、各张节点图的源码

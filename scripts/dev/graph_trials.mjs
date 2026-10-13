@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 const root=process.cwd(),[workspace,mapPath,out,...sources]=process.argv.slice(2);
 const client=new Client({name:'graph-trials',version:'1'});
 const graphId=Number(process.env.TRIAL_GRAPH_ID||1073741908),graphName=process.env.TRIAL_GRAPH_NAME||'_GSTS_KingdomEconomy',seconds=Number(process.env.TRIAL_SECONDS||5);

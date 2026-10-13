@@ -6,6 +6,7 @@ import { buildFile, encodeVarint } from 'genshin-ts/injector/binary';
 import { loadGiaProto } from 'genshin-ts/injector/proto';
 import { ROOT, Service, runNode } from '../src/core.mjs';
 import { inspectBytes, sha } from '../src/adapter.mjs';
+process.env.MILIASTRA_STEP_TOOLS='1'; // this script takes the steps of writing a graph one by one (create_project ... apply_build)
 const field=(id,b)=>Buffer.concat([Buffer.from(encodeVarint(id*8+2)),Buffer.from(encodeVarint(b.length)),b]);
 const {nodeGraphMessage}=loadGiaProto();
 const graph=Buffer.from(nodeGraphMessage.encode({id:{class:10000,type:20000,kind:21001,id:1073741825},name:'_GSTS_MCP_Test'}).finish());

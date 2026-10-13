@@ -3,16 +3,14 @@ import {createHash} from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import {container,fields,field,one,replace,wrap,varint} from './scene/wire.mjs';
-import {patrolBlock} from './scene/blocks.mjs';
 import {findAsset,presetStatusOf} from './scene/assets.mjs';
 import {animationsOf,animationsMayGoOn} from './scene/media.mjs';
-import {inspectLevelPaths,prepareLevelPathPatch} from './scene/level-paths.mjs';
 import {fail} from './adapter.mjs';
 import {imageIdKnown} from './scene/images.mjs';
 
 // Reading and patching saves between “import the scene” and “build the graph”. Nothing here touches the
 // official save in place: every change is written to a new file under <workspace>/scenes/saves, which
-// create_project and playtest_start accept as mapPath.
+// write_graphs and playtest_start accept as mapPath.
 
 // The save the editor wrote most recently. After scene_import_assets (it presses Ctrl+S) this is the open save.
 export function newestOfficialSave(){
@@ -63,7 +61,7 @@ export function listSceneEntities({mapPath,namePrefix='',limit=500}){
   const file=resolve(mapPath),all=entries(container(fs.readFileSync(file))).map(e=>describe(e.data)).filter(e=>e.name.startsWith(namePrefix));
   return {mapPath:file,total:all.length,truncated:all.length>limit||undefined,
     entities:all.slice(0,limit).map(e=>({name:e.name,guid:e.guid,assetId:e.assetId,position:e.position,createdAtStart:e.createdAtStart,kind:isCreature(e.props)?'creature':e.staticUnit?'static':'dynamic'})),
-    note:'In a node graph: f.queryEntityByGuid(new guid(GUID)), and f.createEntity(new guid(GUID), [] as bigint[]) for pieces with createdAtStart false. Use this file (or a patched copy) as mapPath for create_project so the graph is built on the save that holds these entities.'};
+    note:'In a node graph: f.queryEntityByGuid(new guid(GUID)), and f.createEntity(new guid(GUID), [] as bigint[]) for pieces with createdAtStart false. Use this file (or a patched copy) as mapPath for write_graphs so the graph is built on the save that holds these entities.'};
 }
 // Takes placed entities out of a save: their records in section 5 and the line each has in the library (section 6: a
 // tab lists what belongs to it as {1: code, 2: id}; placed things are in the tab of kind 3 under code 200). A save
@@ -95,11 +93,6 @@ export function removeEntities({mapPath,names,namePrefix,outputName},workspace){
   return {mapPath:out,source:file,removed:gone.length,names:[...new Set(gone.map(e=>e.name))].slice(0,60),unlisted,left:entries(root).length,
     next:'Use mapPath in later calls. The things are gone from this copy; the official save they were imported into still has them, so go on from this copy and do not import the scene again. A graph that names one of them by its GUID finds nothing now.'};
 }
-export function listLevelPaths({mapPath}){
-  const file=resolve(mapPath),state=inspectLevelPaths(fs.readFileSync(file));
-  return {mapPath:file,paths:state.paths.map(p=>({pathId:p.pathId,name:p.name,waypoints:p.waypoints.map(w=>({waypointId:w.waypointId,position:w.position.map(n=>Math.round(n*1000)/1000)}))})),
-    note:'Paths are drawn in the editor (路径管理); these tools can move existing waypoints and point creatures at a path, not create one. Waypoint ids are stored ids, not row numbers.'};
-}
 // Without an outputName the new save is named after the one it was made from plus what was done to it. A chain of
 // thirty steps made names so long that Windows refused the path (seen in a blind test, 2026-10-12): past sixty
 // characters the name is cut to its beginning and a short hash of the whole.
@@ -109,58 +102,6 @@ function output(workspace,file,outputName,suffix){
   if(!outputName&&name.length>60)name=name.slice(0,24)+'-'+createHash('sha1').update(name).digest('hex').slice(0,8)+suffix;
   return path.join(dir,name+'.gil');
 }
-export function moveLevelPathPoints({mapPath,edits,outputName},workspace){
-  const file=resolve(mapPath);let bytes=fs.readFileSync(file);
-  const byPath=new Map();for(const e of edits){if(!byPath.has(e.pathId))byPath.set(e.pathId,[]);byPath.get(e.pathId).push({waypointId:e.waypointId,position:e.position});}
-  for(const [pathId,waypointEdits] of byPath){
-    const state=inspectLevelPaths(bytes),record=state.paths.find(p=>p.pathId===pathId);
-    if(!record)fail('PATH_NOT_FOUND','The save has no such path.',{pathId,known:state.paths.map(p=>p.pathId)});
-    for(const w of waypointEdits)if(!record.waypoints.some(x=>x.waypointId===w.waypointId))fail('WAYPOINT_NOT_FOUND','The path has no such waypoint.',{pathId,waypointId:w.waypointId,known:record.waypoints.map(x=>x.waypointId)});
-    bytes=prepareLevelPathPatch(bytes,{expectedSourceHash:state.sourceHash,pathId,expectedRecordHash:record.recordHash,waypointEdits}).bytes;
-  }
-  const out=output(workspace,file,outputName,'-paths');fs.writeFileSync(out,bytes);
-  return {...listLevelPaths({mapPath:out}),source:file,next:'Use mapPath in later calls (scene_set_patrol, create_project, editor_open_map). The official save was not changed.'};
-}
-// Makes placed creatures walk saved paths while they have no target: behaviour block 30 set to patrol (5), territory
-// block 34 without a shape, block 65 listing the templates. Values are the ones the editor writes for a hand-made patrol.
-export function setCreaturePatrol({mapPath,namePrefix,names,templates,outputName},workspace){
-  const file=resolve(mapPath),bytes=fs.readFileSync(file),root=container(bytes);
-  if(!namePrefix&&!names?.length)fail('INVALID_TARGET','Give namePrefix or names.');
-  const paths=inspectLevelPaths(bytes).paths;
-  for(const t of templates){
-    const record=paths.find(p=>p.pathId===t.pathId);
-    if(!record)fail('PATH_NOT_FOUND','The save has no such path. Draw it in the editor (路径管理) first.',{pathId:t.pathId,known:paths.map(p=>p.pathId)});
-    for(const id of t.waypointIds)if(!record.waypoints.some(w=>w.waypointId===id))fail('WAYPOINT_NOT_FOUND','The path has no such waypoint.',{pathId:t.pathId,waypointId:id,known:record.waypoints.map(w=>w.waypointId)});
-  }
-  const wanted=names?new Set(names):null,patrol=patrolBlock(templates),territory=Buffer.from('0822e2020c0a0a1500002042350000a040','hex');
-  const changed=[],skipped=[];
-  const section=Buffer.concat(fields(one(root,5)).map(entry=>{
-    if(entry.id!==1||entry.wire!==2)return entry.raw;
-    const info=describe(entry.data);
-    if(!(wanted?wanted.has(info.name):info.name.startsWith(namePrefix)))return entry.raw;
-    if(!info.props.includes(30)){skipped.push({name:info.name,reason:'not a creature'});return entry.raw;}
-    const parts=fields(entry.data),done=new Set(),body=[];
-    for(const f of parts){
-      const kind=f.id===5&&f.wire===2?kindOf(f.data):null;
-      if(kind===30){
-        const mode=Number(fields(one(one(f.data,40),1)).find(x=>x.id===1)?.value);
-        body.push(field(5,2,Buffer.concat([field(1,0,30),field(40,2,field(1,2,Buffer.concat([field(1,0,mode),field(2,0,5)])))])));
-      }else if(kind===34){body.push(field(5,2,territory));done.add(34);}
-      else if(kind===65){body.push(field(5,2,patrol));done.add(65);}
-      else body.push(f.raw);
-    }
-    // A creature saved without territory or patrol blocks gets them right after its last property.
-    const extra=[[34,territory],[65,patrol]].filter(([k])=>!done.has(k)).map(([,b])=>field(5,2,b));
-    if(extra.length){let last=-1;parts.forEach((f,i)=>{if(f.id===5)last=i;});body.splice(last+1,0,...extra);}
-    changed.push({name:info.name,guid:info.guid});
-    return field(1,2,Buffer.concat(body));
-  }));
-  if(!changed.length)fail('NO_CREATURE_MATCHED','No creature with that name was found in the save.',{skipped});
-  const out=output(workspace,file,outputName,'-patrol');fs.writeFileSync(out,wrap(bytes,replace(root,5,2,section)));
-  return {mapPath:out,source:file,changed,skipped:skipped.length?skipped:undefined,
-    next:'Build the graph on this file (create_project mapPath). A creature starts walking once a graph calls f.switchCreationPatrolTemplate(entity, 1n) on it — once, not every tick; template numbers follow the order given here. It stops to fight targets within about 8 m on the way.'};
-}
-
 // Camera templates (主镜头管理) are records in section 18: {1: id, 2: {1: name, 2: distance, 3: field of view in degrees, 6: distance again, ...}}.
 // Fields 2 and 6 hold the same number in every save seen so far, so both are written. Fields 15..18 are the limits of the
 // player's own camera turning: yaw min, yaw max, pitch min, pitch max, in degrees (-180, 180, -89, 89 in a new template).
@@ -210,7 +151,7 @@ export function setCamera({mapPath,name,distance,fieldOfView,yawRange,pitchRange
   const section=Buffer.concat(fields(one(root,18)).map(f=>f.id===1&&f.wire===2&&Number(one(f.data,1,0))===target.cameraId?field(1,2,record):f.raw));
   const out=output(workspace,file,outputName,'-camera');fs.writeFileSync(out,wrap(bytes,replace(root,18,2,section)));
   return {...listCameras({mapPath:out}),source:file,before:{distance:target.distance,fieldOfView:target.fieldOfView,yawRange:target.yawRange,pitchRange:target.pitchRange,...(target.fixedView?{fixedView:target.fixedView}:{})},
-    next:'Use mapPath in later calls (create_project, editor_open_map, playtest_start). The official save was not changed. Look at a playtest screenshot to judge the framing.'};
+    next:'Use mapPath in later calls (write_graphs, editor_open_map, playtest_start). The official save was not changed. Look at a playtest screenshot to judge the framing.'};
 }
 
 // Prefabs (元件) are the entries of section 4: {1: prefab id, 2: asset id, 6: properties (kind 1 holds the name), 7: components
@@ -555,12 +496,12 @@ export function addGraph({mapPath,name='_GSTS_Main',kind='server',attachTo,attac
   if(kind==='item'){
     const out=output(workspace,file,outputName,'-graph');fs.writeFileSync(out,wrap(bytes,root));
     return {mapPath:out,source:file,graphId,name:label,kind,
-      next:'create_project {mapPath: this mapPath, targetGraphId: '+graphId+'}; the source is '+GRAPH_ENTRY.item+' with id '+graphId+' and name \''+label+'\'. Then name it in the item: scene_add_item {useGraphId: '+graphId+', category: "consumable"}.'};
+      next:'write_graphs {mapPath: this mapPath, graphs: [{graphId: '+graphId+', code}]}; the source is '+GRAPH_ENTRY.item+' with id '+graphId+' and name \''+label+'\'. Then name it in the item: scene_add_item {useGraphId: '+graphId+', category: "consumable"}.'};
   }
   if(client){
     const out=output(workspace,file,outputName,'-graph');fs.writeFileSync(out,wrap(bytes,root));
     return {mapPath:out,source:file,graphId,name:label,kind,
-      next:'create_project {mapPath: this mapPath, targetGraphId: '+graphId+'}; the source is '+GRAPH_ENTRY[kind]+' with id '+graphId+' and name \''+label+'\'. search_node_docs with scope "raw" finds what a client graph can call. '+(kind==='boolFilter'?'Then name it in an option: scene_add_components optionTab.options[].filterGraphId '+graphId+' (the option shows only while the filter is true).':'Wiring this graph to a skill or a creature has no tool yet.')+' Client graphs written this way have compiled but have not been run in the game.'};
+      next:'write_graphs {mapPath: this mapPath, graphs: [{graphId: '+graphId+', code}]}; the source is '+GRAPH_ENTRY[kind]+' with id '+graphId+' and name \''+label+'\'. search_node_docs with scope "raw" finds what a client graph can call. '+(kind==='boolFilter'?'Then name it in an option: scene_add_components optionTab.options[].filterGraphId '+graphId+' (the option shows only while the filter is true).':'Wiring this graph to a skill or a creature has no tool yet.')+' Client graphs written this way have compiled but have not been run in the game.'};
   }
   // An entity runs every graph named in its component 3, one {1: {1: locator}} per graph (official saves carry up to six).
   const mount=field(1,2,field(1,2,Buffer.concat([field(1,0,1),field(2,0,graphId),field(501,0,20000)])));
@@ -576,7 +517,7 @@ export function addGraph({mapPath,name='_GSTS_Main',kind='server',attachTo,attac
   const out=output(workspace,file,outputName,'-graph');fs.writeFileSync(out,wrap(bytes,root));
   const where=prefabList.length?{attachedToPrefab:attachToPrefab,prefabIds:done.prefabIds,templates:done.templates,placedCopies:done.placed}:{attachedTo:targets[0].entity};
   return {mapPath:out,source:file,graphId,name:label,...where,
-    next:'create_project {mapPath: this mapPath, targetGraphId: '+graphId+'}; the graph source starts with g.server({id:'+graphId+', name:\''+label+'\', ...}). One project writes one graph: for several graphs, apply one project and give the save it returns to the next create_project. In the graph, events are those of the entity it is attached to (evt.eventSourceEntity is that entity; on a prefab, each created copy runs its own instance), and whenEntityIsCreated fires when that entity appears (for the stage entity: when the level starts).'};
+    next:'write_graphs {mapPath: this mapPath, graphs: [{graphId: '+graphId+', code}]}; the graph source starts with g.server({id:'+graphId+', name:\''+label+'\', ...}). Add every graph the level needs first, then write all their sources in one write_graphs call. In the graph, events are those of the entity it is attached to (evt.eventSourceEntity is that entity; on a prefab, each created copy runs its own instance), and whenEntityIsCreated fires when that entity appears (for the stage entity: when the level starts).'};
 }
 
 // General components (通用组件) are the records of an entry: {1: kind, 2: 1, content field: content} (see contentField). Read from the fifty official
@@ -1881,7 +1822,7 @@ export function addSkill({mapPath,name,graphId,type='instant',animation,animatio
   root=listInLibrary(root,12,2800,skillId);
   const out=output(workspace,file,outputName,'-skill');fs.writeFileSync(out,wrap(bytes,root));
   return {mapPath:out,source:file,skillId,name,type,graphId,animation,animationNote:type==='normal'?(SKILL_ANIMATIONS[animation]??'not one of the animations seen in the official samples'):undefined,
-    next:'Use mapPath in later calls. Three pieces make a key press reach the rules. (1) The skill graph '+graphId+' (create_project with it as targetGraphId): g.characterSkill({id:'+graphId+', name, prefix:false}).on(\'start\',(evt,f)=>{f.notifyServerNodeGraph(\'<word>\',\'\',\'\');}) : a client graph cannot create or change things itself. (2) A server graph gives the skill to the character, for instance two seconds into the level: f.addCharacterSkill(character, '+skillId+', CharacterSkillSlot.Skill1E, TopOfStackSkillDestructionType.Destroy) (the E key; NormalAttack is the attack button). (3) A server graph on the character template (scene_add_graph attachToPrefab "character") hears .on(\'whenSkillNodeIsCalled\',(evt,f)=>{...}) with evt.callerEntity and evt.parameter1 = <word>.'};
+    next:'Use mapPath in later calls. Three pieces make a key press reach the rules. (1) The skill graph '+graphId+' (written with write_graphs, as graphId): g.characterSkill({id:'+graphId+', name, prefix:false}).on(\'start\',(evt,f)=>{f.notifyServerNodeGraph(\'<word>\',\'\',\'\');}) : a client graph cannot create or change things itself. (2) A server graph gives the skill to the character, for instance two seconds into the level: f.addCharacterSkill(character, '+skillId+', CharacterSkillSlot.Skill1E, TopOfStackSkillDestructionType.Destroy) (the E key; NormalAttack is the attack button). (3) A server graph on the character template (scene_add_graph attachToPrefab "character") hears .on(\'whenSkillNodeIsCalled\',(evt,f)=>{...}) with evt.callerEntity and evt.parameter1 = <word>.'};
 }
 
 // ---- Complex creatures (复杂造物): creatures whose behaviour is written as node graphs ----

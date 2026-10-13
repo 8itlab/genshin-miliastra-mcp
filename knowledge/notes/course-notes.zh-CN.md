@@ -315,7 +315,7 @@
 
 10. 编译器支持全部几种客户端图：`g.characterSkill`、`g.characterControlSkill`、`g.creationSkill`、`g.creationStatus`、`g.creationStatusDecision`、`g.boolFilter`、`g.intFilter`，写法是 `.on('start', (evt, f) => …)`（造物状态和决策图是 `start1`～`start10`），过滤器的处理函数返回是或否。客户端图里有 `f.notifyServerNodeGraph(a, b, c)`。
 11. 存档里客户端图和服务器图存在同一段，图头里的类型号不同（20000 服务器实体图、20001 布尔过滤器、20002 角色技能、20007 造物状态决策、20008 造物技能、20009 造物状态），多一个标记 `100=1`，编号从 1082130433 起单独排，资源库里各有各的页签。`scene_add_graph` 的 `kind` 已能新建空的客户端图。
-12. 离线整条链已通：加空的布尔过滤器图 → `create_project` → `build_project` → `preview_changes` → `apply_build`，读回节点数正确。**还没在游戏里跑过任何一张客户端图。**
+12. 离线整条链已通：加空的布尔过滤器图 → 编译 → 写进存档，读回节点数正确。**还没在游戏里跑过任何一张客户端图。**
 13. 还缺的另一半：把技能图接到技能上（技能的定义、动画时间轴、职业的技能槽）、把造物的图接到造物上（造物技能管理、决策图绑定）。过滤器图不缺这一半：选项卡的选项本来就能填 `filterGraphId`，所以 3.7 课可以最先复现。
 14. 本地投射物、客户端脚本还没看。
 

@@ -21,13 +21,7 @@ A client interface (客户端控件 with a Lua client script, game version 7.1) 
 7. `scene_set_client_script` `{"name":"CU_hud","source":"<Lua，见第三节>"}` → `{"name":"CU_hud"}`
 8. `scene_add_client_ui` `{"name":"CU_ui","script":"CU_hud","controls":[{"name":"panel","kind":"image","position":[-620,380],"size":[280,80]},{"name":"life1","kind":"image","position":[-700,380],"size":[56,56]},{"name":"life2","kind":"image","position":[-620,380],"size":[56,56]},{"name":"life3","kind":"image","position":[-540,380],"size":[56,56]},{"name":"track","kind":"image","position":[0,-330],"size":[308,28]},{"name":"fill","kind":"image","position":[-144,-330],"size":[12,20]},{"name":"button","kind":"container","position":[0,-270],"size":[90,90],"children":[{"name":"face","kind":"image","size":[90,90]},{"name":"hit","kind":"cursorArea","size":[90,90]}]}]}` → `{"name":"CU_ui"}`
 9. `scene_list_prefabs` `{}`
-10. 每张节点图各做一遍这五步（上一张 `apply_build` 返回的存档给下一张的 `create_project`）：
-   - `create_project` `{"projectId":"stage","targetGraphId":"<scene_add_graph 返回的 graphId>"}`
-   - `update_logic` `{projectId, code: <源码，见第二节>}`
-   - `build_project` `{projectId}`：返回 buildId 和节点数、编辑器计数
-   - `preview_changes` `{projectId, buildId, destination:"copy"}`：返回 expectedSha256
-   - `apply_build` `{projectId, buildId, destination:"copy", expectedSha256}`：返回可以试玩的存档
-   源码都写好以后，这五步可以换成一次 `write_graphs` `{mapPath, graphs:[{graphId, code}, ...]}`：它对每张图依次做同样的事，返回全部写好的存档。
+10. `write_graphs` `{graphs:[{graphId: <scene_add_graph 返回的 graphId>, code: <源码，见第二节>}, …]}`：把每张图的源码编译并写进存档，返回可以试玩的存档。
 11. `scene_list_components` `{"prefab":"player"}`
 12. `inspect_map` `{}`
 13. [UI] `playtest_start` `{"graphNames":["_GSTS_CuStage"],"durationSeconds":15,"screenshotsAt":[2,8,13],"inputs":[{"at":4,"click":[0.5,0.8]},{"at":5,"click":[0.5,0.8]},{"at":6,"click":[0.5,0.8]}]}`，然后 `playtest_status` 读打印和截图（演练时跳过）
