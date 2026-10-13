@@ -2234,7 +2234,14 @@ export function setClientScript({mapPath,name,source,sourceFile,file:asFile,vari
   const idleUpdate=/\bfunction\s+OnUpdate\s*\(/.test(stripped)&&!/EnableUpdate\s*\(/.test(stripped);
   // A tween does nothing until it is played (a basket that never moved, 2026-10-13).
   const idle=stripped.split('\n').map((l,i)=>/^\s*game\s*\.\s*Tween\s*\(/.test(l)&&!/:\s*Play\s*\(/.test(l)?i+1:0).filter(Boolean);
+  // Color takes 0 to 255: one written with fractions is black on the screen (a lamp that stayed black, 2026-10-13).
+  const fractions=stripped.split('\n').map((l,i)=>[...l.matchAll(/\bColor(?:\s*\.\s*FromRGBA?)?\s*\(([^()]*)\)/g)].some(m=>{const parts=m[1].split(',').map(x=>x.trim());
+    return parts.length>=3&&parts.slice(0,3).every(x=>/^\d*\.?\d+$/.test(x)&&Number(x)<=1)&&parts.slice(0,3).some(x=>x.includes('.'));})?i+1:0).filter(Boolean);
+  // The fill of an image shows only on an image whose mask is on (seen in play, 2026-10-13: the value reads back, the picture stays whole).
+  const fillAlone=/\bSetFill(?:Horizontal|Vertical|Radial\d+)\s*\(|\.\s*fillAmount\s*=|\bfillAmount\s*=/.test(stripped)&&!/enableMask/.test(stripped);
   return {mapPath:out,source:file,scriptId:id,name,file:luaFile,replaced:!!had,lines:lua.split('\n').length,callbacks,...(variables?.length?{variables:variables.map(v=>v.name)}:{}),
+    ...(fractions.length?{coloursLookLikeFractions:{lines:fractions,note:'Color(r, g, b, a) takes 0 to 255, not 0 to 1: these colours are next to black on the screen.'}}:{}),
+    ...(fillAlone?{fillNeedsMask:'The script fills an image (SetFill..., fillAmount) and never mentions enableMask: the fill shows only on an image whose mask is on. Give the image mask: true in scene_add_client_ui, or set control.enableMask = true before filling it.'}:{}),
     ...(idleUpdate?{updateNotEnabled:'The script defines OnUpdate but never calls script:EnableUpdate(true): the game does not call OnUpdate until it does (put the call in OnStart).'}:{}),
     ...(idle.length?{tweensNotPlayed:{lines:idle,note:'game.Tween(...) only makes a tween: it moves nothing until :Play() is called on it.'}}:{}),
     ...(callbacks.length?{}:{warning:'The script defines none of the lifecycle functions the game calls by name (OnInit, OnStart, OnEnable, OnUpdate(dt), OnLevelUpdate(dt), OnDisable, OnDestroy): only what stands at the top level runs, once, when the script loads.'}),

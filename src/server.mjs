@@ -230,7 +230,8 @@ playtest_status gives the outcome.
    with the prints of the graphs, a fault in the script among them with its line. scene_remove_client takes an
    interface, a template or a script out again. Read read_knowledge {id:"client-lua.zh-CN"} before writing one:
    OnUpdate runs only after script:EnableUpdate(true), a tween does nothing until :Play(), a preset button needs
-   a hover state, the script starts seconds before the play does.
+   a hover state, the script starts seconds before the play does, Color takes 0 to 255, the fill of an image (a
+   bar, a cooldown ring) shows only on an image with its mask on.
    On an account of 奇匠 level 1 no custom text shows, not even the text of an option (only its icon). Say a price
    with a row of things over the station, "possible now" with a marker over it, a refusal with a question mark, a
    quantity with a bar whose maximum is 10 (the bar prints a percentage).
@@ -273,7 +274,7 @@ Worked examples, readable through the server: read_knowledge {id:"example-events
 {id:"example-hop"}, {id:"example-farm"}, {id:"example-checks"}, {id:"example-skills"}, {id:"example-shop"},
 {id:"example-drops"}, {id:"example-buttons"}, {id:"example-strike"}, {id:"example-raid"}, {id:"example-potion"},
 {id:"example-shoot"}, {id:"example-kingdom5"}, {id:"example-brain"}, {id:"example-skirmish"}, {id:"example-kingdom6"},
-{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"} give every
+{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-clientapi"} give every
 tool call in order with its arguments and the source of every graph, recorded from a real run. All of them have been played in the game.
 examples/doors is a gate that opens and closes again with two motion devices; examples/images is a screen that speaks without
 words (a row of lives made of image controls that a graph switches off and on, bars that show a value, a ring, a picture that starts hidden).

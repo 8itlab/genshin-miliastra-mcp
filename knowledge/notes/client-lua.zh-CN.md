@@ -131,6 +131,22 @@ control.imageColor = Color(255, 208, 64)                     -- 0 到 255；第�
 
 `100001` 是一块纯色矩形（配上颜色就是底板、条、方块），`106025` 是一个圆点。
 
+**颜色是 0 到 255，不是 0 到 1。** `Color(0.5, 0.5, 0.5)` 画出来是黑的（上机踩过）。`scene_set_client_script` 见到三个都不超过 1 的小数会在结果里提醒（`coloursLookLikeFractions`）。
+
+### 填充：进度条和冷却圈（要开遮罩）
+
+图片可以只画出一部分：横着、竖着、绕一圈。**只有开了遮罩的图片填充才生效**——没开时 `fillAmount` 读回来是你设的数，画面上图片还是整张（上机试过两种图片类型、晚几秒再设，都一样；开了遮罩就对了）。遮罩在 `scene_add_client_ui` 里给 `mask: true`，或者脚本里 `control.enableMask = true`。
+
+```lua
+bar:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, 0.3)   -- 从左边起画三成；Right 是从右边起
+ring.enableMask = true
+ring:SetFillRadial360(Enum.ImageFillRadialType.Top, 0.25)       -- 从顶上起绕四分之一圈
+pic:SetFillVertical(Enum.ImageFillVerticalType.Bottom, 0.5)     -- 下半张
+game.Tween(bar, { fillAmount = 1 }, 6):Play()                   -- 进度能补间
+```
+
+脚本用了填充又从没提过 `enableMask`，`scene_set_client_script` 会在结果里提醒（`fillNeedsMask`）。不想开遮罩，条也可以靠改宽度做（`SetSizeDelta`），`examples/clientui` 是那样做的。范例 `examples/clientapi`。
+
 ## 模板：数量不定的东西
 
 子弹、卡牌、列表的一行，这类“运行时才知道要几个”的东西做成模板（`scene_add_client_template`），脚本照着造：
@@ -194,6 +210,17 @@ dot:SetAnchoredPosition(40, 0)
   - 7.1 以前定义的信号没有这个节点的定义，工具会报 `SIGNAL_NOT_FOR_CLIENT_SCRIPTS`：把存档在编辑器里打开存一次（编辑器会补上），或者在副本上重新定义信号。
   - 要一直保持的状态（血量、分数）还是用自定义变量：信号只在发的那一刻有，界面重建以后收不回来。
 
+## 接口里还有什么（上机验过的）
+
+完整的在官方接口文档里；这几样常用、容易漏（2026-10-13，`examples/clientapi`）：
+
+- **关卡时停**：`game.PauseLevelTime(true)` 让关卡停住（单人模式），节点图的计时器不走了；`false` 恢复。`OnUpdate` 和补间照常跑，`OnLevelUpdate(dt)` 才跟着停。暂停菜单就用它。
+- **音效**：`local id = game.PlayAudio2D(编号)`，编号是 `sound_catalog` 里的；`game.StopAudio(id)` 停，`game.IsAudioAlive(id)` 问还在不在播。
+- **画布和设备**：`game.GetUICanvasSize()` 电脑上是 1600 × 900；`game.GetDevice()` 是 `Enum.Device.KeyboardAndMouse / Mobile / Controller / MobileController`。脚本里按设备摆位置就靠这两个。`game.IsTestPlay()` 试玩时是 true。
+- **找控件**：`控件:GetChild("名字")` 只找直接的子控件；`控件:FindChild("a/b")` 按路径找。`game.GetClientUIRoots()`、`game.FindClientUIRoot(名字)` 在 `OnStart` 里还是空的（过几秒才有），根控件直接用 `script.object`。
+- **调自己的函数**：`script:Invoke("函数名", 参数...)` 调脚本里的全局函数。`typeof(控件)` 给出类型名（根是 `ClientUIContainerControl`）。
+- `game.PrintClientUITree()` 把控件树写进日志（在 `OnStart` 里调只打出 `Roots: 0`）。
+
 ## 输入
 
 - **鼠标**：`cursorArea` 或 `presetButton` 收，`控件:AddCursorEventListener(Enum.CursorEventType.CursorClick, 回调)`；还有 `CursorDown / CursorUp / CursorEnter / CursorExit / CursorDrag`。要鼠标可见：`scene_add_client_ui` 给 `showCursor: true`，或者脚本里 `root.showCursor = true`。
@@ -220,10 +247,12 @@ dot:SetAnchoredPosition(40, 0)
 - `examples/clientcheck`：故意出错，看日志里是什么样；隐藏的容器由节点图打开；信号带参数；传送。
 - `examples/clientvars`：每种类型的脚本变量、控件各自的取值、控件编号换成控件；另带一个分设备布局、手柄导航和文本视窗的写法。
 - `examples/clientsignal`：节点图给脚本发信号（不带参数和带一个字符串），脚本收到后换灯的颜色。
+- `examples/clientapi`：图片填充做的进度条和冷却圈（要开遮罩）、关卡时停、音效、画布大小和设备、按路径找控件。
 
 ## 还没做的
 
-- 图片的填充方式（平铺、九宫格等）：现在都是编辑器的默认，要别的由脚本设 `imageType`。
+- 图片的填充和边缘羽化不能写进存档（工具只写遮罩开关），由脚本设，见“填充”。
+- 读不回一个已有界面的全部设置：`scene_list_interface` 只给控件树（名字、种类、脚本），位置、颜色、变量取值这些读不出来。所以改一个界面要自己留着当初的参数，拿掉再加；编辑器里手做的界面工具接不过来改。
 - 信号的参数只能有一个字符串（`scene_add_signal` 的限制），发给脚本的信号也一样。
 - 手机、主机上没验过：分设备的布局和手柄导航只做到“和编辑器写的一样”，本机只有电脑和键鼠。触屏点击多半和鼠标一样，但手机没有键盘，靠按键的玩法要在屏幕上放按钮。
 - 文本视窗没在游戏里看过（一级账号不显示文字）。

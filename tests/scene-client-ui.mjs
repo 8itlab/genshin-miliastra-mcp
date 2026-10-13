@@ -58,6 +58,11 @@ try{
   assert.equal(again.replaced,true);assert.equal(again.scriptId,one.scriptId);assert.ok(again.updateNotEnabled,'OnUpdate without EnableUpdate is pointed out');
   assert.ok(!setClientScript({mapPath:blank,name:'u',source:'function OnStart()\n  script:EnableUpdate(true)\nend\nfunction OnUpdate(dt)\nend\n'},workspace).updateNotEnabled);
   assert.deepEqual(setClientScript({mapPath:blank,name:'t',source:'function OnStart()\n  game.Tween(a, {x = 1}, 1)\n  game.Tween(a, {x = 1}, 1):Play()\nend\n'},workspace).tweensNotPlayed.lines,[2]);
+  // Two more things a script gets wrong silently: colours written as fractions, and a fill on an image without a mask.
+  const dim=setClientScript({mapPath:blank,name:'c',source:'function OnStart()\n  a.imageColor = Color(0.5, 0.5, 0.5)\n  b.imageColor = Color(255, 208, 64)\n  c.imageColor = Color(r, g, b)\n  d.imageColor = Color(1, 0.85, 0.2, 255)\n  e.imageColor = Color(0, 0, 0)\nend\n'},workspace);
+  assert.deepEqual(dim.coloursLookLikeFractions.lines,[2,5]);assert.equal(dim.fillNeedsMask,undefined);
+  assert.ok(setClientScript({mapPath:blank,name:'f',source:'function OnStart()\n  bar:SetFillHorizontal(Enum.ImageFillHorizontalType.Left, 0.3)\nend\n'},workspace).fillNeedsMask);
+  assert.equal(setClientScript({mapPath:blank,name:'f',source:'function OnStart()\n  bar.enableMask = true\n  bar.fillAmount = 0.3\nend\n'},workspace).fillNeedsMask,undefined);
   assert.deepEqual(listClientScripts({mapPath:again.mapPath,includeSource:true}).scripts.map(s=>[s.name,s.file,s.source.length]),[['hud','hud.lua',26],['菜单','script_2.lua',14]]);
   const ui=addClientUi({mapPath:again.mapPath,name:'HUD',script:'hud',controls:[{name:'panel',kind:'image',position:[-600,380],size:[300,80]},{name:'row',kind:'container',position:[-600,300],size:[300,60],children:[{name:'a',kind:'image',size:[40,40]},{name:'hit',kind:'cursorArea',size:[40,40]}]}]},workspace);
   const listed=listInterface({mapPath:ui.mapPath});
