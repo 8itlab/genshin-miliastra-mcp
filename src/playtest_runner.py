@@ -795,9 +795,30 @@ class Run:
         # the scene is imported into it, and the settings that follow start from its file) is remembered as one to
         # keep: a playtest must not write its candidate over it.
         try:
-            self.last_save_note().write_text(json.dumps({'officialSave': official, 'candidate': self.candidate_key() if played else None, 'keep': not played}), encoding='utf-8')
+            self.last_save_note().write_text(json.dumps({'officialSave': official, 'candidate': self.candidate_key() if played else None, 'keep': not played, 'log': self.log_key() if played and getattr(self, '_log_ticked', False) else None}), encoding='utf-8')
         except OSError:
             pass
+
+    def log_key(self):
+        # Which rows of the log window a run ticks: the graphs by name, and the row of the client scripts.
+        names = [n for n in (self.req.get('graphNames') or []) if n] or ([self.req.get('graphName')] if self.req.get('graphName') else [])
+        return json.dumps([sorted(names), bool(self.req.get('clientScriptLog'))])
+
+    def log_still_ticked(self):
+        # The same save is still open and the run before ticked the same rows: the editor keeps them ticked, and
+        # ticking them again is half a minute (seen 2026-10-14: 33 of the 95 seconds of a round that changed only Lua).
+        # playtest_status leaves the marker when such a run came back without a single line of log: tick anew then.
+        marker = self.dir.parent / 'log-not-kept'
+        if marker.exists():
+            try:
+                marker.unlink()
+            except OSError:
+                pass
+            return False
+        try:
+            return json.loads(self.last_save_note().read_text(encoding='utf-8')).get('log') == self.log_key()
+        except (OSError, ValueError):
+            return False
 
     def same_save_open(self):
         """The candidate is byte for byte the one this workspace played last, and the editor still has that save open:
@@ -831,6 +852,25 @@ class Run:
         self.result['sameSave'] = True
         self.step('same-save-still-open', officialSave=official)
         return official
+
+    def write_live_lua(self):
+        files = self.req.get('luaLive') or []
+        if not files or not self.result.get('officialSave'):
+            return
+        folder = Path(self.result['officialSave']).parent / 'external_lua_file'
+        written, missing = [], []
+        for item in files:
+            target = folder / item['file']
+            if not target.is_file():
+                # A script the open save does not know: the candidate is not this save after all.
+                missing.append(item['file'])
+                continue
+            data = item['source'].encode('utf-8')
+            if target.read_bytes() != data:
+                target.write_bytes(data)
+                written.append(item['file'])
+        self.result['luaLive'] = {'folder': str(folder), 'written': written, 'missing': missing}
+        self.step('lua-live', written=written, missing=missing)
 
     def replace_last_save(self):
         """Write the candidate over the save imported last by this workspace and open that save again.
@@ -1486,8 +1526,12 @@ class Run:
                 self.state = 'succeeded'
                 self.save()
                 return
+            log_kept = False
             if self.req.get('mapPath') and self.req.get('replaceSave') and self.same_save_open():
-                pass
+                # The level is the one that is open; only the Lua may differ. Each script is a file beside the save,
+                # and that file is what the game runs: write them, and the play has the new scripts.
+                self.write_live_lua()
+                log_kept = self.log_still_ticked()
             elif self.req.get('mapPath'):
                 self.leave_editor()
                 # replaceSave: the candidate is written over the save this workspace imported last, which is then
@@ -1504,7 +1548,14 @@ class Run:
                 raise Failed('没有提供 mapPath，且当前不在编辑器里。')
             if self.req.get('bakeNavigation'):
                 self.bake_navigation()
-            self.subscribe_log()
+            if log_kept:
+                self.result['logKept'] = True
+                self.step('log-still-ticked')
+            else:
+                self.subscribe_log()
+            if self.result.get('officialSave') and self.req.get('mapPath'):
+                self._log_ticked = True
+                self.remember_save(self.result['officialSave'], played=True)
             self.play()
             self.state = 'succeeded'
             self.save()

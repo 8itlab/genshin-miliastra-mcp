@@ -6,6 +6,7 @@ import {container,fields,field,one,replace,wrap,varint} from './scene/wire.mjs';
 import {findAsset,presetStatusOf} from './scene/assets.mjs';
 import {animationsOf,animationsMayGoOn} from './scene/media.mjs';
 import {fail} from './adapter.mjs';
+import {checkClient,luaSyntaxError} from './client-check.mjs';
 import {imageIdKnown} from './scene/images.mjs';
 
 // Reading and patching saves between “import the scene” and “build the graph”. Nothing here touches the
@@ -2179,7 +2180,7 @@ export const clientScriptRecord=({id,name,file,source,variables=[]})=>Buffer.con
   ...variables.map(v=>field(7,2,scriptVariable(v))),...variables.map(v=>field(8,2,scriptVariable(v)))]);
 const FIRST_SCRIPT_ID=1073741826;
 // The trees of client controls of a save: each container of a layout, the controls under its root and the scripts on them.
-function clientTrees(root,records){
+function clientTrees(root,records,templatesToo=false){
   const byId=new Map(records.map(r=>[r.id,r])),scripts=fields(root).some(f=>f.id===50&&f.wire===2)?clientScripts(root):[];
   const block=(r,type)=>fields(r.raw.data).filter(f=>f.id===505&&f.wire===2).map(f=>f.data).find(b=>varintOf(b,502)===type);
   const inner=(r,type)=>{const b=block(r,type);if(!b)return null;const nested=fields(b).find(f=>f.id===503&&f.wire===2);return nested?fields(nested.data).find(f=>f.id===type-9&&f.wire===2)?.data??null:null;};
@@ -2188,9 +2189,19 @@ function clientTrees(root,records){
     const kids=childIds(r).map(id=>byId.get(id)).filter(Boolean).map(node);
     return {controlId:r.id,name:r.name,kind:[[91,'container'],[96,'image'],[84,'text'],[85,'cursorArea'],[94,'textWindow'],[98,'animation'],[99,'fullscreenAnimation'],[93,'presetButton'],[95,'keyHint'],[92,'grid'],[89,'reference']].find(([type])=>r.content.includes(type))?.[1]??'other',
       ...(ids.length?{scripts:ids.map(id=>scripts.find(s=>s.id===id)?.name??String(id))}:{}),...(kids.length?{children:kids}:{})};};
+  if(templatesToo)return clientTemplates(records).map(t=>node(byId.get(t.id)));
   return records.filter(r=>r.content.includes(82)).map(r=>{const at=inner(r,82),rootRecord=at?byId.get(varintOf(at,501)):null;
     return {containerId:r.id,name:r.name,root:rootRecord?node(rootRecord):null};});
 }
+// What the client scripts of a save name, checked against what the save and the catalogues have (src/client-check.mjs).
+export function checkClientScripts({mapPath,scripts}){
+  const file=resolve(mapPath);
+  return checkClient({mapPath:file,scripts},{listClientScripts,listComponents,
+    listInterface:a=>{const face=listInterface(a),root=container(fs.readFileSync(file));return {...face,clientTemplateTrees:clientTrees(root,uiRecords(root),true)};}});
+}
+// The problems of some scripts of a save, for the result of the call that just wrote them: nothing when there are none.
+const clientProblems=(mapPath,scripts,skip=[])=>{try{const found=checkClientScripts({mapPath,scripts}).problems.filter(p=>!skip.includes(p.kind));
+  return found.length?{problems:found.slice(0,30),problemsNote:'What the script names and the save or the API does not have (scene_check_client checks the whole save again). An error is something the game does not complain about and that will not work.'}:{};}catch{return {};}};
 function clientScripts(root){
   const section=fields(root).find(f=>f.id===50&&f.wire===2);
   if(!section)fail('UNSUPPORTED_SAVE','This save was written by a game version older than 7.1, which has no client scripts. Open it in the editor and save it once.');
@@ -2212,6 +2223,9 @@ export function setClientScript({mapPath,name,source,sourceFile,file:asFile,vari
   const stripped=lua.replace(/--\[\[[\s\S]*?\]\]/g,'').replace(/--[^\n]*/g,'').replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g,'""');
   const refused=LUA_FORBIDDEN.filter(([re])=>re.test(stripped)).map(x=>x[1]);
   if(refused.length)fail('LUA_NOT_AVAILABLE','The script uses what the client Lua (5.3, sandboxed) does not have.',{refused});
+  // A script that does not compile is refused here, in a moment, rather than by the editor when the playtest starts.
+  const broken=luaSyntaxError(lua);
+  if(broken)fail('LUA_SYNTAX','The script does not compile: line '+broken.line+', column '+broken.column+': '+broken.message,{line:broken.line,column:broken.column,text:lua.split('\n')[broken.line-1]?.slice(0,200)});
   const scripts=clientScripts(root),had=scripts.find(s=>s.name===name);
   const id=had?.id??Math.max(FIRST_SCRIPT_ID-1,...scripts.map(s=>s.id))+1;
   // One file to a script: the editor writes each to external_lua_file under this name.
@@ -2242,6 +2256,8 @@ export function setClientScript({mapPath,name,source,sourceFile,file:asFile,vari
   return {mapPath:out,source:file,scriptId:id,name,file:luaFile,replaced:!!had,lines:lua.split('\n').length,callbacks,...(variables?.length?{variables:variables.map(v=>v.name)}:{}),
     ...(fractions.length?{coloursLookLikeFractions:{lines:fractions,note:'Color(r, g, b, a) takes 0 to 255, not 0 to 1: these colours are next to black on the screen.'}}:{}),
     ...(fillAlone?{fillNeedsMask:'The script fills an image (SetFill..., fillAmount) and never mentions enableMask: the fill shows only on an image whose mask is on. Give the image mask: true in scene_add_client_ui, or set control.enableMask = true before filling it.'}:{}),
+    // Names of the API and of the save the script gets wrong (the controls are checked once an interface carries it).
+    ...clientProblems(out,[name],['SCRIPT_NOT_MOUNTED','SIGNAL_NOT_HEARD','SIGNAL_NOT_SENT']),
     ...(idleUpdate?{updateNotEnabled:'The script defines OnUpdate but never calls script:EnableUpdate(true): the game does not call OnUpdate until it does (put the call in OnStart).'}:{}),
     ...(idle.length?{tweensNotPlayed:{lines:idle,note:'game.Tween(...) only makes a tween: it moves nothing until :Play() is called on it.'}}:{}),
     ...(callbacks.length?{}:{warning:'The script defines none of the lifecycle functions the game calls by name (OnInit, OnStart, OnEnable, OnUpdate(dt), OnLevelUpdate(dt), OnDisable, OnDestroy): only what stands at the top level runs, once, when the script loads.'}),
@@ -2375,7 +2391,9 @@ export function addClientUi({mapPath,name,script,scripts:more=[],controls=[],hid
     return out;});
   root=replace(root,9,2,Buffer.concat(rebuilt));
   const out=output(workspace,file,outputName,'-clientui');fs.writeFileSync(out,wrap(bytes,root));
+  const mounted=[...new Set(made.flatMap(r=>(r.scripts??[]).map(x=>scripts.find(q=>q.id===(x.id??x))?.name)).filter(Boolean))];
   return {mapPath:out,source:file,containerId,rootId,name,scripts:onRoot.map(s=>({name:s.script.name,scriptId:s.id})),controls:paths,
+    ...(mounted.length?clientProblems(out,mounted,['SIGNAL_NOT_HEARD','SIGNAL_NOT_SENT']):{}),
     templates:clientTemplates(uiRecords(root)).map(t=>({templateIndex:t.id,name:t.name})),
     next:'Use mapPath in later calls. In the script, script.object is the root (a container that fills the screen) and '+(paths.length?'script.object:GetChild("'+paths[0].name+'")':'script.object:GetChild(name)')+' finds a control under it by name (a child of a child through its own GetChild). The controls are written as the editor makes them, empty: an image shows nothing until the script gives it a picture (control:SetImage(Enum.ImageSource.StaticReference, id), ids from image_catalog) and a colour (control.imageColor = Color(r, g, b)). Controls stand in the order given, later ones over earlier ones. On an account of 奇匠 level 1 a client text box shows nothing either (seen in play, 2026-10-13): say it with pictures.'};
 }

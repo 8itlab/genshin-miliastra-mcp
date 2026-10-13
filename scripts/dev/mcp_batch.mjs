@@ -15,7 +15,9 @@ const results=[],save=()=>fs.writeFileSync(path.join(outDir,'results.json'),JSON
 try{
  await client.connect(new StdioClientTransport({command:process.execPath,args:[path.join(root,'src/server.mjs')],cwd:root,env:{...process.env,MILIASTRA_WORKSPACE:workspace},stderr:'pipe'}));
  for(const [n,c] of calls.entries()){
-  const t=Date.now(),r=await client.callTool({name:c.tool,arguments:c.args||{}},undefined,{timeout:300000});
+  // "$prev" as mapPath: the mapPath the call before gave back.
+  const given=JSON.parse(JSON.stringify(c.args||{}).replaceAll('"$prev"',JSON.stringify(results.at(-1)?.result?.mapPath??null)));
+  const t=Date.now(),r=await client.callTool({name:c.tool,arguments:given},undefined,{timeout:300000});
   const images=[];
   (r.content||[]).filter(b=>b.type==='image').forEach((b,k)=>{const f=path.join(outDir,`${n}_${k}.jpg`);fs.writeFileSync(f,Buffer.from(b.data,'base64'));images.push(f);});
   const entry={tool:c.tool,seconds:(Date.now()-t)/1000,isError:!!r.isError,result:r.structuredContent??(r.content||[]).filter(b=>b.type==='text').map(b=>b.text),images};

@@ -229,6 +229,10 @@ playtest_status gives the outcome.
    what belongs at an edge on that edge with anchor, or give the control devices {mobile: {...}}. playtest_start returns what the script prints
    with the prints of the graphs, a fault in the script among them with its line. scene_remove_client takes an
    interface, a template or a script out again. Read read_knowledge {id:"client-lua.zh-CN"} before writing one:
+   Names are checked before the game is asked: scene_set_client_script refuses a script that does not compile and
+   lists what it names that the API or the save does not have; scene_check_client does the same for the whole save
+   once the graphs are in. A round that changes only Lua is about a minute (playtest_start writes the scripts beside
+   the open save instead of importing), and expect {prints} makes the playtest answer passed or what was missing.
    OnUpdate runs only after script:EnableUpdate(true), a tween does nothing until :Play(), a preset button needs
    a hover state, the script starts seconds before the play does, Color takes 0 to 255, the fill of an image (a
    bar, a cooldown ring) shows only on an image with its mask on.

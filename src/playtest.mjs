@@ -7,7 +7,9 @@ import {ROOT} from './core.mjs';
 import {fail} from './adapter.mjs';
 import {inspectDebugLog} from './debug-log.mjs';
 import {readProbe} from './playtest-probe.mjs';
-import {container,fields} from './scene/wire.mjs';
+import {createHash} from 'node:crypto';
+import {container,fields,field,replace} from './scene/wire.mjs';
+import {checkClientScripts} from './scene-save.mjs';
 
 // One desktop, one playtest. The runner drives the official UI, so a second
 // run would fight the first one for the mouse and keyboard.
@@ -35,6 +37,24 @@ export function otherDesktopRun(workspace,now=Date.now()){
   const alive=status?status.state==='running'&&now/1000-status.updatedAt<120:age<30;
   return alive?{workspace:note.workspace,runId:path.basename(note.runDir),startedSecondsAgo:age,expectedSeconds:note.expectedSeconds}:null;
 }
+// The Lua of a save, apart from the rest of it. The editor keeps each client script as a file beside the save
+// (external_lua_file\<file>), and that file is what the game runs: a candidate that differs from the save that is
+// open only in the text of its scripts needs no import, the files are written and the play starts (luaLive). key is
+// the digest of the candidate with the text of every script taken out: two candidates with the same key are the same
+// level with other Lua.
+export function luaOf(mapPath){
+  try{
+    const root=container(fs.readFileSync(mapPath)),section=fields(root).find(f=>f.id===50&&f.wire===2);
+    if(!section)return null;
+    const files=[],kept=fields(section.data).map(f=>{
+      if(!(f.id===1&&f.wire===2))return f.raw;
+      const parts=fields(f.data),text=id=>parts.find(x=>x.id===id&&x.wire===2)?.data.toString('utf8')??'';
+      files.push({name:text(2),file:text(3),source:text(5)});
+      return field(1,2,Buffer.concat(parts.map(x=>x.id===5&&x.wire===2?field(5,2,Buffer.alloc(0)):x.raw)));});
+    if(!files.length||files.some(x=>!/^[A-Za-z0-9_-]{1,60}\.lua$/.test(x.file)))return null;
+    return {files,key:createHash('sha256').update(replace(root,50,2,Buffer.concat(kept))).digest('hex')};
+  }catch{return null;}
+}
 export function startPlaytest(args,workspace){
   if(process.platform!=='win32')fail('UNSUPPORTED_PLATFORM','Playtest automation requires Windows with the game and sandbox open.');
   if(args.mapPath&&(path.extname(args.mapPath).toLowerCase()!=='.gil'||!fs.existsSync(args.mapPath)))fail('INVALID_MAP_PATH','mapPath must be an existing .gil candidate.');
@@ -44,8 +64,23 @@ export function startPlaytest(args,workspace){
     try{const scripts=fields(container(fs.readFileSync(args.mapPath))).find(f=>f.id===50&&f.wire===2);
       if(scripts&&fields(scripts.data).some(f=>f.id===1&&f.wire===2))args={...args,clientScriptLog:true};}catch{}
   }
+  // What the Lua of the save names is checked before the minutes of a playtest are spent: a script that does not
+  // compile stops here (the editor would refuse the save after the import), the rest goes into the answer.
+  let clientCheck;
+  if(args.mapPath&&args.clientScriptLog){
+    try{const found=checkClientScripts({mapPath:args.mapPath});
+      const broken=found.problems.filter(p=>p.kind==='LUA_SYNTAX');
+      if(broken.length)fail('LUA_SYNTAX','A client script of this save does not compile; the editor would refuse to play it. '+broken.map(p=>p.script+' line '+p.line+': '+p.message).join(' | '),{problems:broken});
+      if(found.problems.length)clientCheck={errors:found.errors,warnings:found.warnings,problems:found.problems.slice(0,20),note:'What the client scripts name and the save does not have (scene_check_client). The play goes on; an error here usually explains why something on the screen does nothing.'};
+    }catch(e){if(e.code==='LUA_SYNTAX')throw e;}
+  }
+  if(args.mapPath&&args.clientScriptLog&&args.luaLive!==false){
+    const lua=luaOf(args.mapPath);
+    if(lua)args={...args,luaLive:lua.files.map(({file,source})=>({file,source})),candidateKey:args.candidateKey??lua.key};
+  }
   const seconds=Number(args.durationSeconds??60)+(args.mapPath?90:45);
-  return launchRunner(args,workspace,seconds,`Do not touch the mouse or keyboard. Call playtest_status {runId, waitSeconds: 45}: it answers when the run has ended or 45 seconds have passed; repeat while state is "running" (about ${seconds} seconds in all).`);
+  const started=launchRunner(args,workspace,seconds,`Do not touch the mouse or keyboard. Call playtest_status {runId, waitSeconds: 45}: it answers when the run has ended or 45 seconds have passed; repeat while state is "running" (about ${seconds} seconds in all).`);
+  return clientCheck?{...started,clientCheck}:started;
 }
 // Starts the desktop automation runner for one request and returns at once.
 export function launchRunner(args,workspace,seconds,next){
@@ -115,11 +150,14 @@ export function playtestStatus({runId,prefix='',graphId,maxPrints=200,includeScr
     audio:status.result?.audio,
     // With recordVideo: the .mp4 the Game Bar made of the asked stretch of the play.
     video:status.result?.video,
+    // The short way: the save was still open (no import), the Lua was written into its files, the log rows were still ticked.
+    shortWay:status.result?.sameSave?{sameSaveStillOpen:true,luaWritten:status.result?.luaLive?.written,luaMissing:status.result?.luaLive?.missing?.length?status.result.luaLive.missing:undefined,logRowsKept:status.result?.logKept||undefined}:undefined,
     // With bakeNavigation: the stamp the editor shows for the bake and how long it took.
     navigationBaked:status.result?.navigationBaked,
     warning:status.result?.serverMessage?'The server ended the level by itself after '+status.result.levelEndedAt+' seconds of play: '+status.result.serverMessage+'. Despite the wording, the cause seen so far is the work the graph does each second: nodes run plus about 20 for every round of a loop must stay under roughly 1400 a second, better under 1000 (table in miliastra://platform-rules). Run the rules less often, loop over fewer things, or widen distance checks instead of checking more often.'
       :status.result?.levelEndedAt!==undefined?'The level reached its result screen after '+status.result.levelEndedAt+' seconds of play, before the planned end. If the graph did not settle the stage itself, the server ended it; the usual cause is too much graph work each second (see the load rule in miliastra://platform-rules).':undefined};
   if(status.state==='running')return json({...summary,next:'Still running. Poll again in 15 seconds.'});
+  let everyPrint=[];
   if(status.result?.logFile){
     const bytes=fs.readFileSync(status.result.logFile),parsed=inspectDebugLog(bytes,{prefix,limit:100000});
     let prints=parsed.prints.filter(p=>graphId===undefined||p.clientScript||p.graphId===String(graphId)).map(p=>({t:Number(p.elapsedSeconds),graphId:p.graphId,text:p.text,...(p.clientScript?{clientScript:true}:{})}));
@@ -151,11 +189,19 @@ export function playtestStatus({runId,prefix='',graphId,maxPrints=200,includeScr
       if(request.trackPlayer!==undefined)summary.playerTrack={every:request.trackPlayer,columns:['playSeconds','x','y','z'],samples:probe.track.map(s=>[play(s.t)??s.t,...s.at]),
         note:offset===undefined?'Without the sync print the first column is the level clock, not play seconds.':undefined};
     }
+    everyPrint=prints;
+    // The rows of the log window were left as the run before ticked them, and nothing came: tick them anew next time.
+    if(status.result?.logKept&&!parsed.prints.length){try{fs.writeFileSync(path.join(runRoot(workspace),'log-not-kept'),'');}catch{}
+      summary.logWarning='This run reused the log selection of the run before and the log came back empty. The next playtest ticks the graphs again; run it once more if prints were expected.';}
     summary.log={file:status.result.logFile,officialLog:status.result.officialLog,printCount:prints.length,truncated:prints.length>maxPrints,
       // t is the level clock. It starts several seconds before the HUD is visible, so it runs ahead of screenshot playSeconds.
       prints:prints.slice(0,maxPrints)};
   }else summary.log={file:null,note:status.result?.logNote||'No log was collected.'};
   if(reqOf(runDir)?.startValues?.length)summary.startValues={used:reqOf(runDir).startValues,note:'This run began with other values in these custom variables: it shows how that part of the level plays. It is not a run of the level as built.'};
+  // What the caller said the run should print: checked here, so that a round of work ends in passed or in the one
+  // expectation that was not met.
+  const asked=reqOf(runDir)?.expect;
+  if(asked)summary.expectations=judge(asked,everyPrint,status);
   summary.verification='Read the prints and LOOK at the screenshots. A finished run only means the level was played for the requested time; it does not mean the gameplay is correct.';
   // Eight images at most: spread evenly over the run (or over the span asked for), the first and the last among them.
   // It used to be the last eight, and a reader who looked only at those missed the first half of the run.
@@ -169,6 +215,27 @@ export function playtestStatus({runId,prefix='',graphId,maxPrints=200,includeScr
   return {content,structuredContent:summary};
 }
 const json=data=>({content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data});
+// expect {prints: texts that must be printed, in this order (each a part of a print); absent: texts no print may hold;
+// noScriptErrors: no client script may have faulted (on unless false)}. Says which were met, and for the first that was
+// not, what was printed around the place it should have stood.
+export function judge(asked,prints,status){
+  const results=[];let from=0;
+  if(status.state!=='succeeded')results.push({expect:'the run ends',met:false,found:'state '+status.state+(status.error?': '+String(status.error).slice(0,200):'')});
+  for(const text of asked.prints??[]){
+    const at=prints.findIndex((p,i)=>i>=from&&p.text.includes(text));
+    if(at<0){const anywhere=prints.findIndex(p=>p.text.includes(text));
+      results.push({expect:'print "'+text+'"',met:false,found:anywhere>=0?'printed at level second '+prints[anywhere].t+', before the one expected ahead of it':'never printed',
+        after:prints.slice(Math.max(0,from-1),from+4).map(p=>p.t+': '+p.text.slice(0,120))});}
+    else{results.push({expect:'print "'+text+'"',met:true,t:prints[at].t});from=at+1;}
+  }
+  for(const text of asked.absent??[]){const hit=prints.find(p=>p.text.includes(text));
+    results.push({expect:'no print "'+text+'"',met:!hit,...(hit?{found:hit.t+': '+hit.text.slice(0,160)}:{})});}
+  if(asked.noScriptErrors!==false){const fault=prints.find(p=>p.clientScript&&/stack traceback|attempt to (?:index|call|perform|compare|concatenate)/.test(p.text));
+    results.push({expect:'no fault in a client script',met:!fault,...(fault?{found:fault.t+': '+fault.text.slice(0,300)}:{})});}
+  const failed=results.filter(r=>!r.met);
+  return {passed:failed.length===0,met:results.length-failed.length,of:results.length,...(failed.length?{firstNotMet:failed[0]}:{}),results,
+    note:failed.length?'Not everything expected was printed. The screenshots still have to be looked at for what a print cannot say.':'Everything expected was printed, in order. That is what the level said of itself: look at the screenshots for what the player sees.'};
+}
 // What the bursts of a run gave: how many frames, over which seconds of the play, how far apart they really were.
 function burstSummary(status){
   const frames=status.screenshots.filter(s=>s.burst);if(!frames.length)return undefined;

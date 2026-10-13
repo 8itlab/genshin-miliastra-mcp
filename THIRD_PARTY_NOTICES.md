@@ -30,3 +30,8 @@ This is an unofficial community integration; no endorsement by miHoYo/HoYoverse 
 - Source: https://github.com/hang-ZYM/qianxing-format-docs (docs/08_实体大全.md and data/prefab_sizes_full.json, snapshot of 2026-10-05)
 - License: Creative Commons Attribution 4.0 International (CC BY 4.0)
 - Used for: `src/scene/asset-catalog.json`, the list of official placeable assets with names, panel groups, icon names and model sizes. The data was reformatted; sizes are stored as [x, y, z] metres.
+
+## luaparse
+
+The syntax check of client scripts (`src/client-check.mjs`) parses Lua with **luaparse 0.3.1**, by Oskar Schöldström, under the MIT license.
+Source: https://github.com/fstirlitz/luaparse

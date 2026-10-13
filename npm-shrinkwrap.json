@@ -11,6 +11,7 @@
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.30.0",
         "genshin-ts": "0.2.2",
+        "luaparse": "^0.3.1",
         "typescript": "5.9.3",
         "zod": "3.25.76",
         "zod-to-json-schema": "3.25.2"
@@ -1461,6 +1462,15 @@
       "version": "5.3.2",
       "resolved": "https://registry.npmmirror.com/long/-/long-5.3.2.tgz",
       "integrity": "sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA=="
+    },
+    "node_modules/luaparse": {
+      "version": "0.3.1",
+      "resolved": "https://registry.npmjs.org/luaparse/-/luaparse-0.3.1.tgz",
+      "integrity": "sha512-b21h2bFEbtGXmVqguHogbyrMAA0wOHyp9u/rx+w6Yc9pW1t9YjhGUsp87lYcp7pFRqSWN/PhFkrdIqKEUzRjjQ==",
+      "license": "MIT",
+      "bin": {
+        "luaparse": "bin/luaparse"
+      }
     },
     "node_modules/math-intrinsics": {
       "version": "1.1.0",
