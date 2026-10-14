@@ -5,6 +5,10 @@ import { toolRegistry, toolError } from './tool-registry.mjs';
 import { connectCore } from './host/core-client.mjs';
 import fs from 'node:fs';
 
+// npx miliastra-mcp doctor: the check of Node, Python and the optional capture packages, for an installed package
+// that has no npm run doctor.
+if(process.argv[2]==='doctor'){await import('../scripts/doctor.mjs');process.exit();}
+
 const WORKFLOW=`Building a level with these tools. This is the path the worked examples at the end were built by.
 Every tool that changes a save writes a copy and returns its mapPath: pass that mapPath to the next call. Tools marked [UI]
 drive the game window (mouse and keyboard) and need the game in the Miliastra lobby or editor; they return a runId, and

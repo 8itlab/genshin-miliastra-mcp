@@ -9,6 +9,12 @@ import { inspectEditorConnection } from './editor-connection.mjs';
 import { inspectCompiledAssetText } from './compiled-text-check.mjs';
 
 export const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+// Where the pinned dependencies are. In a source checkout that is node_modules of this folder; installed from npm
+// (npx, npm install) they sit beside this package, one folder up, so ask the resolver where typescript is.
+export const MODULES=path.resolve(path.dirname(fileURLToPath(import.meta.resolve('typescript/package.json'))),'..');
+// Working copies, screenshots and logs. A package inside node_modules is replaced or wiped with the cache it sits in,
+// so an installed server keeps them in the home folder unless MILIASTRA_WORKSPACE says where.
+export const DEFAULT_WORKSPACE=ROOT.split(path.sep).includes('node_modules')?path.join(os.homedir(),'miliastra-mcp','workspace'):path.join(ROOT,'workspace');
 const readJson=file=>JSON.parse(fs.readFileSync(file,'utf8'));
 const writeJson=(file,value)=>fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n');
 const exists=p=>fs.existsSync(p);
@@ -54,7 +60,7 @@ function saveName(file){
 }
 
 export class Service {
-  constructor({workspace=process.env.MILIASTRA_WORKSPACE||path.join(ROOT,'workspace'),saveRoots,allowLive=process.env.MILIASTRA_ALLOW_LIVE_WRITE==='1'}={}) {
+  constructor({workspace=process.env.MILIASTRA_WORKSPACE||DEFAULT_WORKSPACE,saveRoots,allowLive=process.env.MILIASTRA_ALLOW_LIVE_WRITE==='1'}={}) {
     this.workspace=path.resolve(workspace);fs.mkdirSync(this.workspace,{recursive:true});
     this.workspace=fs.realpathSync(this.workspace);this.allowLive=allowLive;
     this.saveRoots=(saveRoots|| (process.env.MILIASTRA_SAVE_ROOTS?JSON.parse(process.env.MILIASTRA_SAVE_ROOTS):[
@@ -115,7 +121,7 @@ export class Service {
     fs.mkdirSync(path.join(dir,'src'),{recursive:true});fs.mkdirSync(path.join(dir,'builds'));fs.mkdirSync(path.join(dir,'backups'));
     // Compiler projects may live on another drive. Resolve pinned dependencies
     // from this installation, rather than relying on an ancestor node_modules.
-    fs.symlinkSync(path.join(ROOT,'node_modules'),path.join(dir,'node_modules'),process.platform==='win32'?'junction':'dir');
+    fs.symlinkSync(MODULES,path.join(dir,'node_modules'),process.platform==='win32'?'junction':'dir');
     fs.writeFileSync(path.join(dir,'original.gil'),bytes,{flag:'wx'});fs.writeFileSync(path.join(dir,'working.gil'),bytes,{flag:'wx'});
     const meta={projectId,sourcePath:source,sourceSha256:sha(bytes),targetGraphId:targetGraphId??info.graphs.find(g=>g.writable&&g.type===20000)?.id??null,createdAt:new Date().toISOString()};
     writeJson(path.join(dir,'project.json'),meta);
@@ -133,7 +139,7 @@ export class Service {
     const {dir,meta}=this.load(projectId);const info=inspectFile(path.join(dir,'working.gil'));
     const tsconfig={extends:path.join(packageRoot,'configs','tsconfig','base.json'),compilerOptions:{noEmit:true},include:['src/**/*.ts']};
     writeJson(path.join(dir,'tsconfig.json'),tsconfig);
-    const result=await runNode([path.join(ROOT,'node_modules','typescript','bin','tsc'),'-p',path.join(dir,'tsconfig.json'),'--pretty','false'],dir);
+    const result=await runNode([path.join(MODULES,'typescript','bin','tsc'),'-p',path.join(dir,'tsconfig.json'),'--pretty','false'],dir);
     return {typecheckPassed:result.exitCode===0,diagnostics:result.output,...this.targetCheck(meta,info)};
   }
   // Whether the graph the project is to replace is in its save.
@@ -194,11 +200,11 @@ export class Service {
     const dir=path.join(this.workspace,'batch-'+Date.now().toString(36)+'-'+randomUUID().slice(0,8)),file=i=>'g'+String(i).padStart(3,'0');
     try{
       fs.mkdirSync(path.join(dir,'src'),{recursive:true});
-      fs.symlinkSync(path.join(ROOT,'node_modules'),path.join(dir,'node_modules'),process.platform==='win32'?'junction':'dir');
+      fs.symlinkSync(MODULES,path.join(dir,'node_modules'),process.platform==='win32'?'junction':'dir');
       sources.forEach((s,i)=>fs.writeFileSync(path.join(dir,'src',file(i)+'.ts'),s.code));
       const base=path.join(packageRoot,'configs','tsconfig','base.json');
       writeJson(path.join(dir,'tsconfig.json'),{extends:base,compilerOptions:{noEmit:true},include:['src/**/*.ts']});
-      const checked=await runNode([path.join(ROOT,'node_modules','typescript','bin','tsc'),'-p',path.join(dir,'tsconfig.json'),'--pretty','false'],dir);
+      const checked=await runNode([path.join(MODULES,'typescript','bin','tsc'),'-p',path.join(dir,'tsconfig.json'),'--pretty','false'],dir);
       if(checked.exitCode!==0)return null;
       writeJson(path.join(dir,'tsconfig.json'),{extends:base,include:['src/**/*.ts']});
       fs.writeFileSync(path.join(dir,'gsts.config.ts'),"export default { compileRoot: '.', entries: ['./src'], outDir: './dist', lang: 'en-US' }\n");

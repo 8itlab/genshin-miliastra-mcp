@@ -24,7 +24,9 @@
     "scripts/doctor.mjs",
     "docs",
     "README.en.md",
-    "llms.txt"
+    "llms.txt",
+    "!docs/images",
+    "!**/__pycache__"
   ],
   "directories": {
     "test": "tests"
