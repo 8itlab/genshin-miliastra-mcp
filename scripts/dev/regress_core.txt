@@ -1,0 +1,9 @@
+# The rounds to run after the playtest runner was changed: the ones that walk by held keys first.
+kingdom4/kg_test.json
+raid/raid_test.json
+hop/hop_test.json
+farm/farm_test.json
+pairs/pairs_win.json
+talk/talk_test.json
+cards/cards_test.json
+signalparams/signalparams_test.json

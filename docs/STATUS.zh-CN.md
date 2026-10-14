@@ -84,6 +84,6 @@
 - 离线测试：`npm test` 和 `tests/` 下的各个脚本（`node tests/<名字>.mjs`）。场景工具的测试拿编辑器亲手存出来的存档当夹具，逐字节比。
 - 读存档里一个没见过的设置的办法：先用工具造一份“每样东西各一个”的存档（`scripts/dev/handcfg_build.mjs`）→ 在编辑器里手改那一项并保存 → `scripts/dev/savediff.mjs` 对比前后 → 写工具 → 把编辑器存出来的那份留作测试夹具。夹具进仓库之前用 `scripts/dev/scrub_account.py` 把账号编号换掉。
 - `scripts/dev/mcp_round.mjs` 按一个测试 json 把整条链路走一遍，全程只调 MCP 工具；别的开发脚本见 `scripts/dev/README.md`。
-- 改了试玩执行器（`src/playtest_runner.py`）之后，要把靠按住方向键走位的范例重跑一遍（`examples/kingdom4` 的 `kg_test.json`、`examples/raid`），不能只跑不走路的那几个：2026-10-13 加的一次“定时看一眼结算角落”让按键晚了一秒多，`kingdom4` 每次都走错站点，是第二天做十五轮回归才发现的。
+- 改了试玩执行器（`src/playtest_runner.py`）之后，要把靠按住方向键走位的范例重跑一遍（`examples/kingdom4` 的 `kg_test.json`、`examples/raid`），不能只跑不走路的那几个（`node scripts/dev/regress_rounds.mjs scripts/dev/regress_core.txt` 一次跑完并汇总）：2026-10-13 加的一次“定时看一眼结算角落”让按键晚了一秒多，`kingdom4` 每次都走错站点，是第二天做十五轮回归才发现的。
 - 接一个新的平台系统之前先翻官方教学存档（`knowledge/samples/gil`）：`scripts/dev/comp_dump.mjs <组件种类码> <存档…>` 把某种组件在所有样例里的写法展开，照着逐字节写，不用上机量；样例里没有的开关再去编辑器手改一次读出来。文本气泡、铭牌、挂接点、卡牌选择器都是这么接的。
 - 关于千星奇域平台本身的发现写进 `docs/PLATFORM_RULES.zh-CN.md`，那份文件就是服务器给 AI 的 `miliastra://platform-rules`。

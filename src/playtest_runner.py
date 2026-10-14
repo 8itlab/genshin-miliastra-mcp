@@ -136,7 +136,17 @@ class Run:
                 'screenshots': self.shots, 'result': self.result, 'error': error}
         tmp = self.dir / 'status.json.tmp'
         tmp.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding='utf-8')
-        os.replace(tmp, self.dir / 'status.json')
+        # On Windows the file cannot be replaced in the instant another process has it open, and the server reads it
+        # whenever playtest_status is asked: one run of some sixty was lost to that (PermissionError in the middle of
+        # a play, 2026-10-14). So it is tried again for a moment; a status that is not written this time is written by
+        # the next step, which is better than a run that stops. The last save of a run (with its state or its error)
+        # keeps trying longer.
+        for attempt in range(40 if error or self.state != 'running' else 8):
+            try:
+                os.replace(tmp, self.dir / 'status.json')
+                break
+            except PermissionError:
+                time.sleep(0.05)
 
     def step(self, name, **detail):
         self.steps.append({'at': round(time.time() - self.started, 1), 'step': name, **detail})
