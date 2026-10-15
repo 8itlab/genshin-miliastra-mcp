@@ -151,6 +151,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_currency` / `scene_list_currencies` | 货币，以及角色身上的背包 |
 | `scene_add_item` / `scene_add_shop` / `scene_list_items` | 道具（材料，或带道具节点图、能在背包里使用的消耗品）；把元件做成商店（平台自带的买卖界面） |
 | `scene_add_progress_bar` / `scene_add_button` / `scene_add_image` / `scene_list_interface` | 屏幕上的进度条（跟着玩家变量走；可以是横条、竖条、圆环，可以直接显示当前值的数字，颜色可改）、交互按钮（按数字键触发，玩家模板上的图收事件）和图片（平台自带的图，或一块纯色的底板：不靠文字也能把话说清楚）；控件可以一开始隐藏，由节点图开关 |
+| `scene_add_text_box` | 屏幕上的文本框：文字，或跟着自定义变量走的数字（“金币：{1:ps.coins}”）。要奇匠 Lv.2 以上的账号才显示 |
 | `scene_add_card_selector` | 卡牌选择器：平台自带的“几选一”窗口（每张卡有图标、标题、描述；单人关卡里打开时游戏暂停），节点图用 `f.invokeDeckSelector` 唤起、玩家模板上的图收到选了哪张。记录和官方样例“卡牌选择器”逐字节相同 |
 | `scene_add_unit_status` / `scene_list_unit_statuses` | 单位状态：描边、透视、加生命上限；图里加减 |
 | `scene_add_environment` / `scene_list_environments` / `scene_add_light` | 固定时刻的环境配置（昼夜靠两套配置切换；按编辑器的写法写，白天不会过曝）和属于某套配置的点光源 |
@@ -159,11 +160,13 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_remove_entities` | 把已经导入场景的物件从存档副本里拿掉（按名字或名字前缀）：导入只能加，摆错的靠它减 |
 | `scene_list_classes` / `scene_set_class` | 职业：角色能不能跳、冲刺、攀爬、滑翔，用哪个镜头模板；角色的等级和基础生命、攻击、防御、体力（新地图默认一万血，打不死） |
 | `scene_set_spawn` / `scene_add_preset_point` / `scene_list_preset_points` | 出生点和图里按编号读取的命名位置 |
-| `scene_add_respawn_point` / `scene_list_respawn_points` / `scene_set_player_count` | 复苏点（角色倒下后回来的地方；配合图里的复苏次数、激活复苏点做命数和存档点）；关卡收几个人（发布单人游戏要设成 1 到 1） |
+| `scene_add_respawn_point` / `scene_list_respawn_points` / `scene_set_revive` / `scene_set_player_count` | 复苏点（角色倒下后回来的地方；配合图里的激活复苏点做存档点）；复苏的规则：等几秒、自动复苏还是弹复苏界面、几条命、回来时几成血；关卡收几个人（发布单人游戏要设成 1 到 1） |
 | `playtest_start` / `playtest_status` | 一键试玩：导入存档、订阅日志、按脚本按键 / 点鼠标 / 点屏幕上的字、截图（可以隔零点几秒连拍，`screenshotWidth` 调大留细节）、读屏幕文字、收日志；`recordAudio` 把这一局的声音录下来，报告每秒的响度和每个声音开始的时刻；`bakeNavigation` 试玩前在编辑器里烘焙寻路网格（复杂造物的闲逛、追击需要）。电脑的显示器要开着，没有显示器时游戏出不了画面，工具会直接报出来。输入里的 `teleport` 把玩家放到指定位置（每次之后报人到没到）、`trackPlayer` 记录玩家的位置并把每条打印换算成试玩秒数（往存档副本里加一个小探针）；`startValues` 给自定义变量另设这一轮的初值（从关卡后半段开始验）；同一份存档接着玩会跳过导入；`playtest_status` 的 `waitSeconds` 等到这一轮结束再回话；`recordVideo` 用系统的 Xbox Game Bar 录一段视频 |
 | `playtest_frames` | 把一次试玩里某一段的截图裁到同一块区域、标上秒数、拼成一张图：逐帧看动作（武器在不在手上、落刀和伤害数字对不对得上、飞刀是不是手松开时出去的）。打印看不出这些 |
 | `publish_kit` | 发布前的准备：从试玩截图里出封面和四张图（1600×900）、标题、描述、标签和一张对照官方要求的检查表，放进一个文件夹。真正的发布由创作者自己在游戏里做 |
 | `search_knowledge` / `read_knowledge` | 离线搜索官方综合指南、教程、常见问题、48 份官方教学存档的拆解和教学视频文字稿（`knowledge/`）；总结见 [千星奇域是怎么搭游戏的](docs/HOW_MILIASTRA_BUILDS_GAMES.zh-CN.md) |
+| `scene_get_level_settings` | 读关卡设置：仇恨类型、仇恨转移倍率、关卡时钟的起始时刻和流速（改用 `scene_set_level_settings`，见下面“搭场景”） |
+| `scene_batch` | 一次调用里依次做一串 `scene_*` 改动，每一步用上一步返回的存档，后面的步骤能引用前面返回的编号；哪一步失败就停在哪一步并说明原因 |
 | `write_graphs` | 写节点图：一次调用把一张或多张图的源码类型检查、编译、写进存档副本（三十七张图约二十秒），返回可以试玩的存档和每张图的节点数；哪张编译不过就停在哪张并报出错误；只改了几张就只发那几张。早先分五步做的那组工具（建项目、改源码、构建、预览、写入）默认不再列出，要用时设环境变量 `MILIASTRA_STEP_TOOLS=1` |
 | `list_editor_windows` | 枚举原神与千星沙箱窗口、实际窗口 ID 和坐标 |
 | `capture_editor_window` | 返回 MCP 内联 PNG、原图文件、缩放比例和质量提示 |
@@ -367,7 +370,7 @@ npm run test:local
 默认只写存档的副本，试玩时把副本导入成一份新存档；正式存档要显式打开开关才会写，写之前比对哈希并备份。
 
 **创作账号等级低有什么影响？**
-奇匠 Lv.1 的账号，自定义文本框和选项文字不显示。工具为此准备了不靠文字的做法：图片控件、进度条、图标、标记特效。
+奇匠 Lv.1 的账号，自定义的文字不显示：文本框是空的，选项卡只有图标没有字。升到 Lv.2 以后都正常显示，头顶的气泡和铭牌也是在 Lv.2 上验证的（都是实测）。工具两种做法都有：用文字的，和不靠文字的（图片控件、进度条、图标、标记特效）；工具说明会提醒 AI，不确定账号等级时先放一个文本框试玩看一眼。
 
 **游戏更新以后工具坏了怎么办？**
 提 issue，说明游戏版本和出错的工具。图鉴是从编辑器里抄出来的，重抄的办法在 `scripts/dev/README.md`。

@@ -120,7 +120,7 @@ The full table with what each tool does is in the [Chinese README](README.md#工
 ## Limits
 
 - Windows only, Chinese client only, 16:9 full screen. A game update can change the save format or the interface and break tools until they are updated.
-- A low-level creator account (奇匠 Lv.1) cannot show custom text on screen; the tools offer pictures, bars, icons and marker effects instead.
+- A creator account at 奇匠 Lv.1 shows no custom text (text boxes stay empty, option tabs show only their icon); from Lv.2 on it does, and speech bubbles and name labels were verified on Lv.2 (all seen in play). The tools cover both: text where the account shows it, and pictures, bars, icons and marker effects where it does not.
 - Playtest scripts run on time, not on conditions: the level's log is only written when the play ends.
 - All examples are single-player.
 - This is a local, trusted development tool, not a sandbox for untrusted code. Do not expose it to the internet.
@@ -140,7 +140,7 @@ The community has built a number of Miliastra Wonderland tools with different ai
 | [WebMiliastraNodesEditor](https://github.com/Columbina-Dev/WebMiliastraNodesEditor) | A web node-graph editor that needs no game | For prototyping graphs |
 | [qianxing-format-docs](https://github.com/hang-ZYM/qianxing-format-docs) | Documentation of the file formats | The prop list and sizes in this repository come from it (CC BY 4.0) |
 
-Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay. Missing here: a simulator outside the game (every round runs in the real game; about a minute when only Lua changed), a UI for people, platforms other than Windows. Client Lua scripts, all eleven kinds of client control with their settings, control templates and script variables (new in game version 7.1) are supported. This table follows each project's own README; please open an issue if something is inaccurate.
+Not found elsewhere: id catalogues with thumbnails, automatic playtests in the real game, scenes and 3D gameplay, checks before anything is written (every name a script uses against the save, the graphs and the catalogues; the values a signal carries against its definition on both sides; controls that leave a phone's screen), and previews of an interface on phone and console canvases drawn by the real editor. Missing here: a simulator outside the game (every round runs in the real game; about a minute when only Lua changed), a UI for people, platforms other than Windows. Client Lua scripts, all eleven kinds of client control with their settings, control templates and script variables (new in game version 7.1) are supported. This table follows each project's own README; please open an issue if something is inaccurate.
 
 ## FAQ
 
