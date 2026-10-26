@@ -73,6 +73,14 @@ playtest_status gives the outcome.
      these before building a door out of a block and a motion. read_knowledge {id:"preset-status.zh-CN"} lists them.
      A creature prefab is made from a creature placed in the scene (fromEntity). health gives a thing more than the
      one hit an object takes by default; drop makes the prefab something that lies on the ground and is picked up.
+   scene_add_shape_prefab: a thing the catalogue does not have (a character, a pet, a vehicle, a statue, a sign), built
+     out of white-box shapes (球体 圆锥 长方体 圆柱 三棱柱 ...) or other models, each with its own place, turn, size and
+     colour. The parts are decorations of one prefab, so the thing is one entity: created by one createPrefab, moved
+     whole by a follow motion device (not a basic one: see the tool). Shape it with scene_preview_shapes first (four views drawn in a second,
+     no game): look, move parts, look again; then write it once and see it in one playtest. replace: true changes the
+     parts of a prefab this made and keeps its id. examples/paimon is Paimon in 39 shapes who greets the player and then
+     flies along beside the character (read_knowledge {id:"example-paimon"}). scene_build_blocks takes the shapes
+     and a color too, for scenery made of plain coloured geometry.
    scene_set_faction_hostility: usually [[1,3]], players and creatures fight and objects are left alone. With the default
      relations the player's allies attack every object a graph creates.
    scene_set_level_settings {aggroMode:"custom"}: needed when the graph decides whom creatures go for
@@ -294,7 +302,7 @@ Worked examples, readable through the server: read_knowledge {id:"example-events
 {id:"example-hop"}, {id:"example-farm"}, {id:"example-checks"}, {id:"example-skills"}, {id:"example-shop"},
 {id:"example-drops"}, {id:"example-buttons"}, {id:"example-strike"}, {id:"example-raid"}, {id:"example-potion"},
 {id:"example-shoot"}, {id:"example-kingdom5"}, {id:"example-brain"}, {id:"example-skirmish"}, {id:"example-kingdom6"},
-{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-signalparams"}, {id:"example-talk"}, {id:"example-cards"}, {id:"example-clientapi"}, {id:"example-clienttext"}, {id:"example-pairs"} give every
+{id:"example-fitting"}, {id:"example-hazards"}, {id:"example-walls"}, {id:"example-doors"}, {id:"example-images"}, {id:"example-clientui"}, {id:"example-clientgame"}, {id:"example-clientlist"}, {id:"example-clientmenu"}, {id:"example-clientcheck"}, {id:"example-clientvars"}, {id:"example-clientsignal"}, {id:"example-signalparams"}, {id:"example-talk"}, {id:"example-cards"}, {id:"example-paimon"}, {id:"example-clientapi"}, {id:"example-clienttext"}, {id:"example-pairs"} give every
 tool call in order with its arguments and the source of every graph, recorded from a real run. All of them have been played in the game.
 examples/doors is a gate that opens and closes again with two motion devices; examples/images is a screen that speaks without
 words (a row of lives made of image controls that a graph switches off and on, bars that show a value, a ring, a picture that starts hidden).

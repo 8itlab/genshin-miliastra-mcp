@@ -23,6 +23,12 @@
   |---|---|
   | ![NPC 头顶的名字、血条、图标、进度条和对话气泡](docs/images/nameplates.jpg) | ![战斗里跟着掉的血条](docs/images/health-bars.jpg) |
 
+- **用积木捏东西**：平台没有的角色、宠物、载具、雕像，用白盒形状（球、圆锥、长方体、圆柱、棱柱……）拼出来，每块单独上色，整个是一个元件，节点图一句话生成、跟随运动器带着走。拼的时候不用开游戏：工具一秒钟画出四个方向的预览图，看着改。下面是 39 块积木拼的派蒙，出场打招呼，然后一路跟在角色旁边（[examples/paimon](examples/paimon)）。
+
+  ![用 39 块白盒拼的派蒙：出场说话，然后跟在角色旁边](docs/images/paimon.jpg)
+
+  <img src="docs/images/shape-preview.jpg" alt="不开游戏画出的预览：正面、侧面、斜视" width="560">
+
 - **做界面**：进度条（横条、竖条、圆环）、图片（约 1600 张平台自带的图）、计时器、按钮、卡牌选择器（三选一）。
 
   <img src="docs/images/card-selector.jpg" alt="卡牌选择器：三张卡里选一张" width="420">
@@ -157,6 +163,7 @@ AI 做出来的东西写在存档的副本里；试玩时工具把副本导入�
 | `scene_add_environment` / `scene_list_environments` / `scene_add_light` | 固定时刻的环境配置（昼夜靠两套配置切换；按编辑器的写法写，白天不会过曝）和属于某套配置的点光源 |
 | `scene_set_client_script` / `scene_add_client_ui` / `scene_add_client_template` / `scene_remove_client` / `scene_list_client_scripts` | 客户端界面（游戏 7.1）：把 Lua 5.3 脚本放进存档，在屏幕上摆一棵由它控制的客户端控件树（十一种：图片、光标检测区域、容器、网格视窗、模板引用、预设按钮、按键提示、文本框等），还能做脚本运行时照着造的控件模板。界面可以每帧在动、收鼠标和按键，整局 2D 玩法也能做；和节点图靠自定义变量和信号互通（节点图也能直接给脚本发信号：`f.sendSignal('client:名字', 玩家)`）。脚本变量二十种类型都能定，同一个脚本挂在几个控件上可以各给各的值；控件能按设备（电脑、手机、主机）给不同的位置，能指定手柄摇杆往哪走。图片能直接带填充（横、竖、四分之一圈、半圈、整圈）、边缘羽化和遮罩反转，进度条和冷却圈不用脚本画；`scene_get_client_ui` 把已有的界面读回成参数，改完 `replace: true` 原位换回去。做法见 `knowledge/notes/client-lua.zh-CN.md`，脚本写进存档时当场查：语法错直接拒绝并给出行列，写死的控件名、信号名、变量名、接口名、图片和音效编号逐个对存档、节点图和图鉴（`scene_check_client`），对不上的给出行号和最接近的名字；运行时的错带着调用栈从试玩日志里回来。只改 Lua 的一轮不重新导入存档，真机上大约一分钟一轮。`editor_preview_interface` 让编辑器把界面画在手机、主机的画布上各截一张；`scene_import_simulator` 把千星沙箱模拟器的工程整个写进存档上真机。范例 `examples/clientui`、`examples/clientgame`、`examples/clientlist`、`examples/clientmenu`、`examples/clientcheck`、`examples/clientvars`、`examples/clientsignal`、`examples/clientapi`、`examples/clienttext`，以及整局游戏 `examples/pairs` |
 | `image_catalog` | 界面图片控件能用的全部图片（约 1600 张，15 类：功能图标、玩法图标、装饰图案、底板、分隔线、特殊字符、技能、道具、造物头像）：按分类返回编辑器图库的照片，每张图下面是编号 |
+| `scene_add_shape_prefab` / `scene_preview_shapes` | 用积木拼一个元件：一串零件，每块是白盒形状（长方体、球体、平面、三棱柱、五棱柱、三棱锥、五棱锥、圆柱、圆锥和两种线框）或任意物件模型，各有位置、旋转、尺寸（米）和颜色；写成“空模型加 N 个装饰物”，整个是一个实体。`replace: true` 换掉零件、保留编号和挂的图。`scene_preview_shapes` 不开游戏画出正面、侧面、顶面、斜视四张图（按零件清单，或读存档里的元件）。写法和编辑器手做的逐字节相同；跟随运动器带着走、生成时的朝向都上机验过（`examples/paimon`） |
 | `scene_remove_entities` | 把已经导入场景的物件从存档副本里拿掉（按名字或名字前缀）：导入只能加，摆错的靠它减 |
 | `scene_list_classes` / `scene_set_class` | 职业：角色能不能跳、冲刺、攀爬、滑翔，用哪个镜头模板；角色的等级和基础生命、攻击、防御、体力（新地图默认一万血，打不死） |
 | `scene_set_spawn` / `scene_add_preset_point` / `scene_list_preset_points` | 出生点和图里按编号读取的命名位置 |

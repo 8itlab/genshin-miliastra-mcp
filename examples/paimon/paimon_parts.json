@@ -1,0 +1,716 @@
+[
+ {
+  "shape": "球体",
+  "position": [
+   0,
+   1.3,
+   0
+  ],
+  "size": [
+   0.62,
+   0.6,
+   0.58
+  ],
+  "color": "#F2D2C0",
+  "solid": false,
+  "name": "头"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   -0.115,
+   1.29,
+   0.265
+  ],
+  "size": [
+   0.1,
+   0.14,
+   0.05
+  ],
+  "color": "#2B3F99",
+  "solid": false,
+  "name": "左眼"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.115,
+   1.29,
+   0.265
+  ],
+  "size": [
+   0.1,
+   0.14,
+   0.05
+  ],
+  "color": "#2B3F99",
+  "solid": false,
+  "name": "右眼"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   -0.1,
+   1.32,
+   0.29
+  ],
+  "size": [
+   0.035,
+   0.035,
+   0.02
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "name": "左眼高光"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.13,
+   1.32,
+   0.29
+  ],
+  "size": [
+   0.035,
+   0.035,
+   0.02
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "name": "右眼高光"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   -0.19,
+   1.2,
+   0.23
+  ],
+  "size": [
+   0.08,
+   0.04,
+   0.03
+  ],
+  "color": "#F6B3B8",
+  "solid": false,
+  "name": "左腮红"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.19,
+   1.2,
+   0.23
+  ],
+  "size": [
+   0.08,
+   0.04,
+   0.03
+  ],
+  "color": "#F6B3B8",
+  "solid": false,
+  "name": "右腮红"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0,
+   1.17,
+   0.28
+  ],
+  "size": [
+   0.05,
+   0.025,
+   0.02
+  ],
+  "color": "#C8566B",
+  "solid": false,
+  "name": "嘴"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0,
+   1.36,
+   -0.05
+  ],
+  "size": [
+   0.68,
+   0.66,
+   0.6
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "name": "后脑头发"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0,
+   1.52,
+   0.06
+  ],
+  "size": [
+   0.62,
+   0.3,
+   0.5
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "name": "头顶头发"
+ },
+ {
+  "shape": "圆锥",
+  "position": [
+   -0.18,
+   1.47,
+   0.24
+  ],
+  "size": [
+   0.16,
+   0.2,
+   0.08
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "rotation": [
+   180,
+   0,
+   -12
+  ],
+  "name": "刘海1"
+ },
+ {
+  "shape": "圆锥",
+  "position": [
+   -0.06,
+   1.47,
+   0.24
+  ],
+  "size": [
+   0.16,
+   0.2,
+   0.08
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "rotation": [
+   180,
+   0,
+   -4
+  ],
+  "name": "刘海2"
+ },
+ {
+  "shape": "圆锥",
+  "position": [
+   0.06,
+   1.47,
+   0.24
+  ],
+  "size": [
+   0.16,
+   0.2,
+   0.08
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "rotation": [
+   180,
+   0,
+   4
+  ],
+  "name": "刘海3"
+ },
+ {
+  "shape": "圆锥",
+  "position": [
+   0.18,
+   1.47,
+   0.24
+  ],
+  "size": [
+   0.16,
+   0.2,
+   0.08
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "rotation": [
+   180,
+   0,
+   12
+  ],
+  "name": "刘海4"
+ },
+ {
+  "shape": "圆锥",
+  "position": [
+   -0.3,
+   1.05,
+   0.1
+  ],
+  "size": [
+   0.14,
+   0.55,
+   0.12
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "rotation": [
+   180,
+   0,
+   -6
+  ],
+  "name": "左鬓发"
+ },
+ {
+  "shape": "圆锥",
+  "position": [
+   0.3,
+   1.05,
+   0.1
+  ],
+  "size": [
+   0.14,
+   0.55,
+   0.12
+  ],
+  "color": "#B8BFCF",
+  "solid": false,
+  "rotation": [
+   180,
+   0,
+   6
+  ],
+  "name": "右鬓发"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   0.04,
+   1.66,
+   0.02
+  ],
+  "size": [
+   0.22,
+   0.06,
+   0.2
+  ],
+  "color": "#2E2550",
+  "solid": false,
+  "rotation": [
+   0,
+   0,
+   -12
+  ],
+  "name": "发冠底座"
+ },
+ {
+  "shape": "三棱锥",
+  "position": [
+   -0.02,
+   1.745,
+   0.02
+  ],
+  "size": [
+   0.07,
+   0.13,
+   0.06
+  ],
+  "color": "#2E2550",
+  "solid": false,
+  "rotation": [
+   0,
+   0,
+   -12
+  ],
+  "name": "发冠尖1"
+ },
+ {
+  "shape": "三棱锥",
+  "position": [
+   0.06,
+   1.785,
+   0.02
+  ],
+  "size": [
+   0.07,
+   0.17,
+   0.06
+  ],
+  "color": "#2E2550",
+  "solid": false,
+  "rotation": [
+   0,
+   0,
+   -12
+  ],
+  "name": "发冠尖2"
+ },
+ {
+  "shape": "三棱锥",
+  "position": [
+   0.14,
+   1.745,
+   0.02
+  ],
+  "size": [
+   0.07,
+   0.13,
+   0.06
+  ],
+  "color": "#2E2550",
+  "solid": false,
+  "rotation": [
+   0,
+   0,
+   -12
+  ],
+  "name": "发冠尖3"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.045,
+   1.67,
+   0.12
+  ],
+  "size": [
+   0.05,
+   0.05,
+   0.03
+  ],
+  "color": "#E9B949",
+  "solid": false,
+  "name": "发冠宝石"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   0,
+   0.98,
+   0
+  ],
+  "size": [
+   0.26,
+   0.22,
+   0.22
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "name": "上身"
+ },
+ {
+  "shape": "圆锥",
+  "position": [
+   0,
+   0.82,
+   0
+  ],
+  "size": [
+   0.46,
+   0.32,
+   0.4
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "name": "裙子"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   0,
+   1.07,
+   0.02
+  ],
+  "size": [
+   0.27,
+   0.04,
+   0.23
+  ],
+  "color": "#E9B949",
+  "solid": false,
+  "name": "领口金边"
+ },
+ {
+  "shape": "长方体",
+  "position": [
+   0,
+   0.8,
+   -0.19
+  ],
+  "size": [
+   0.64,
+   0.78,
+   0.04
+  ],
+  "color": "#1F2B5E",
+  "solid": false,
+  "rotation": [
+   -14,
+   0,
+   0
+  ],
+  "name": "斗篷"
+ },
+ {
+  "shape": "长方体",
+  "position": [
+   0,
+   0.81,
+   -0.165
+  ],
+  "size": [
+   0.58,
+   0.72,
+   0.02
+  ],
+  "color": "#5B4BA6",
+  "solid": false,
+  "rotation": [
+   -14,
+   0,
+   0
+  ],
+  "name": "斗篷内衬"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   -0.15,
+   0.95,
+   -0.141
+  ],
+  "size": [
+   0.03,
+   0.03,
+   0.01
+  ],
+  "color": "#F5E9A8",
+  "solid": false,
+  "rotation": [
+   -14,
+   0,
+   0
+  ],
+  "name": "斗篷星1"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.12,
+   0.78,
+   -0.151
+  ],
+  "size": [
+   0.03,
+   0.03,
+   0.01
+  ],
+  "color": "#F5E9A8",
+  "solid": false,
+  "rotation": [
+   -14,
+   0,
+   0
+  ],
+  "name": "斗篷星2"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   -0.05,
+   0.62,
+   -0.161
+  ],
+  "size": [
+   0.03,
+   0.03,
+   0.01
+  ],
+  "color": "#F5E9A8",
+  "solid": false,
+  "rotation": [
+   -14,
+   0,
+   0
+  ],
+  "name": "斗篷星3"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.18,
+   1.0,
+   -0.138
+  ],
+  "size": [
+   0.03,
+   0.03,
+   0.01
+  ],
+  "color": "#F5E9A8",
+  "solid": false,
+  "rotation": [
+   -14,
+   0,
+   0
+  ],
+  "name": "斗篷星4"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   0,
+   1.12,
+   -0.08
+  ],
+  "size": [
+   0.34,
+   0.05,
+   0.1
+  ],
+  "color": "#E9B949",
+  "solid": false,
+  "name": "斗篷扣"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   -0.19,
+   0.95,
+   0.02
+  ],
+  "size": [
+   0.07,
+   0.24,
+   0.07
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "rotation": [
+   0,
+   0,
+   -25
+  ],
+  "name": "左臂"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   0.19,
+   0.95,
+   0.02
+  ],
+  "size": [
+   0.07,
+   0.24,
+   0.07
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "rotation": [
+   0,
+   0,
+   25
+  ],
+  "name": "右臂"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   -0.24,
+   0.84,
+   0.03
+  ],
+  "size": [
+   0.07,
+   0.07,
+   0.07
+  ],
+  "color": "#F2D2C0",
+  "solid": false,
+  "name": "左手"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.24,
+   0.84,
+   0.03
+  ],
+  "size": [
+   0.07,
+   0.07,
+   0.07
+  ],
+  "color": "#F2D2C0",
+  "solid": false,
+  "name": "右手"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   -0.065,
+   0.6,
+   0.0
+  ],
+  "size": [
+   0.08,
+   0.18,
+   0.08
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "name": "左腿"
+ },
+ {
+  "shape": "圆柱",
+  "position": [
+   0.065,
+   0.6,
+   0.0
+  ],
+  "size": [
+   0.08,
+   0.18,
+   0.08
+  ],
+  "color": "#DCDFE7",
+  "solid": false,
+  "name": "右腿"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   -0.065,
+   0.5,
+   0.02
+  ],
+  "size": [
+   0.09,
+   0.06,
+   0.12
+  ],
+  "color": "#2C2C3A",
+  "solid": false,
+  "name": "左鞋"
+ },
+ {
+  "shape": "球体",
+  "position": [
+   0.065,
+   0.5,
+   0.02
+  ],
+  "size": [
+   0.09,
+   0.06,
+   0.12
+  ],
+  "color": "#2C2C3A",
+  "solid": false,
+  "name": "右鞋"
+ }
+]

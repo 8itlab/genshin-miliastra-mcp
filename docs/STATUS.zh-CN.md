@@ -1,6 +1,6 @@
 # 现状和限制
 
-更新：2026-10-14。
+更新：2026-10-26。
 
 ## 这个项目要做到什么
 
@@ -39,7 +39,7 @@
 1. 看地图：`list_maps`、`inspect_map`、`scene_list_*`、`scene_get_level_settings`。
 2. 搭景：`scene_search_assets` / `scene_asset_images` → `scene_build_blocks` → `editor_open_map` → `scene_import_assets`；摆错的用 `scene_remove_entities` 拿掉。
 3. 设置：`scene_set_camera`（`fixedView` 锁定视角）、`scene_set_spawn`、`scene_add_preset_point`、`scene_set_class`、`scene_set_faction_hostility`、`scene_set_level_settings`、`scene_add_respawn_point`、`scene_set_revive`、`scene_set_player_count`。
-4. 东西和它们的能力：`scene_add_prefab` / `scene_update_prefab`（物件、造物、掉落物；预设状态、生命值）、`scene_add_components`（碰撞触发器、选项卡、变量、运动器、跟随、小地图、文本气泡、铭牌、自定义挂接点、受击盒、能力单元、战利品、投射运动器、命中检测、弹射器、力场、额外碰撞）、`scene_add_graph`（挂到关卡实体、元件、玩家模板、角色模板；客户端的技能图、过滤器图；道具图）。
+4. 东西和它们的能力：`scene_add_prefab` / `scene_update_prefab`（物件、造物、掉落物；预设状态、生命值）、`scene_add_shape_prefab`（用白盒形状和别的模型拼一个元件，零件是装饰物，各自上色；先用 `scene_preview_shapes` 不开游戏看四面图，`examples/paimon`）、`scene_add_components`（碰撞触发器、选项卡、变量、运动器、跟随、小地图、文本气泡、铭牌、自定义挂接点、受击盒、能力单元、战利品、投射运动器、命中检测、弹射器、力场、额外碰撞）、`scene_add_graph`（挂到关卡实体、元件、玩家模板、角色模板；客户端的技能图、过滤器图；道具图）。
 5. 平台的系统：`scene_add_signal`（可带多个参数，十八种类型）、`scene_add_global_timer`、`scene_add_skill`、`scene_add_creature_skill`、`scene_set_creature_logic`、`scene_add_currency`、`scene_add_item`、`scene_add_shop`、`scene_add_unit_status`、`scene_add_environment`、`scene_add_light`。
 6. 客户端界面（游戏 7.1）：`scene_set_client_script` 放 Lua 脚本，`scene_add_client_ui` 摆它控制的客户端控件（十一种，各自的设置都能定；图片可带填充、羽化、遮罩反转），`scene_add_client_template` 做运行时照着造的模板，`scene_get_client_ui` 读回、`replace: true` 原位替换，`scene_remove_client` 拿掉，`scene_check_client` 不进游戏先查名字和信号参数，`editor_preview_interface` 看手机和主机画布，`scene_import_simulator` 导入模拟器工程；会动、收鼠标和按键的界面和 2D 玩法用它（`knowledge/notes/client-lua.zh-CN.md`）。
 7. 屏幕上的东西（服务器控件）：`scene_add_progress_bar`（横条、竖条、圆环，可显示数字）、`scene_add_image`（图从 `image_catalog` 里挑）、`scene_add_timer_display`、`scene_add_button`、`scene_add_card_selector`（卡牌选择器，几选一）；控件可以一开始隐藏，由节点图开关。
@@ -76,6 +76,7 @@
 - 本地投射物（技能的客户端图直接发射的那一种；现在只有服务器创建的）。
 - 另外 30 种复杂造物的动画表（谁用到谁读，`scripts/dev/animscrape.py`）。
 - 职业的默认技能。
+- 积木元件的局部动作：零件挂在造物骨骼挂接点上跟着动画动（官方装饰物支持挂在挂接点上，没试）；整个元件转身（图里临时加旋转运动器不起作用，挂基础运动器会让朝向和跟随偏移失效，见平台规则 2026-10-26）。从一张图自动生成零件清单（例如先用图生 3D 再拆成积木）。
 - 多人。
 - 英文文档和国际服客户端的验证。
 

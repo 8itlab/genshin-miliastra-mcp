@@ -85,7 +85,7 @@
 
 | 层 | 平台能力 | 我们现在（2026-10-14；✅ 都是在游戏里验证过的） | 差距 |
 |---|---|---|---|
-| 场景 | 摆物件、缩放、元件、元件组、场景生成模板 | ✅ `scene_build_blocks` / `scene_import_assets` / `scene_add_prefab`（物件、造物、掉落物三种元件，可带预设状态、生命值）/ 图鉴 | 元件组、场景生成模板没有 |
+| 场景 | 摆物件、缩放、换色、元件、装饰物、元件组、场景生成模板 | ✅ `scene_build_blocks`（可上色）/ `scene_import_assets` / `scene_add_prefab`（物件、造物、掉落物三种元件，可带预设状态、生命值）/ `scene_add_shape_prefab`（白盒和别的模型拼成一个元件，零件是装饰物，`examples/paimon`）/ 图鉴 | 元件组、场景生成模板没有；材质（冰、石化）没接 |
 | 单位 | 玩家模板、角色模板、职业、造物行为模式 | ✅ 出生点和预设点（`scene_set_spawn`、`scene_add_preset_point`）；职业的跳跃、攀爬、冲刺、滑翔开关和镜头（`scene_set_class`）；造物元件由图创建后会自己行动；职业的等级和基础属性；复苏（等待秒数、自动复苏、命数，`scene_set_revive`）和复苏点 | 新建职业 |
 | 组件 | 二十多种 | ✅ 碰撞触发器、选项卡（含布尔过滤器）、自定义变量、基础运动器（直线、路径）、跟随运动器、小地图标识、受击盒、能力单元（直接攻击）、战利品、投射运动器、命中检测、弹射器、文本气泡、铭牌（名字、图标、跟着变量走的条、血条、导航指示器）、自定义挂接点，都在 `scene_add_components`；商店在 `scene_add_shop`；背包随 `scene_add_currency` | 扰动装置没做；铭牌的计时器、受打断值两种内容项没做；编码在 `knowledge/notes/component-codes.zh-CN.md` |
 | 节点图 | 七种图，挂在任意实体 | ✅ 服务器实体图挂关卡实体、任意元件（一张图可挂多个元件）、玩家模板、角色模板；✅ 道具节点图；✅ 客户端的角色技能图和布尔过滤器图；✅ 造物技能、造物状态、造物决策三种图，接在造物上（`scene_add_creature_skill`、`scene_set_creature_logic`，`examples/brain`）；✅ 客户端 Lua 脚本（游戏 7.1） | — |

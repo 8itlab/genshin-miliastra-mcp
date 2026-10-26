@@ -8,6 +8,8 @@ import {animationsOf,animationsMayGoOn} from './scene/media.mjs';
 import {fail} from './adapter.mjs';
 import {checkClient,luaSyntaxError} from './client-check.mjs';
 import {imageIdKnown} from './scene/images.mjs';
+import {SHAPES,EMPTY_MODEL,shapeOf,colorRecord,parseColor} from './scene/shapes.mjs';
+import {render as renderShapes} from './scene/shape-render.mjs';
 
 // Reading and patching saves between “import the scene” and “build the graph”. Nothing here touches the
 // official save in place: every change is written to a new file under <workspace>/scenes/saves, which
@@ -282,6 +284,157 @@ export function addPrefab({mapPath,asset,fromEntity,name,scale,presetStatusValue
     size:found?.size?found.size.map((n,i)=>Math.round(n*size[i]*1000)/1000):null,
     ...(preset?{presetStatus:{statusId:preset.statusId,startsAt:presetStatusValue??0,used:preset.used??null,note:preset.note}}:{}),
     next:'Use mapPath in later calls. In the graph: f.createPrefab('+prefabId+', position, rotation, ownerEntity, false, 1, [] as bigint[])'+(creature?'; a created creature is in the creature faction until f.modifyEntityFaction puts it in another.':'.')+(preset?' This asset has a built-in animation: f.setPresetStatus(entity, '+preset.statusId+'n, 1n) plays it (0n puts it back where the samples do that), and whenPresetStatusChanges fires on the entity.':'')+' Several prefabs: call this again with the returned mapPath.'};
+}
+
+// The parts of a thing made of shapes, checked and turned into numbers before anything is written or drawn.
+function shapePieces(parts,solid){
+  if(!Array.isArray(parts)||!parts.length||parts.length>300)fail('INVALID_PARTS','parts is a list of 1 to 300 pieces.');
+  const three=(v,fallback,label,i)=>{const t=v===undefined?fallback:typeof v==='number'?[v,v,v]:v;if(!Array.isArray(t)||t.length!==3||!t.every(Number.isFinite))fail('INVALID_PARTS',`parts[${i}].${label} is [x, y, z].`,{part:i});return t;};
+  return parts.map((p,i)=>{
+    const key=p.shape??p.model;
+    if(key===undefined)fail('INVALID_PARTS',`parts[${i}] needs shape (球体, 圆锥, 长方体 ... or cube, sphere, cone ...) or model (an asset id or name).`,{part:i});
+    const shape=shapeOf(key),asset=shape?null:findAsset(key);
+    if(!shape&&!asset)fail('UNKNOWN_ASSET',`parts[${i}]: no shape or asset ${JSON.stringify(key)}. Shapes: ${SHAPES.map(s=>s.name).join(' ')}.`,{part:i});
+    if(asset&&asset.group.startsWith('怪物'))fail('NOT_AN_OBJECT',`parts[${i}]: a creature is not a decoration.`,{part:i});
+    const model=shape?shape.id:asset.id,natural=shape?shape.size:asset.size;
+    if(p.size!==undefined&&p.scale!==undefined)fail('INVALID_PARTS',`parts[${i}]: give size or scale, not both.`,{part:i});
+    let scale;
+    if(p.size!==undefined){
+      const size=three(p.size,null,'size',i);
+      if(!natural)fail('INVALID_PARTS',`parts[${i}]: ${asset?.name} has no measured size; give scale.`,{part:i});
+      scale=size.map((n,a)=>natural[a]>0?n/natural[a]:n||1);
+    }else scale=three(p.scale,[1,1,1],'scale',i);
+    if(!scale.every(n=>n>0&&n<=1000))fail('INVALID_PARTS',`parts[${i}]: size and scale are positive.`,{part:i});
+    let colour=null;
+    if(p.color!==undefined)try{colour=colorRecord({color:p.color,opacity:p.opacity??100,blend:p.blend??'cover'});}catch(e){fail('INVALID_COLOR',`parts[${i}]: ${e.message}`,{part:i});}
+    else if(p.opacity!==undefined||p.blend!==undefined)fail('INVALID_COLOR',`parts[${i}]: opacity and blend go with color.`,{part:i});
+    return {model,label:p.name||`${shape?shape.name:asset.name}_${i+1}`,position:three(p.position,[0,0,0],'position',i),rotation:three(p.rotation,[0,0,0],'rotation',i),
+      scale,colour:colour??colorRecord(),color:p.color===undefined?null:parseColor(p.color),opacity:p.opacity??100,solid:p.solid??solid??true,natural:shape?null:natural,
+      size:natural?scale.map((n,a)=>Math.round(n*natural[a]*1000)/1000):null};
+  });
+}
+// A thing put together from shapes (积木元件): one object prefab whose look is a list of decorations (装饰物), each a
+// white-box shape or any other model with its own place, turn, size and colour. The prefab is one entity: a graph creates
+// it with createPrefab, motors and components move it, and every decoration goes with it (the official guide: decorations
+// do not add entities). Its main model is the empty model (空模型) unless base says otherwise.
+// Records as the editor wrote them for a prefab made by hand on 2026-10-26 (a red sphere with a blue cone and an empty
+// model hung on it): the prefab lists its decorations in property 40, {50: {501: [ids, packed]}}; each decoration is an
+// entry {1: id, 2: model, 3: 1, 4: name (kind 1), 4: {1: 40, 50: {502: prefab id}}, 4: kind 111, 5: transform (kind 1, {11: {1: position, 2: rotation in degrees, 3: scale}}), 5: collision (kind 5),
+// 5: kind 2 {12: {}}, 5: colour (kind 22), 11: {}} under field 1 of section 27 (the decorations of placed entities are
+// under field 2 there). Positions are metres from the prefab's origin, which is where createPrefab puts it.
+export function addShapePrefab({mapPath,name,base,baseScale,color,opacity,blend,colorParts,parts,solid,replace:redo,outputName},workspace){
+  const file=resolve(mapPath);
+  if(typeof name!=='string'||!name.trim())fail('INVALID_NAME','name is the name of the prefab.');
+  const vec=v=>Buffer.concat(v.map((n,i)=>n?field(i+1,5,f32(n)):Buffer.alloc(0)));
+  const pieces=shapePieces(parts,solid);
+  let baseColour=null;
+  if(color!==undefined)try{baseColour=colorRecord({color,opacity:opacity??100,blend:blend??'cover',overrideParts:colorParts===true});}catch(e){fail('INVALID_COLOR',e.message);}
+  // The prefab itself: made new by scene_add_prefab's writer, or, with replace, the one of that name.
+  let root=container(fs.readFileSync(file)),prefabId,made=null;
+  const named=prefabRecords(root).filter(p=>p.name===name);
+  if(named.length&&!redo)fail('DUPLICATE_PREFAB_NAME','The save already has a prefab with this name. replace: true puts the new parts on it (same prefab id, graphs and components stay).',{name,prefabId:named[0].prefabId});
+  if(named.length>1)fail('DUPLICATE_PREFAB_NAME','Several prefabs have this name.',{name});
+  if(named.length){
+    prefabId=named[0].prefabId;
+    if(named[0].kind!=='object')fail('NOT_AN_OBJECT','Only an object prefab takes decorations here.',{name});
+  }else{
+    made=addPrefab({mapPath:file,asset:base??EMPTY_MODEL,name,scale:baseScale??1,outputName:outputName??path.basename(file,'.gil').slice(0,40)+'-shapes'},workspace);
+    prefabId=made.prefabId;root=container(fs.readFileSync(made.mapPath));
+  }
+  const section=fields(root).filter(f=>f.id===27&&f.wire===2);
+  if(section.length!==1)fail('UNSUPPORTED_SAVE','The save does not have the decoration section this tool knows (27).');
+  const decorations=fields(section[0].data);
+  const parentOf=d=>{try{for(const p of fields(d))if(p.id===4&&p.wire===2&&kindOf(p.data)===40)return varintOf(one(p.data,50),502);}catch{}return null;};
+  // replace: the prefab's own decorations go; those copied onto entities already placed from it stay with them.
+  const kept=decorations.filter(d=>!(redo&&d.id===1&&d.wire===2&&parentOf(d.data)===prefabId));
+  const taken=new Set(decorations.map(d=>varintOf(d.data,1)).filter(Boolean));
+  let next=Math.max(0x40000000,...taken)+1;const ids=[];
+  for(let i=0;i<pieces.length;i++){while(taken.has(next)||root.includes(Buffer.concat([Buffer.from([8]),varint(next)])))next++;ids.push(next++);}
+  const prop=(kind,id,content)=>field(4,2,Buffer.concat([field(1,0,kind),field(id,2,content)]));
+  const part=(kind,id,content)=>field(5,2,Buffer.concat([field(1,0,kind),field(id,2,content)]));
+  const entries=pieces.map((p,i)=>field(1,2,Buffer.concat([field(1,0,ids[i]),field(2,0,p.model),field(3,0,1),
+    prop(1,11,field(1,2,Buffer.from(p.label,'utf8'))),prop(40,50,field(502,0,prefabId)),prop(111,93,Buffer.alloc(0)),
+    part(1,11,Buffer.concat([field(1,2,vec(p.position)),field(2,2,vec(p.rotation)),field(3,2,vec(p.scale))])),
+    part(5,15,p.solid?Buffer.concat([field(1,0,1),field(2,0,1)]):Buffer.alloc(0)),part(2,12,Buffer.alloc(0)),
+    field(5,2,p.colour),field(11,2,Buffer.alloc(0))])));
+  // Prefab decorations come before those of placed entities, as the editor orders them.
+  const firstPlaced=kept.findIndex(d=>d.id===2);
+  const ordered=firstPlaced<0?[...kept.map(d=>d.raw),...entries]:[...kept.slice(0,firstPlaced).map(d=>d.raw),...entries,...kept.slice(firstPlaced).map(d=>d.raw)];
+  root=replace(root,27,2,Buffer.concat(ordered));
+  const list=field(50,2,field(501,2,Buffer.concat(ids.map(id=>varint(id)))));
+  let listed=false,coloured=false;
+  const prefabs=Buffer.concat(fields(one(root,4)).map(entry=>{
+    if(!(entry.id===1&&entry.wire===2&&varintOf(entry.data,1)===prefabId))return entry.raw;
+    const body=fields(entry.data).map(p=>{
+      if(p.id===6&&p.wire===2&&kindOf(p.data)===40){listed=true;return field(6,2,Buffer.concat([field(1,0,40),list]));}
+      if(p.id===7&&p.wire===2&&kindOf(p.data)===22&&(baseColour||redo)){coloured=true;return field(7,2,baseColour??colorRecord());}
+      return p.raw;
+    });
+    const firstOf=id=>{const at=body.findIndex(b=>fields(b)[0].id===id);return at<0?body.length:at;};
+    if(!listed)body.splice(firstOf(7),0,field(6,2,Buffer.concat([field(1,0,40),list])));
+    if(baseColour&&!coloured)body.splice(firstOf(8),0,field(7,2,baseColour));
+    return field(1,2,Buffer.concat(body));
+  }));
+  root=replace(root,4,2,prefabs);
+  const out=made?made.mapPath:output(workspace,file,outputName,'-shapes');
+  fs.writeFileSync(out,wrap(fs.readFileSync(file),root));
+  const low=[0,1,2].map(a=>Math.min(...pieces.map(p=>p.position[a]-(p.size?p.size[a]/2:0)))),high=[0,1,2].map(a=>Math.max(...pieces.map(p=>p.position[a]+(p.size?p.size[a]/2:0))));
+  return {mapPath:out,source:file,prefabId,name,replaced:!made,parts:pieces.length,decorationIds:[ids[0],ids[ids.length-1]],
+    bounds:{min:low.map(n=>Math.round(n*100)/100),max:high.map(n=>Math.round(n*100)/100)},
+    next:`Use mapPath in later calls. A graph creates the whole thing with f.createPrefab(${prefabId}, position, rotation, ownerEntity, false, 1, [] as bigint[]); positions of the parts were metres from that point (bounds ignore rotation). scene_preview_shapes draws it from four sides without the game. A follow motion device (scene_add_components follow) carries every part along; a basic motion device on it stopped the creation rotation and the follow offset from working (examples/paimon). To change the parts, call this again with the same name, the returned mapPath and replace: true: the prefab id and what hangs on it stay.`};
+}
+
+// The parts of a prefab as they stand in a save: its main model when that is a white-box shape, then its decorations
+// (section 27, field 1, those whose kind-40 property names the prefab), with place, turn, scale and colour.
+function readShapeParts(root,prefabId){
+  const floats=b=>{const v=[0,0,0];if(!b)return v;for(const f of fields(b))if(f.wire===5&&f.id<=3)v[f.id-1]=f.data.readFloatLE(0);return v;};
+  const colourOf=b=>{try{const c=one(b,32),on=varintOf(c,1)===1;if(!on)return {color:null,opacity:100};const op=fields(c).find(x=>x.id===4&&x.wire===5);return {color:varintOf(c,5)??0,opacity:op?op.data.readFloatLE(0):100};}catch{return {color:null,opacity:100};}};
+  const transformOf=b=>{const t=one(b,11),get=id=>fields(t).find(x=>x.id===id&&x.wire===2)?.data;const sc=get(3);return {position:floats(get(1)),rotation:floats(get(2)),scale:sc?floats(sc).map(n=>n||1):[1,1,1]};};
+  const out=[];
+  const entry=fields(one(root,4)).find(e=>e.id===1&&e.wire===2&&varintOf(e.data,1)===prefabId);
+  if(!entry)return null;
+  const base=varintOf(entry.data,2);
+  if(shapeOf(base)){
+    let t={position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]},c={color:null,opacity:100};
+    for(const p of fields(entry.data))if(p.id===7&&p.wire===2){const k=kindOf(p.data);if(k===1)t={...transformOf(p.data),position:[0,0,0],rotation:[0,0,0]};if(k===22)c=colourOf(p.data);}
+    out.push({model:base,label:'(main model)',...t,...c});
+  }
+  for(const d of fields(one(root,27))){
+    if(d.id!==1||d.wire!==2)continue;
+    let parent=null,label='',t=null,c={color:null,opacity:100};
+    for(const p of fields(d.data)){
+      if(p.wire!==2)continue;const k=kindOf(p.data);
+      if(p.id===4&&k===40)parent=varintOf(one(p.data,50),502);
+      if(p.id===4&&k===1)label=one(one(p.data,11),1).toString('utf8');
+      if(p.id===5&&k===1)t=transformOf(p.data);
+      if(p.id===5&&k===22)c=colourOf(p.data);
+    }
+    if(parent!==prefabId||!t)continue;
+    const model=varintOf(d.data,2),asset=shapeOf(model)?null:findAsset(model);
+    out.push({model,label,...t,...c,natural:asset?.size??null});
+  }
+  return out;
+}
+// Pictures of a thing made of shapes from four sides, drawn without the game: the parts given (as scene_add_shape_prefab
+// takes them), or the prefab of that name or id in a save.
+export function previewShapes({parts,mapPath,prefab,views,size}){
+  let pieces,source={};
+  if(parts!==undefined){
+    if(mapPath!==undefined||prefab!==undefined)fail('INVALID_PREVIEW','Give parts, or mapPath with prefab; not both.');
+    pieces=shapePieces(parts);
+  }else{
+    if(prefab===undefined)fail('INVALID_PREVIEW','Give parts, or mapPath with prefab (its name or id).');
+    const file=resolve(mapPath),root=container(fs.readFileSync(file));
+    const hits=prefabRecords(root).filter(p=>typeof prefab==='number'?p.prefabId===prefab:p.name===prefab);
+    if(hits.length!==1)fail('PREFAB_NOT_FOUND',hits.length?'Several prefabs have this name; give the id.':'No prefab with this name or id.',{prefab});
+    pieces=readShapeParts(root,hits[0].prefabId);source={mapPath:file,prefabId:hits[0].prefabId,name:hits[0].name};
+    if(!pieces?.length)fail('NOTHING_TO_DRAW','This prefab has no decorations and its main model is not a white-box shape.',source);
+  }
+  const shots=renderShapes(pieces,{views:views??['front','side','top','angle'],size:size??360});
+  const all=pieces.map(p=>({...p,half:(p.natural??shapeOf(p.model)?.size??[1,1,1]).map((n,a)=>Math.max(n,0.02)*p.scale[a]/2)}));
+  const lo=[0,1,2].map(a=>Math.min(...all.map(p=>p.position[a]-p.half[a]))),hi=[0,1,2].map(a=>Math.max(...all.map(p=>p.position[a]+p.half[a])));
+  return {...source,parts:pieces.length,bounds:{min:lo.map(n=>Math.round(n*100)/100),max:hi.map(n=>Math.round(n*100)/100)},images:shots,
+    note:'A sketch drawn here, not by the game: flat colours, no textures, models other than white-box shapes as grey boxes. front looks at the side that faces +z (the way a prefab created with rotation 0 faces), side from +x, top from above with +z down, angle from front-right-above. Bounds ignore rotation.'};
 }
 
 // Changing a prefab that exists: its scale, the asset it shows, its health. Everything else of the entry stays as it is

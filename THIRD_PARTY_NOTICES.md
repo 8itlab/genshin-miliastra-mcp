@@ -30,6 +30,7 @@ This is an unofficial community integration; no endorsement by miHoYo/HoYoverse 
 - Source: https://github.com/hang-ZYM/qianxing-format-docs (docs/08_实体大全.md and data/prefab_sizes_full.json, snapshot of 2026-10-05)
 - License: Creative Commons Attribution 4.0 International (CC BY 4.0)
 - Used for: `src/scene/asset-catalog.json`, the list of official placeable assets with names, panel groups, icon names and model sizes. The data was reformatted; sizes are stored as [x, y, z] metres.
+- Also used for: the native sizes of the eleven white-box shapes in `src/scene/shapes.mjs` (from data/beyd_mesh_bounds.json, snapshot of 2026-10-25), and, as a reference only, its description of the entity colour record (component 22), which this project then measured again in the editor.
 
 ## luaparse
 

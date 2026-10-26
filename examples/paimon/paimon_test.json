@@ -1,0 +1,95 @@
+{
+ "about": "Paimon made of 39 white-box shapes (examples/paimon/gen_paimon_parts.py, written by scene_add_shape_prefab as decorations of one prefab). At level second 6 the stage creates her ahead of the player and a little to the right, turned to face the player, and her text bubble talks; four seconds later she flies to the character and stays 1.2 m to its right and 0.5 m ahead (follow motion device, position only, world offset), facing the camera, while the player walks forward and then left. Prints PM_HELLO, PM_FOLLOW. The level clock runs about four seconds ahead of the play seconds of the screenshots. What to look at: her face and colours against scene_preview_shapes, and her staying beside the character as it walks.",
+ "dir": "paimon",
+ "namePrefix": "PM_",
+ "baseName": "未分类页签_存档_3",
+ "day": 0,
+ "night": 0,
+ "coins": 0,
+ "durationSeconds": 22,
+ "screenshotsAt": [
+  4,
+  9,
+  13.5,
+  18,
+  21
+ ],
+ "screenshotWidth": 1600,
+ "inputs": [
+  {
+   "at": 10.5,
+   "key": "W",
+   "holdMs": 2500
+  },
+  {
+   "at": 14.5,
+   "key": "A",
+   "holdMs": 2000
+  }
+ ],
+ "scenes": [],
+ "camera": {
+  "distance": 5
+ },
+ "spawn": {
+  "position": [
+   0,
+   0.4,
+   0
+  ],
+  "rotation": [
+   0,
+   0,
+   0
+  ]
+ },
+ "generator": "gen_paimon.py",
+ "shapePrefabs": [
+  {
+   "name": "PM_paimon",
+   "partsFile": "paimon_parts.json"
+  }
+ ],
+ "components": [
+  {
+   "prefab": "PM_paimon",
+   "follow": "attach",
+   "textBubbles": [
+    {
+     "active": true,
+     "above": 2.1,
+     "radius": 20,
+     "lines": [
+      {
+       "text": "我是派蒙！",
+       "seconds": 3
+      },
+      {
+       "text": "前面好像有宝箱，我们一起走吧～",
+       "seconds": 4
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "graphs": [
+  {
+   "key": "stage",
+   "name": "PmStage"
+  },
+  {
+   "key": "paimon",
+   "name": "PmPaimon",
+   "attachToPrefab": [
+    "PM_paimon"
+   ]
+  }
+ ],
+ "expect": {
+  "prints": [
+   "PM_HELLO",
+   "PM_FOLLOW"
+  ]
+ }
+}

@@ -84,6 +84,12 @@ try{
     // A mechanism asset's built-in animation: its status id reaches the generator as 'presetStatus:<prefab name>'.
     if(made.presetStatus)extra.push(['presetStatus:'+made.name,made.presetStatus.statusId]);
   }
+  // Things made of shapes (scene_add_shape_prefab): args.shapePrefabs = its arguments, with partsFile (a json list of
+  // parts in the example's folder) in place of parts when the list is long. Ids reach the generator as 'prefab:<name>'.
+  for(const [i,{partsFile,...shaped}] of (args.shapePrefabs||[]).entries()){
+    const parts=partsFile?read(partsFile):shaped.parts;
+    const made=await call('scene_add_shape_prefab',{mapPath,...shaped,parts,outputName:'kingdom-shapes-'+i});mapPath=made.mapPath;
+  }
   if(args.hostilePairs)mapPath=(await call('scene_set_faction_hostility',{mapPath,hostilePairs:args.hostilePairs,outputName:'kingdom-factions'})).mapPath;
   if(args.level)mapPath=(await call('scene_set_level_settings',{mapPath,...args.level,outputName:'kingdom-level'})).mapPath;
   // Unit statuses and skies the graphs use: args.statuses / args.environments = lists of scene_add_unit_status /

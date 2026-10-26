@@ -1,6 +1,7 @@
 import {field,fields,one,varint} from './wire.mjs';
 import fs from 'node:fs';
 import {findAsset} from './assets.mjs';
+import {shapeOf,colorRecord} from './shapes.mjs';
 
 // Monsters need more than a transform: the importer leaves their perception and native-AI
 // parameters empty, and such a monster stands still forever. These bodies restore the official values.
@@ -43,6 +44,9 @@ const byId=new Map(BLOCK_CATALOG.map(b=>[b.templateId,b])),byName=new Map(BLOCK_
 export function blockTemplate(key){
  const block=typeof key==='number'?byId.get(key):byName.get(key);
  if(block)return {templateId:block.templateId,name:block.name,unit:block.baseScale.map(base=>base/block.baseSize)};
+ // A white-box shape (球体, 圆锥 ...): about a metre at scale 1, pivot in its centre. A flat plane is sized on x and z.
+ const shape=shapeOf(key);
+ if(shape)return {templateId:shape.id,name:shape.name,unit:shape.size.map(n=>n>0?1/n:1),natural:shape.size,shape:true};
  const asset=findAsset(key);
  if(!asset)throw Object.assign(new Error('Unknown block or asset: '+key+'. Use an ID from scene_search_assets, a block name from scene_block_catalog, or an asset name that is unique.'),{code:'UNKNOWN_BLOCK_TEMPLATE'});
  return {templateId:asset.id,name:asset.name,unit:asset.size&&asset.size.every(n=>n>0)?asset.size.map(n=>1/n):null,natural:asset.size||null,
@@ -82,7 +86,7 @@ function patrolProps(props,patrol,templateId){
   message(number(1,34),field(44,2,field(1,2,message(float(2,40),float(6,5))))),
   patrolBlock(patrol.templates)];
 }
-function asset({entityId,templateId,name,position,rotation,scale,seed,createAtStart,patrol,solid}){
+function asset({entityId,templateId,name,position,rotation,scale,seed,createAtStart,patrol,solid,color}){
  const seedProps=seed?(patrol?patrolProps(seed.props,patrol,templateId):seed.props.map(h=>Buffer.from(h,'hex'))):[];
  const transform=message(field(1,2,vector(position)),field(2,2,vector(rotation)),field(3,2,vector(scale)),field(501,0,4294967295));
  const component=message(number(1,1),field(11,2,transform));
@@ -98,6 +102,8 @@ function asset({entityId,templateId,name,position,rotation,scale,seed,createAtSt
   // Component 5 is the native collision (原生碰撞): {15: {1: 1, 2: 1}} when it is on, {15: {}} when characters walk through.
   // Left out, the importer decides, and for many decorations (a stone fence, seen in play 2026-10-12) that is "off".
   ...(solid!==undefined?[field(6,2,message(number(1,5),field(15,2,solid?message(number(1,1),number(2,1)):Buffer.alloc(0))))]:[]),
+  // Component 22 is the custom colour (颜色与材质), the same record the editor writes on a placed entity (see shapes.mjs).
+  ...(color?[field(6,2,color)]:[]),
   // Component 7 holds the combat stats. A dynamic object must have them filled in, otherwise the playtest
   // check refuses the map with “实体的属性设置错误，属性类型：7”. These are the editor's defaults for a new dynamic object.
   ...(!seed&&createAtStart===false?[field(6,2,message(number(1,7),field(17,2,message(float(1,10),float(2,1),float(3,500),number(5,1),
@@ -152,8 +158,13 @@ export function buildBlockScene({blocks,entityIdStart=1078000000,monsterIdStart=
    if(!Array.isArray(templates)||!templates.length||!templates.every(t=>Number.isInteger(t?.pathId)&&t.pathId>0&&Array.isArray(t.waypointIds)&&t.waypointIds.length&&t.waypointIds.every(w=>Number.isInteger(w)&&w>0)))
     throw Object.assign(new Error(name+': patrol needs templates:[{pathId,waypointIds:[...]}] with ids of a path saved in the map'),{code:'INVALID_BLOCK'});
   }
-  placed.push({entityId,name,template:template.name});
-  return asset({entityId,templateId:template.templateId,name,position,rotation,scale,seed:template.seed,createAtStart:block.createAtStart,patrol:block.patrol,solid:block.solid});
+  let color=null;
+  if(block.color!==undefined){
+   if(template.monster)throw Object.assign(new Error(name+': color is for objects, not creatures'),{code:'INVALID_BLOCK'});
+   try{color=colorRecord({color:block.color,opacity:block.opacity??100,blend:block.blend??'cover'});}catch(e){throw Object.assign(new Error(name+': '+e.message),{code:'INVALID_BLOCK'});}
+  }else if(block.opacity!==undefined||block.blend!==undefined)throw Object.assign(new Error(name+': opacity and blend go with color'),{code:'INVALID_BLOCK'});
+  placed.push({entityId,name,template:template.name,...(block.color!==undefined?{color:block.color}:{})});
+  return asset({entityId,templateId:template.templateId,name,position,rotation,scale,seed:template.seed,createAtStart:block.createAtStart,patrol:block.patrol,solid:block.solid,color});
  });
  return {bytes:container(Buffer.concat(assets.map(a=>field(1,2,a)))),count:blocks.length,entityIds:[entityIdStart,Math.max(entityIdStart,nextObject-1)],
   monsterIds:nextMonster>monsterIdStart?[monsterIdStart,nextMonster-1]:null,bounds:{min,max},placed,warnings};

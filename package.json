@@ -62,7 +62,8 @@
     "test:probe": "node tests/playtest-probe.mjs",
     "test:respawn": "node tests/scene-respawn.mjs",
     "test:publish": "node tests/publish-kit.mjs",
-    "test:clientui": "node tests/scene-client-ui.mjs"
+    "test:clientui": "node tests/scene-client-ui.mjs",
+    "test:shapes": "node tests/scene-shapes.mjs"
   },
   "keywords": [
     "mcp",
