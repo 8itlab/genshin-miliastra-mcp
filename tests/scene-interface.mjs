@@ -7,8 +7,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {container,fields} from '../src/scene/wire.mjs';
-import {barRecord,addProgressBar,listInterface,listComponents,timerRecord,addGlobalTimer,listGlobalTimers,addTimerDisplay,addButton,addTextBox,addImage,cardSelectorRecords,addCardSelector} from '../src/scene-save.mjs';
+import {container,fields,mapFields,wrap} from '../src/scene/wire.mjs';
+import {barRecord,addProgressBar,listInterface,listComponents,timerRecord,addGlobalTimer,listGlobalTimers,addTimerDisplay,addButton,addTextBox,addImage,cardSelectorRecords,addCardSelector,addGraph} from '../src/scene-save.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),dir=path.join(root,'knowledge','samples','gil'),workspace=fs.mkdtempSync(path.join(os.tmpdir(),'miliastra-interface-'));
 const pick=prefix=>path.join(dir,fs.readdirSync(dir).find(f=>f.startsWith(prefix)));
@@ -74,6 +74,15 @@ try{
   const level=addGlobalTimer({mapPath:shown.mapPath,name:'day',seconds:60,holder:'关卡物件'},workspace);
   assert.equal(level.heldBy.placed,1);assert.deepEqual(listGlobalTimers({mapPath:level.mapPath}).timers.map(t=>t.name),['round','day']);
   assert.throws(()=>addTimerDisplay({mapPath:other,name:'x',timer:'nothing'},workspace),e=>e.code==='TIMER_NOT_FOUND');
+  // A save of the global client names the stage entity in English (issue #2): it is found by its template, 10003004.
+  const englishStage=path.join(workspace,'global-client.gil'),seed=fs.readFileSync(other),top=container(seed);
+  const asset=e=>number(fields(e).find(f=>f.id===2&&f.wire===2).data,1);
+  const renamed=mapFields(top,5,section=>mapFields(section,1,e=>asset(e)!==10003004?e:mapFields(e,5,p=>number(p,1)!==1?p:mapFields(p,11,b=>mapFields(b,1,()=>Buffer.from('Stage Entity'))))));
+  fs.writeFileSync(englishStage,wrap(seed,renamed));
+  assert.ok(renamed.includes('Stage Entity')&&!renamed.equals(top),'the stage entity was renamed');
+  assert.equal(addGlobalTimer({mapPath:englishStage,name:'day',seconds:60,holder:'stage'},workspace).heldBy.placed,1);
+  assert.equal(addGraph({mapPath:englishStage,name:'Level'},workspace).attachedTo,'stage');
+  assert.equal(addGraph({mapPath:englishStage,name:'Level2',attachTo:'关卡实体'},workspace).attachedTo,'stage');
   assert.throws(()=>addGlobalTimer({mapPath:round.mapPath,name:'round',seconds:5},workspace),e=>e.code==='DUPLICATE_TIMER_NAME');
   assert.ok(fs.readFileSync(other).equals(before),'the source save was changed');
   // The text box of the official sample 界面控件 (功能示例-1 积分值): the template and both copies, byte for byte. Its

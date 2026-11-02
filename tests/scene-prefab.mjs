@@ -113,7 +113,7 @@ try{
  const blankFile=path.join(dir,'blank.gil'),blankHeader=Buffer.from(header);
  blankHeader.writeUInt32BE(blank.length+20,0);blankHeader.writeUInt32BE(blank.length,16);fs.writeFileSync(blankFile,Buffer.concat([blankHeader,blank,tail]));
  const added=addGraph({mapPath:blankFile,name:'Main',outputName:'with-graph'},dir);
- assert.deepEqual([added.graphId,added.name,added.attachedTo],[1073741825,'_GSTS_Main','关卡实体']);
+ assert.deepEqual([added.graphId,added.name,added.attachedTo],[1073741825,'_GSTS_Main','stage']);
  const withGraph=container(fs.readFileSync(added.mapPath)),section=id=>fields(withGraph).find(f=>f.id===id).data;
  const group=fields(section(10));
  assert.deepEqual(group.map(f=>f.id),[1,7],'the graph group comes before the other fields of the section');

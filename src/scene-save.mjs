@@ -578,6 +578,10 @@ function graphRecords(root){
 // slot) and the character template (base 1000001) are stored the same way (read from the official sample saves).
 const PLAYER_BASE=1000000,CHARACTER_BASE=1000001;
 const TEMPLATE={properties:6,components:7,records:8},PLACED={properties:5,components:6,records:7};
+// The stage entity is found by its template, not its name: the editor names it in the language of the client
+// (关卡实体 on the CN client, Stage Entity on the global one, issue #2). Any of these names, or "stage", means it.
+const STAGE_TEMPLATE=10003004,STAGE_NAMES=['stage','关卡实体','Stage Entity'];
+const isStage=entity=>typeof entity==='string'&&STAGE_NAMES.some(n=>n.toLowerCase()===entity.trim().toLowerCase());
 function rewriteTargets(root,{prefab,entity},edit){
   if((prefab===undefined)===(entity===undefined))fail('INVALID_TARGET','Give either prefab (a prefab name or id, or "player" / "character" for the two built-in templates) or entity (the name of something placed in the save).');
   let templates=0,placed=0,prefabIds=[];
@@ -595,7 +599,7 @@ function rewriteTargets(root,{prefab,entity},edit){
   root=replace(root,5,2,Buffer.concat(fields(one(root,5)).map(f=>{
     if(f.id!==1||f.wire!==2)return f.raw;
     const info=describe(f.data);
-    if(prefab!==undefined?!prefabIds.includes(info.assetId):info.name!==entity)return f.raw;
+    if(prefab!==undefined?!prefabIds.includes(info.assetId):isStage(entity)?info.assetId!==STAGE_TEMPLATE:info.name!==entity)return f.raw;
     placed++;return field(1,2,edit(f.data,PLACED));
   })));
   if(!templates&&!placed)fail('ENTITY_NOT_FOUND','Nothing placed in the save has this name. Names are listed by scene_list_entities.',{entity});
@@ -632,7 +636,7 @@ export function addGraph({mapPath,name='_GSTS_Main',kind='server',attachTo,attac
   // One graph can sit on several prefabs (a wooden wall and a stone wall that behave alike): attachToPrefab may be a list.
   const prefabList=attachToPrefab===undefined?[]:Array.isArray(attachToPrefab)?attachToPrefab:[attachToPrefab];
   if(new Set(prefabList).size!==prefabList.length)fail('INVALID_TARGET','attachToPrefab names the same prefab twice.',{attachToPrefab});
-  const targets=loose?[]:prefabList.length?prefabList.map(prefab=>({prefab})):[{entity:attachTo??'关卡实体'}];
+  const targets=loose?[]:prefabList.length?prefabList.map(prefab=>({prefab})):[{entity:attachTo??'stage'}];
   const ofSort=existing.filter(g=>client?g.graphId>CLIENT_GRAPH_BASE:g.graphId<=CLIENT_GRAPH_BASE).map(g=>g.graphId);
   let graphId=Math.max(client?CLIENT_GRAPH_BASE:SERVER_GRAPH_BASE,...ofSort)+1;
   const graph=Buffer.concat([field(1,2,Buffer.concat([field(1,0,10000),field(2,0,spec.type),field(3,0,21001),field(5,0,graphId)])),field(2,2,Buffer.from(label,'utf8')),client?field(100,0,1):Buffer.alloc(0)]);
@@ -669,7 +673,7 @@ export function addGraph({mapPath,name='_GSTS_Main',kind='server',attachTo,attac
     if(target.entity!==undefined&&one.placed!==1)fail('ENTITY_NOT_FOUND','Several placed entities have this name; attach to their prefab (attachToPrefab) or rename them.',target);
   }
   const out=output(workspace,file,outputName,'-graph');fs.writeFileSync(out,wrap(bytes,root));
-  const where=prefabList.length?{attachedToPrefab:attachToPrefab,prefabIds:done.prefabIds,templates:done.templates,placedCopies:done.placed}:{attachedTo:targets[0].entity};
+  const where=prefabList.length?{attachedToPrefab:attachToPrefab,prefabIds:done.prefabIds,templates:done.templates,placedCopies:done.placed}:{attachedTo:isStage(targets[0].entity)?'stage':targets[0].entity};
   return {mapPath:out,source:file,graphId,name:label,...where,
     next:'write_graphs {mapPath: this mapPath, graphs: [{graphId: '+graphId+', code}]}; the graph source starts with g.server({id:'+graphId+', name:\''+label+'\', ...}). Add every graph the level needs first, then write all their sources in one write_graphs call. In the graph, events are those of the entity it is attached to (evt.eventSourceEntity is that entity; on a prefab, each created copy runs its own instance), and whenEntityIsCreated fires when that entity appears (for the stage entity: when the level starts).'};
 }
@@ -1714,7 +1718,7 @@ export function addGlobalTimer({mapPath,name,seconds,countdown=true,holder='play
   if(top.some(f=>f.id===12&&f.wire===2))root=replace(root,12,2,Buffer.concat([one(root,12),added]));
   else{let at=top.findIndex(f=>f.id>12);if(at<0)at=top.length;root=Buffer.concat([...top.slice(0,at).map(f=>f.raw),field(12,2,added),...top.slice(at).map(f=>f.raw)]);}
   // The holder names the timer in its component record of kind 16.
-  const target=holder==='player'?{prefab:'player'}:{entity:holder==='stage'?'关卡实体':holder};
+  const target=holder==='player'?{prefab:'player'}:{entity:holder};
   const done=rewriteTargets(root,target,(data,layout)=>setBlock(data,layout.records,16,old=>{
     const body=old&&fields(old).find(f=>f.id===26&&f.wire===2)?.data;
     return record(16,Buffer.concat([body??blank,field(1,2,Buffer.from(name,'utf8'))]));
