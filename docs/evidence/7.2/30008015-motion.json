@@ -1,0 +1,45 @@
+{
+  "source": "Official CN 7.2.0 editor timeline plus official saved skill record, 2026-11-07",
+  "sourceSha256": "62189746478d3279409af972b5a697eca03fbe1c9baf1ae227c48757ec444222",
+  "skill": {
+    "skillId": 1191182337,
+    "name": "Asset72MotionProbe",
+    "creatureAssetId": 30008015,
+    "creature": "秘源机兵·寻捕械",
+    "graphId": null,
+    "animations": [
+      8015003,
+      8015004,
+      8015006,
+      8015016
+    ]
+  },
+  "rows": [
+    [
+      8015003,
+      "虚弱",
+      1.66,
+      0
+    ],
+    [
+      8015004,
+      "攻击_02_受击_前摇",
+      1.76,
+      0
+    ],
+    [
+      8015006,
+      "攻击_02_受击_后摇",
+      6.08,
+      0
+    ],
+    [
+      8015016,
+      "攻击_01",
+      3.96,
+      0
+    ]
+  ],
+  "screenshot": "docs/evidence/7.2/30008015-animations.png",
+  "complete": false
+}
