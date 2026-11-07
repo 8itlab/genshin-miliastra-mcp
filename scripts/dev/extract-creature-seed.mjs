@@ -1,0 +1,20 @@
+// Read only: extract one hand-placed creature's defaults from an official save copy.
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import {container,fields,one} from '../../src/scene/wire.mjs';
+const [file,idText,out]=process.argv.slice(2),id=Number(idText);
+if(!file||!Number.isSafeInteger(id)||!out)throw Error('Usage: extract-creature-seed.mjs copied.gil templateId out.json');
+const bytes=fs.readFileSync(file),root=container(bytes);
+const entries=fields(one(root,5)).filter(f=>f.id===1&&f.wire===2).map(f=>f.data);
+const integer=(b,n)=>Number(fields(b).find(f=>f.id===n&&f.wire===0)?.value??0);
+const hits=entries.filter(b=>integer(one(b,2),1)===id&&integer(b,8)===id);
+if(hits.length!==1)throw Error('Require exactly one hand-placed entity for this template');
+const entry=hits[0],rows=fields(entry),kind=f=>integer(f.data,1);
+const props=rows.filter(f=>f.id===5&&f.wire===2&&[31,32,33,34,65,80,81,82].includes(kind(f)));
+const comps=rows.filter(f=>f.id===6&&f.wire===2&&kind(f)===7);
+const runtime=rows.filter(f=>f.id===7&&f.wire===2);
+if(!props.some(f=>kind(f)===80)||comps.length!==1||!runtime.length)throw Error('Not a saved complex creature with combat and runtime records');
+const name=one(one(rows.find(f=>f.id===5&&kind(f)===1).data,11),1).toString('utf8');
+const result={sourceSha256:createHash('sha256').update(bytes).digest('hex'),templateId:id,entityId:integer(entry,1),propertyKinds:props.map(kind),runtimeKinds:runtime.map(kind),seed:{name,placeable:true,props:props.map(f=>f.data.toString('hex')),comps:comps.map(f=>f.data.toString('hex')),tail:Buffer.concat(runtime.map(f=>f.raw)).toString('hex'),observed:'Official CN 7.2.0 hand-placed entity, 2026-11-07; identity/runtime only, no decision graph attached'}};
+fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({templateId:id,entityId:result.entityId,propertyKinds:result.propertyKinds,runtimeKinds:result.runtimeKinds}));

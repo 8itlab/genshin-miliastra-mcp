@@ -49,6 +49,7 @@ export function blockTemplate(key){
  if(shape)return {templateId:shape.id,name:shape.name,unit:shape.size.map(n=>n>0?1/n:1),natural:shape.size,shape:true};
  const asset=findAsset(key);
  if(!asset)throw Object.assign(new Error('Unknown block or asset: '+key+'. Use an ID from scene_search_assets, a block name from scene_block_catalog, or an asset name that is unique.'),{code:'UNKNOWN_BLOCK_TEMPLATE'});
+ if(asset.catalogOnly&&!MONSTER_SEEDS[asset.id])throw Object.assign(new Error('Catalog identity verified, but official creature seed and runtime are not verified for '+asset.id+'. Placement is not supported yet.'),{code:'UNVERIFIED_ASSET'});
  return {templateId:asset.id,name:asset.name,unit:asset.size&&asset.size.every(n=>n>0)?asset.size.map(n=>1/n):null,natural:asset.size||null,
   monster:asset.group.startsWith('怪物'),seed:MONSTER_SEEDS[asset.id]||null};
 }

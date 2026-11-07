@@ -6,6 +6,8 @@ import fs from 'node:fs';
 const catalog=JSON.parse(fs.readFileSync(new URL('./asset-catalog.json',import.meta.url),'utf8'));
 export const ASSETS=catalog.assets;
 const byId=new Map(ASSETS.map(a=>[a.id,a]));
+const placementSeeds=JSON.parse(fs.readFileSync(new URL('./monster-seeds.json',import.meta.url),'utf8')).monsters;
+const placementOf=a=>!a.catalogOnly?{}:placementSeeds[a.id]?{placementStatus:'candidate-only',placementNote:'Official seed observed; candidate construction supported, runtime/decision graph validation pending.'}:{placementStatus:'unverified',placementNote:'Official identity observed; creature seed and runtime validation pending. scene_build_blocks rejects placement.'};
 // Mechanism assets (chests, levers, doors) come with a preset status, a built-in animation a graph switches with
 // f.setPresetStatus(entity, statusId, value). The ids are those the official sample saves register and use (preset-status.json).
 const PRESET_STATUS=JSON.parse(fs.readFileSync(new URL('./preset-status.json',import.meta.url),'utf8')).assets;
@@ -45,7 +47,7 @@ export function searchAssets({query='',group,minSize,maxSize,limit=30,offset=0}=
   for(const a of ASSETS){if(group&&a.group!==group)continue;const name=a.name.toLowerCase(),n=chars.filter(c=>name.includes(c)).length;if(n>=need&&n>(scored.get(a.name)??0))scored.set(a.name,n);}
   didYouMean=[...scored].sort((x,y)=>y[1]-x[1]||x[0].length-y[0].length).slice(0,10).map(([name])=>name);
  }
- return {total:hits.length,...(didYouMean?.length?{didYouMean}:{}),offset,assets:hits.slice(offset,offset+limit).map(a=>({id:a.id,name:a.name,group:a.group,icon:a.icon,sizeMetres:a.size||null,...standsAt(a.id),hasImage:hasThumb(a.id),...(presetStatusOf(a.id)?{presetStatus:presetStatusOf(a.id)}:{})})),
+ return {total:hits.length,...(didYouMean?.length?{didYouMean}:{}),offset,assets:hits.slice(offset,offset+limit).map(a=>({id:a.id,name:a.name,group:a.group,icon:a.icon,sizeMetres:a.size||null,...standsAt(a.id),hasImage:hasThumb(a.id),...placementOf(a),...(presetStatusOf(a.id)?{presetStatus:presetStatusOf(a.id)}:{})})),
   groups:[...new Set(ASSETS.map(a=>a.group))],
   note:'sizeMetres is [x, y, z] of the model at scale 1; null means unmeasured (mostly monsters). It is the size of the model, not of what a character stands on: where standsAt is given, a character stands that many metres above the position of the piece (measured in play); for a floor without it, lay one piece and read the height from a playtest with trackPlayer before placing things on it. Names repeat, so always place by id. hasImage says whether scene_asset_images has a photo of it: look at the candidates there before choosing between assets that share a name. presetStatus, where given, is the asset\'s built-in animation: a prefab made of it with scene_add_prefab can be switched by a graph with f.setPresetStatus(entity, statusId, value) (used lists the values the official samples set).',
   source:catalog.source};

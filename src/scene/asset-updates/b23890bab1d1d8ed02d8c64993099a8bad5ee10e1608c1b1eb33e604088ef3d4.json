@@ -1,0 +1,59 @@
+{
+  "version": "7.2.0",
+  "source": "Official CN editor, observed 2026-11-07: creature template preview",
+  "license": "Official game assets remain property of HoYoverse; metadata observed from UI",
+  "evidence": [
+    {
+      "path": "docs/evidence/7.2/30008007.png",
+      "sha256": "a848de4a799b194ad88b52ba4fed5483bbc2d32909cc063c64fbbd12f2df073f"
+    },
+    {
+      "path": "docs/evidence/7.2/30008008.png",
+      "sha256": "eb53b6251178a31a96c7578b28ce4e3c09a6908ff9ebb3776741bd52b924fc7a"
+    },
+    {
+      "path": "docs/evidence/7.2/30008009.png",
+      "sha256": "d86d8c4c08f4a270f3306b1c4f1b5f22b5c252efb0b5032a575f9bee649560a3"
+    },
+    {
+      "path": "docs/evidence/7.2/30006025.png",
+      "sha256": "8a65033bcb6518dbbc5191c961db7f70c35a55a1b7ca68536a21514cebe319bf"
+    },
+    {
+      "path": "docs/evidence/7.2/30006026.png",
+      "sha256": "2a07c48e9cbc4bc2f0b9cd4fe104ced322f8df59851f78d2877067b126555603"
+    },
+    {
+      "path": "docs/evidence/7.2/30005016.png",
+      "sha256": "e9110925ad04cad5defa2303bed23af254955ee41906486b682851450f663cdf"
+    },
+    {
+      "path": "docs/evidence/7.2/30007012.png",
+      "sha256": "ce4aab8ca7554c0cf0ed1dc1e183cfa021b7e5cae079a52ec80f9c738371c99a"
+    },
+    {
+      "path": "docs/evidence/7.2/30007010.png",
+      "sha256": "3ca609fa16742ea055b7606f1d694cd4a15459029f19f6b1c957bfc264ae361e"
+    },
+    {
+      "path": "docs/evidence/7.2/30007011.png",
+      "sha256": "71a57e27d5d15036a07a1069747de883138089d05d91c4caef2470793288f002"
+    }
+  ],
+  "inputSha256": "b23890bab1d1d8ed02d8c64993099a8bad5ee10e1608c1b1eb33e604088ef3d4",
+  "baseSha256": "898a16e2d25339662161b5b61ece0d4569fdb75704cf233f0990f05785f85111",
+  "added": [
+    30008007,
+    30008008,
+    30008009,
+    30006025,
+    30006026,
+    30005016,
+    30007012,
+    30007010,
+    30007011
+  ],
+  "unchanged": 0,
+  "officialCreationVerified": false,
+  "phase": "applied"
+}

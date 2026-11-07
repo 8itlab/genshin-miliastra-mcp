@@ -1,5 +1,7 @@
 # Third-party components
 
+FurinyaWorks 7.2 catalog additions are observations of the official Chinese editor on 2026-11-07. Per-capture names, IDs, client version, screenshot crops and hashes are in `docs/evidence/7.2` and `src/scene/asset-updates`. These observations do not change ownership or grant a license to HoYoverse's game assets. Existing catalog data retains its original attribution below. Runtime/animation support is not implied by catalog identity.
+
 This project uses **genshin-ts 0.2.2**, by josStorer, under the MIT license.
 Source: https://github.com/josStorer/genshin-ts
 
