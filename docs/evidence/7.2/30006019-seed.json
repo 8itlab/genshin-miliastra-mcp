@@ -1,0 +1,35 @@
+{
+  "sourceSha256": "f6f14273cacf60979d39d5a92ea10a88eb592e04121798a29a22efedbffdad72",
+  "templateId": 30006019,
+  "entityId": 1082130435,
+  "propertyKinds": [
+    80,
+    81,
+    65,
+    82
+  ],
+  "runtimeKinds": [
+    18,
+    1,
+    42,
+    3,
+    6,
+    14,
+    26
+  ],
+  "seed": {
+    "name": "镀金旅团·灵风猎手",
+    "placeable": true,
+    "props": [
+      "0850fa04090a070801a81fa79c01",
+      "08518205090a0712050d0000803f",
+      "0841b204020a00",
+      "08528a05020a00"
+    ],
+    "comps": [
+      "08078a01490d12146f421533337b421d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7dcdcc4cbe8001018d010000a042"
+    ],
+    "tail": "3a4808121001e201414a1d2a00320042005200ba1f0ce58f97e587bbe789b9e69588d81f0de01f0252202a00320042005200ba1f0fe8a2abe587bbe58092e789b9e69588d81f0de01f023a06080110015a003a09082a1001aa03020a003a06080310016a003a07080610018201003a07080e1001c201003a07081a1001aa0200",
+    "observed": "Official CN 7.2.0 hand-placed entity, 2026-11-07; identity/runtime only, no decision graph attached"
+  }
+}

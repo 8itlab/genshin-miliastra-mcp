@@ -27,6 +27,8 @@ try{
  input.assets[0].id=3;input.evidence=['absent'];assert.notEqual(run(true).status,0);
  assert.equal(searchAssets({query:'30008015'}).assets[0].placementStatus,'candidate-only');
  assert.equal(blockTemplate(30008015).seed.name,'秘源机兵·寻捕械');
- const id=30006019;assert.ok(findAsset(id));assert.equal(searchAssets({query:String(id)}).assets[0].placementStatus,'unverified');assert.throws(()=>blockTemplate(id),{code:'UNVERIFIED_ASSET'});
+ for(const id of [30006019,30008007,30008008,30008009,30006025,30006026,30005016,30007012,30007010,30007011]){assert.ok(findAsset(id));assert.equal(searchAssets({query:String(id)}).assets[0].placementStatus,'candidate-only');assert.equal(blockTemplate(id).seed.name,findAsset(id).name);}
+ input.evidence=['evidence'];input.assets=[{id:3,name:'unverified monster fixture',group:'怪物(AI版)',icon:''}];
+ assert.equal(run(true).status,0);assert.equal(JSON.parse(fs.readFileSync(target)).assets.find(a=>a.id===3).catalogOnly,true);
  console.log('incremental update: dry run, apply, replay, conflict, missing evidence, placement guards passed');
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
