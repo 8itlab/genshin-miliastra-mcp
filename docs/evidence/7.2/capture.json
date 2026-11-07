@@ -1,0 +1,25 @@
+{
+  "version": "7.2.0",
+  "source": "Official CN editor, observed 2026-11-07: creature template preview",
+  "license": "Official game assets remain property of HoYoverse; metadata observed from UI",
+  "evidence": [
+    "docs/evidence/7.2/30008015.png",
+    "docs/evidence/7.2/30006019.png"
+  ],
+  "assets": [
+    {
+      "id": 30008015,
+      "name": "秘源机兵·寻捕械",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30006019,
+      "name": "镀金旅团·灵风猎手",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    }
+  ]
+}
