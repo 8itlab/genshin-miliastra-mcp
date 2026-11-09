@@ -1,0 +1,23 @@
+{
+  "version": "7.2.0",
+  "source": "Official CN editor, observed 2026-11-07: creature template preview",
+  "license": "Official game assets remain property of HoYoverse; metadata observed from UI",
+  "evidence": [
+    {
+      "path": "docs/evidence/7.2/30008015.png",
+      "sha256": "9ab1ce7a128613ef2fab88df2ea93f2018529cbd0140ba2c1d6b5ed8a38bc2ba"
+    },
+    {
+      "path": "docs/evidence/7.2/30006019.png",
+      "sha256": "9389a6e07e0b52420c3b59446fe7f1f100cf2697d491c95266df584ccef5da96"
+    }
+  ],
+  "inputSha256": "419c5d7408a508f30455e14d1c4bee95ab7ff8aec3ea47613c52d744af4141ed",
+  "baseSha256": "329d74f9621cb8282beccfcfb65f4e9a3590e9359bdeeb2f1a92b138e05c5529",
+  "added": [
+    30008015,
+    30006019
+  ],
+  "unchanged": 0,
+  "officialCreationVerified": false
+}

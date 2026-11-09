@@ -1,0 +1,37 @@
+{
+  "candidateSha256": "a9a6c9a6934aaaaa57f28cfc1d97c7fcae999ca573c404c6d5c875f6d851b1c3",
+  "runId": "cb0acf81-4858-4243-af0a-89189927cb2a",
+  "clientScriptLog": true,
+  "steps": [
+    {
+      "at": 22.4,
+      "step": "client-script-log-ticked"
+    },
+    {
+      "at": 25,
+      "step": "log-subscribed",
+      "graphNames": [],
+      "clientScripts": true
+    },
+    {
+      "at": 49.1,
+      "step": "playtest-requested"
+    },
+    {
+      "at": 70.3,
+      "step": "playing"
+    },
+    {
+      "at": 88.7,
+      "step": "left-playtest"
+    }
+  ],
+  "enteredPlay": true,
+  "leftPlay": true,
+  "screenshotSha256": "44328d1fec8f8a81ea8d00d6ddf5afda512be35a027d6c29e49a922619a54bfa",
+  "publicCrop": "docs/evidence/7.2/30008015-playtest-model.png",
+  "generatedEntityIndividuallyObserved": false,
+  "animationRuntimeVerified": false,
+  "logCollectionCompleted": false,
+  "termination": "Stopped after left-playtest at the desktop authorization deadline; no complete log/ready claim"
+}

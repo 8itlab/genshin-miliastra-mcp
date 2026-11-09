@@ -1,0 +1,35 @@
+{
+  "sourceSha256": "0fef98919aabd9f5ac1569c32e65b341e12d5915c658c2fcf1346efaed0952a6",
+  "templateId": 30008015,
+  "entityId": 1082130433,
+  "propertyKinds": [
+    80,
+    81,
+    65,
+    82
+  ],
+  "runtimeKinds": [
+    18,
+    1,
+    42,
+    3,
+    6,
+    14,
+    26
+  ],
+  "seed": {
+    "name": "秘源机兵·寻捕械",
+    "placeable": true,
+    "props": [
+      "0850fa04090a070801a81fa79c01",
+      "08518205090a0712050d0000803f",
+      "0841b204020a00",
+      "08528a05020a00"
+    ],
+    "comps": [
+      "08078a01490d0e2dbe421552b896421d0000fa432801320510c2c7ee0445cdcccc3d4dcdcccc3d55cdcccc3d5dcdcccc3d65cdcccc3d6dcdcccc3d75cdcccc3d7dcdcccc3d8001018d0100009643"
+    ],
+    "tail": "3a4808121001e201414a1d2a00320042005200ba1f0ce58f97e587bbe789b9e69588d81f0de01f0252202a00320042005200ba1f0fe8a2abe587bbe58092e789b9e69588d81f0de01f023a06080110015a003a09082a1001aa03020a003a06080310016a003a07080610018201003a07080e1001c201003a07081a1001aa0200",
+    "observed": "Official CN 7.2.0 hand-placed entity, 2026-11-07; identity/runtime only, no decision graph attached"
+  }
+}

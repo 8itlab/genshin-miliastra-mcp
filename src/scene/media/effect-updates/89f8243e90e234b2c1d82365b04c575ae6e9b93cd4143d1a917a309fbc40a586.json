@@ -1,0 +1,299 @@
+{
+  "version": "7.2.0",
+  "source": "Official CN editor timed-effect picker filtered by 秘源, 2026-11-07 round3; display names may be truncated; not playtest verified",
+  "license": "Game assets remain property of HoYoverse; metadata and thumbnails observed in official UI",
+  "inputSha256": "89f8243e90e234b2c1d82365b04c575ae6e9b93cd4143d1a917a309fbc40a586",
+  "complete": false,
+  "kind": "timed",
+  "added": [
+    10019173,
+    10019176,
+    10019177,
+    10019178,
+    10019179,
+    10019180,
+    10019181,
+    10019185,
+    10019187,
+    10019189,
+    10019194,
+    10019195,
+    10019196,
+    10019197,
+    10019198,
+    10019199,
+    10019200,
+    10019201,
+    10019202,
+    10019203,
+    10019204,
+    10019205,
+    10019206,
+    10019207,
+    10019208,
+    10019209
+  ],
+  "observed": [
+    {
+      "id": 10019173,
+      "displayName": "秘源机兵·寻捕械_轰炸攻…",
+      "nameTruncated": true,
+      "seen": 3,
+      "evidence": "docs/evidence/7.2/fx/10019173.jpg",
+      "sha256": "c5ff3f7880acb251bc1c24b52293c4df99b69ee678856bd5446e24895c211d9e",
+      "thumbnail": "docs/evidence/7.2/fx/10019173.thumb.jpg",
+      "thumbnailSha256": "ec779931c9d28e4515ff95876bd22383272b84ad3b1d70d0111d41af401fc85d"
+    },
+    {
+      "id": 10019176,
+      "displayName": "秘源机兵·寻捕械_轰炸攻…",
+      "nameTruncated": true,
+      "seen": 4,
+      "evidence": "docs/evidence/7.2/fx/10019176.jpg",
+      "sha256": "3ec49221cdc73c07317fac1a5ba581fbb465a83efbe62df5cd8bcff31c362262",
+      "thumbnail": "docs/evidence/7.2/fx/10019176.thumb.jpg",
+      "thumbnailSha256": "9cc81f6f1d36a854ba6202f61bc8bc8cc24342e277ed7cc3cc785a3b8853fec3"
+    },
+    {
+      "id": 10019177,
+      "displayName": "秘源机兵·寻捕械_轰炸攻…",
+      "nameTruncated": true,
+      "seen": 6,
+      "evidence": "docs/evidence/7.2/fx/10019177.jpg",
+      "sha256": "a49e6eb5367ae9faf2e4760b34cda4cf7f62d60ae8ea68be64265f904a537ca2",
+      "thumbnail": "docs/evidence/7.2/fx/10019177.thumb.jpg",
+      "thumbnailSha256": "d40f03bdd59a1b8342d64781cda04d2dc924ffc3395eea7914172635f2d1076d"
+    },
+    {
+      "id": 10019178,
+      "displayName": "秘源机兵·寻捕械_轰炸攻…",
+      "nameTruncated": true,
+      "seen": 8,
+      "evidence": "docs/evidence/7.2/fx/10019178.jpg",
+      "sha256": "a35fe96e00618426b8d1f8ae6148b6a6f21b67a76cd426f18904b83fadd0f82a",
+      "thumbnail": "docs/evidence/7.2/fx/10019178.thumb.jpg",
+      "thumbnailSha256": "75b59dbd046133b47f16b0a9d8208d9a400ef93e80ba38aae554aacf148fbb8e"
+    },
+    {
+      "id": 10019179,
+      "displayName": "秘源机兵·寻捕械_轰炸攻…",
+      "nameTruncated": true,
+      "seen": 9,
+      "evidence": "docs/evidence/7.2/fx/10019179.jpg",
+      "sha256": "d19ce8c990e184afa6ee3744e65c429b122f370bf2ec6f32512352e9a2e164c6",
+      "thumbnail": "docs/evidence/7.2/fx/10019179.thumb.jpg",
+      "thumbnailSha256": "284866268541fb9ec91bf64a68617a2f50585048e571ec355320b3be29e37646"
+    },
+    {
+      "id": 10019180,
+      "displayName": "秘源机兵·寻捕械_炮击攻…",
+      "nameTruncated": true,
+      "seen": 11,
+      "evidence": "docs/evidence/7.2/fx/10019180.jpg",
+      "sha256": "44aa85a03c9f2cf8bfa8a6264d210b0ce2ae4a55447404a3518edc95cf99b7c8",
+      "thumbnail": "docs/evidence/7.2/fx/10019180.thumb.jpg",
+      "thumbnailSha256": "5f8c2c9e74fd5095a06877fb0b1799e7b52def61176e12ce435c85c6329b0ed8"
+    },
+    {
+      "id": 10019181,
+      "displayName": "秘源机兵·寻捕械_炮击攻…",
+      "nameTruncated": true,
+      "seen": 13,
+      "evidence": "docs/evidence/7.2/fx/10019181.jpg",
+      "sha256": "f3a806ca1e97e6d54cb2dfbe23155da446c411cd4fb8351b54252101f62096b8",
+      "thumbnail": "docs/evidence/7.2/fx/10019181.thumb.jpg",
+      "thumbnailSha256": "e13f5d89ec995c6d4f432124e73501dca82d9808ccaa05c8a20889469937136c"
+    },
+    {
+      "id": 10019185,
+      "displayName": "秘源机兵·寻捕械_炮击攻…",
+      "nameTruncated": true,
+      "seen": 14,
+      "evidence": "docs/evidence/7.2/fx/10019185.jpg",
+      "sha256": "3920f741bd7bfec7fb2996ee45f5595f6bdd7fad96324bdfddc35f37f673b610",
+      "thumbnail": "docs/evidence/7.2/fx/10019185.thumb.jpg",
+      "thumbnailSha256": "0a13d33ba0c98052f7a5f416b5657a04dbcbd66378a9c35e396d1eeaecdeba75"
+    },
+    {
+      "id": 10019187,
+      "displayName": "秘源机兵·寻捕械_炮击攻…",
+      "nameTruncated": true,
+      "seen": 15,
+      "evidence": "docs/evidence/7.2/fx/10019187.jpg",
+      "sha256": "51763a7b59d04a74c23208b6037e180938b5ab634cd83fcf22c1fb3b23fe5f61",
+      "thumbnail": "docs/evidence/7.2/fx/10019187.thumb.jpg",
+      "thumbnailSha256": "988da97368f5118158e3a262d84a25b449eb3f7dfc16b7f23a8d68c2f1660d9d"
+    },
+    {
+      "id": 10019189,
+      "displayName": "秘源机兵·寻捕械_炮击攻…",
+      "nameTruncated": true,
+      "seen": 17,
+      "evidence": "docs/evidence/7.2/fx/10019189.jpg",
+      "sha256": "cfe4e000c90e4e39f757ba9f7ff09d1b7470d0cbca5bd683bbdd55f40dcd19b8",
+      "thumbnail": "docs/evidence/7.2/fx/10019189.thumb.jpg",
+      "thumbnailSha256": "a1c03e4d7e737c5e297218b64874e8b24457a609cbfbc948e55c59381296a3ac"
+    },
+    {
+      "id": 10019194,
+      "displayName": "秘源机兵·寻捕械_炮击攻…",
+      "nameTruncated": true,
+      "seen": 17,
+      "evidence": "docs/evidence/7.2/fx/10019194.jpg",
+      "sha256": "427caefb38592772a211fb916f9e2f051e6156e2bb9e98899ca06bf724c50956",
+      "thumbnail": "docs/evidence/7.2/fx/10019194.thumb.jpg",
+      "thumbnailSha256": "6da9903f4701513f5abf3916fed1c53cde2125acdcdc8aa7958545f2e659e4ec"
+    },
+    {
+      "id": 10019195,
+      "displayName": "秘源机兵·寻捕械_圆柱攻…",
+      "nameTruncated": true,
+      "seen": 16,
+      "evidence": "docs/evidence/7.2/fx/10019195.jpg",
+      "sha256": "8e312c8bd2fd33111d01209dc3a15e74466c8475a4f59f4a5a342786546854e2",
+      "thumbnail": "docs/evidence/7.2/fx/10019195.thumb.jpg",
+      "thumbnailSha256": "faeb271008dfb81f79b046ea83f1b7eca0750203779d6e224e345f2520490085"
+    },
+    {
+      "id": 10019196,
+      "displayName": "秘源机兵·寻捕械_圆柱攻…",
+      "nameTruncated": true,
+      "seen": 17,
+      "evidence": "docs/evidence/7.2/fx/10019196.jpg",
+      "sha256": "8159b714ac4da38d1796ee440fcfb200c02d26804004d7533fdf9add6c3956d6",
+      "thumbnail": "docs/evidence/7.2/fx/10019196.thumb.jpg",
+      "thumbnailSha256": "555146725da9b2073da8731e31a734bd8552e51b2ed297e5b8e84a1a091d062c"
+    },
+    {
+      "id": 10019197,
+      "displayName": "秘源机兵·寻捕械_圆柱攻…",
+      "nameTruncated": true,
+      "seen": 17,
+      "evidence": "docs/evidence/7.2/fx/10019197.jpg",
+      "sha256": "22df1d4292e387239d0fcbefbf5390e6b62f5f54323cb85522f99107233cf147",
+      "thumbnail": "docs/evidence/7.2/fx/10019197.thumb.jpg",
+      "thumbnailSha256": "e92e68614a840f2c14338bba0574ac024d8192c7aa68d651fb8fb32e7cb39592"
+    },
+    {
+      "id": 10019198,
+      "displayName": "秘源机兵·寻捕械_圆柱攻…",
+      "nameTruncated": true,
+      "seen": 16,
+      "evidence": "docs/evidence/7.2/fx/10019198.jpg",
+      "sha256": "388bb5bea3d0d23ac2110ab51c4a31c01d90a07d4f5378966882ea03ec9c9f03",
+      "thumbnail": "docs/evidence/7.2/fx/10019198.thumb.jpg",
+      "thumbnailSha256": "24c72f1277e223434092c97aa1a67c94248f956bc070ac4838aa6375871f0ef5"
+    },
+    {
+      "id": 10019199,
+      "displayName": "秘源机兵·寻捕械_战败",
+      "nameTruncated": false,
+      "seen": 17,
+      "evidence": "docs/evidence/7.2/fx/10019199.jpg",
+      "sha256": "241b6af9f91ebaeafa71233ec3c2413d7cdaf4300aad1529b527d7ccae9492a5",
+      "thumbnail": "docs/evidence/7.2/fx/10019199.thumb.jpg",
+      "thumbnailSha256": "5653d6fd332892066e4c5d76cf328bfc3b1af837a49e0aed903641be81da6f24"
+    },
+    {
+      "id": 10019200,
+      "displayName": "秘源机兵·寻捕械_古龙化…",
+      "nameTruncated": true,
+      "seen": 17,
+      "evidence": "docs/evidence/7.2/fx/10019200.jpg",
+      "sha256": "30030edda2e7b44c48dd95b24e58392d824099cc07c63cd04fb8d029644ae658",
+      "thumbnail": "docs/evidence/7.2/fx/10019200.thumb.jpg",
+      "thumbnailSha256": "54f8207c9a02c5cff9acc101ac8911d2e08c27d951b918325efcca6ff275b639"
+    },
+    {
+      "id": 10019201,
+      "displayName": "秘源机兵·寻捕械_古龙化…",
+      "nameTruncated": true,
+      "seen": 15,
+      "evidence": "docs/evidence/7.2/fx/10019201.jpg",
+      "sha256": "09128f4d7fda19688dde6f2a07e3593352416c644cc477eb15f38de437b46ee0",
+      "thumbnail": "docs/evidence/7.2/fx/10019201.thumb.jpg",
+      "thumbnailSha256": "4338230cfcc13351572fd1466be4c33b926f0e40e52e25aff2a86c5d49720eb5"
+    },
+    {
+      "id": 10019202,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 14,
+      "evidence": "docs/evidence/7.2/fx/10019202.jpg",
+      "sha256": "541c3f6f3ff6d1604c06e9cc868b4832f6cc022436240afc33b2e0119a6ef032",
+      "thumbnail": "docs/evidence/7.2/fx/10019202.thumb.jpg",
+      "thumbnailSha256": "62147843f47c8247625116db5262f1cd9dc2dac2726f301ac7129d34e24868ee"
+    },
+    {
+      "id": 10019203,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 13,
+      "evidence": "docs/evidence/7.2/fx/10019203.jpg",
+      "sha256": "298c42f56cc1d9fffc942b121d633217340e3c9f6d440ad76d56c20a73531fc1",
+      "thumbnail": "docs/evidence/7.2/fx/10019203.thumb.jpg",
+      "thumbnailSha256": "5b57e9a63d63277494fd8dc489c57d90298248483fb4c0451a9e464272665e38"
+    },
+    {
+      "id": 10019204,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 10,
+      "evidence": "docs/evidence/7.2/fx/10019204.jpg",
+      "sha256": "c65c28d4545e1306b927681a7053a86298333ba76de445733fbd73687bf1e001",
+      "thumbnail": "docs/evidence/7.2/fx/10019204.thumb.jpg",
+      "thumbnailSha256": "703c52910531e2b5f3679e59db607f17b1123a46cd4485826daad2e0e103a0e0"
+    },
+    {
+      "id": 10019205,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 9,
+      "evidence": "docs/evidence/7.2/fx/10019205.jpg",
+      "sha256": "947a403b1c62cefc0fab75f394b14f0bc160c8781f232518055b78c0d075fb5f",
+      "thumbnail": "docs/evidence/7.2/fx/10019205.thumb.jpg",
+      "thumbnailSha256": "a7f884caad79a508a3220d12fecf5bfaac1f800073afd639b455ff48f1cbed8f"
+    },
+    {
+      "id": 10019206,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 8,
+      "evidence": "docs/evidence/7.2/fx/10019206.jpg",
+      "sha256": "7f4214806f83ff2d0f2b3128163ed237ab92473228516460971d4d09dc624fcb",
+      "thumbnail": "docs/evidence/7.2/fx/10019206.thumb.jpg",
+      "thumbnailSha256": "16a970462aa5dd116d0ea85ab5f9c419974f7166bd9edf4d41d453b5238beb9c"
+    },
+    {
+      "id": 10019207,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 6,
+      "evidence": "docs/evidence/7.2/fx/10019207.jpg",
+      "sha256": "ade47cae617981e34b8d3f06274fc6b0455d5b0ffd203855279e86d1b2b273c5",
+      "thumbnail": "docs/evidence/7.2/fx/10019207.thumb.jpg",
+      "thumbnailSha256": "412c3d4200c804fdd62f43e6e3152e1f5d1297bbe4b434b9b6595fbbba4178a6"
+    },
+    {
+      "id": 10019208,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 4,
+      "evidence": "docs/evidence/7.2/fx/10019208.jpg",
+      "sha256": "8ba7dfd6ea98565447e6520d8bf5b421a91c1ce8bf4ec3ab39c9c724cf87113e",
+      "thumbnail": "docs/evidence/7.2/fx/10019208.thumb.jpg",
+      "thumbnailSha256": "f3ccb3c8c4aff335bb0ca257a503c908939b9290b303a1bd0dac23c2cfac4ef8"
+    },
+    {
+      "id": 10019209,
+      "displayName": "秘源机兵·寻捕械_能量攻…",
+      "nameTruncated": true,
+      "seen": 3,
+      "evidence": "docs/evidence/7.2/fx/10019209.jpg",
+      "sha256": "29f03f44260056060d5af3eafbed44dd484ceaad724e5dc8e0d16414ed18ac19",
+      "thumbnail": "docs/evidence/7.2/fx/10019209.thumb.jpg",
+      "thumbnailSha256": "3dce774ddb7c54720df78536df72a62b7ebcb0e082123c17f9de6ca3654560be"
+    }
+  ],
+  "officialPlaybackVerified": false
+}

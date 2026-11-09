@@ -1,0 +1,81 @@
+{
+  "version": "7.2.0",
+  "source": "Official CN editor, observed 2026-11-07: creature template preview",
+  "license": "Official game assets remain property of HoYoverse; metadata observed from UI",
+  "evidence": [
+    "docs/evidence/7.2/30008007.png",
+    "docs/evidence/7.2/30008008.png",
+    "docs/evidence/7.2/30008009.png",
+    "docs/evidence/7.2/30006025.png",
+    "docs/evidence/7.2/30006026.png",
+    "docs/evidence/7.2/30005016.png",
+    "docs/evidence/7.2/30007012.png",
+    "docs/evidence/7.2/30007010.png",
+    "docs/evidence/7.2/30007011.png"
+  ],
+  "assets": [
+    {
+      "id": 30008007,
+      "name": "白鸽",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30008008,
+      "name": "璃冠鸽",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30008009,
+      "name": "灰羽鸽",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30006025,
+      "name": "雪翅雁",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30006026,
+      "name": "乌翅雁",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30005016,
+      "name": "浮流鸟",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30007012,
+      "name": "黑背猎犬",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30007010,
+      "name": "深栗猎犬",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    },
+    {
+      "id": 30007011,
+      "name": "琥珀猎犬",
+      "group": "怪物(AI版)",
+      "icon": "",
+      "catalogOnly": true
+    }
+  ]
+}
