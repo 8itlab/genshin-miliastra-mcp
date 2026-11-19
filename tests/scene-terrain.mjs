@@ -25,7 +25,7 @@ try{
   // The hand-painted cells, read back.
   const painted=getTerrain({mapPath:hand}).terrain.cells;
   assert.deepEqual(painted,[
-    {cell:[108,112],centre:[-7.5,12.5],top:-2.5,layers:0,water:1},
+    {cell:[108,112],centre:[-7.5,12.5],top:-2.5,layers:0,water:1,waterTop:0},
     {cell:[110,108],centre:[2.5,-7.5],top:2.5,layers:2,material:'sand',slope:17},
     {cell:[110,111],centre:[2.5,7.5],top:0,layers:1,path:true}]);
 
@@ -52,6 +52,10 @@ try{
   const cells=area.terrain.cells;
   assert.equal(cells.filter(c=>c.layers===3&&c.material==='stoneWall').length,4);
   assert.deepEqual(cells.find(c=>c.cell[0]===110&&c.cell[1]===108),{cell:[110,108],centre:[2.5,-7.5],top:7.5,layers:4,material:'sand',slope:17});
+  // The whole terrain by its world extent, edges included.
+  const whole=setTerrain({mapPath:base,outputName:'t_terrain_whole',cells:[{at:[-50,-50],toAt:[50,50],layers:2}]},workspace);
+  assert.equal(whole.cellsSet,400);assert.ok(whole.terrain.cells.every(c=>c.layers===2&&c.top===2.5));
+  assert.equal(await code(()=>setTerrain({mapPath:base,cells:[{at:[53,0],layers:2}]},workspace)),'CELL_OUTSIDE_TERRAIN');
   assert.equal(await code(()=>setTerrain({mapPath:base,cells:[{cell:[120,100],layers:2}]},workspace)),'CELL_OUTSIDE_TERRAIN');
   assert.equal(await code(()=>setTerrain({mapPath:base,cells:[{cell:[100,100]}]},workspace)),'NOTHING_TO_CHANGE');
   assert.equal(await code(()=>setTerrain({mapPath:base,cells:[{cell:[100,100],at:[0,0],layers:2}]},workspace)),'INVALID_CELL');

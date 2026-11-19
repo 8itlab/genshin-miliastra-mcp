@@ -606,7 +606,7 @@ const cellX=(t,x)=>Math.round((t.origin[0]+CELL_METRES*x)*1000)/1000,cellZ=(t,z)
 function describeCell(t,key,c){
   const x=key&0xffff,z=key>>>16,out={cell:[x,z],centre:[cellX(t,x),cellZ(t,z)],top:Math.round((t.origin[1]+LAYER_METRES*(c[2]||0))*1000)/1000,layers:c[2]||0};
   if(c[3])out.material=MATERIAL_NAMES[c[3]]??c[3];
-  if(c[4])out.water=c[4];if(c[5])out.path=true;if(c[6])out.slope=c[6];
+  if(c[4]){out.water=c[4];out.waterTop=Math.round((t.origin[1]+LAYER_METRES*((c[2]||0)+c[4]))*1000)/1000;}if(c[5])out.path=true;if(c[6])out.slope=c[6];
   return out;
 }
 const isPlain=c=>c[2]===1&&!c[3]&&!c[4]&&!c[5]&&!c[6]&&!c.extra.length;
@@ -616,7 +616,7 @@ function describeTerrain(t){
     worldExtent:t.grid&&{x:[cellX(t,t.grid.x[0])-CELL_METRES/2,cellX(t,t.grid.x[1])+CELL_METRES/2],z:[cellZ(t,t.grid.z[0])-CELL_METRES/2,cellZ(t,t.grid.z[1])+CELL_METRES/2]},
     plainCells:t.cells.size-changed.length,cells:changed.map(([k,c])=>describeCell(t,k,c))};
 }
-const terrainNote='A cell is 5 m square; cell [x, z] has its centre at origin + 5·index in x and z, and the top of its ground at origin y + 2.5·layers (1 layer: y 0 on a new map). Only cells that differ from plain grass one layer high are listed. Place things on a cell at y = top.';
+const terrainNote='A cell is 5 m square; cell [x, z] has its centre at origin + 5·index in x and z, and the top of its ground at origin y + 2.5·layers (1 layer: y 0 on a new map); a cell with water has its surface at waterTop. Only cells that differ from plain grass one layer high are listed. Place things on a cell at y = top.';
 export function getTerrain({mapPath,terrain}){
   const file=resolve(mapPath),root=container(fs.readFileSync(file)),{all,t}=pickTerrain(root,terrain);
   return {mapPath:file,terrains:all.map(x=>({id:x.id,name:x.name})),terrain:describeTerrain(t),note:terrainNote};
@@ -637,9 +637,10 @@ export function encodeTerrain(t){
   if(!placed)out.push(...cells);
   return Buffer.concat(out);
 }
+// A world position names the cell it lies in; one on the outer edge of the terrain (x 50 on a new map) the cell inside.
 function cellIndex(t,at){
-  const x=Math.round((at[0]-t.origin[0])/CELL_METRES),z=Math.round((at[1]-t.origin[2])/CELL_METRES);
-  return [x,z];
+  const one=(v,o,[lo,hi])=>{const i=(v-o)/CELL_METRES;return i>=lo-0.5&&i<=hi+0.5?Math.min(hi,Math.max(lo,Math.round(i))):Math.round(i);};
+  return [one(at[0],t.origin[0],t.grid.x),one(at[1],t.origin[2],t.grid.z)];
 }
 export function setTerrain({mapPath,terrain,cells,outputName},workspace){
   const file=resolve(mapPath),bytes=fs.readFileSync(file),root=container(bytes),{t}=pickTerrain(root,terrain);
