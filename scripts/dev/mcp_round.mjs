@@ -206,6 +206,11 @@ try{
   // these are only the graphs whose source changed.
   report.graphsWritten=batch.length;
   for(let i=0,per=Number(process.env.ROUND_GRAPH_BATCH||60);i<batch.length;i+=per){const all=await call('write_graphs',{mapPath,graphs:batch.slice(i,i+per)});if(all.failed)throw new Error('write_graphs '+JSON.stringify(all.failed).slice(0,900));mapPath=all.mapPath;report.limits.push(...all.written.map(w=>({graph:graphs.find(g=>g.graphId===w.graphId)?.name,...w.limits,counting:undefined,runtime:undefined})));}
+  // args.patch: a script in the example's folder that rewrites the candidate save (python patch.py <in.gil> <out.gil>),
+  // for parts of a save no tool writes yet (terrain, while it is being worked out).
+  // args.terrain: scene_set_terrain arguments (cells), applied to the candidate save before the playtest.
+  if(args.terrain)mapPath=(await call('scene_set_terrain',{mapPath,...args.terrain})).mapPath;
+  if(args.patch){const out=mapPath.replace(/\.gil$/,'')+'-patched.gil';execFileSync(process.env.MILIASTRA_PYTHON||'python',[path.join(kingdom,args.patch),mapPath,out,...(args.patchArgs||[]).map(String)]);mapPath=out;report.patched=out;}
   report.candidate=mapPath;
   if(dry){report.components=(await call('scene_list_components',{mapPath,prefab:(args.components||[{}])[0].prefab||'player'})).found;report.interface=(await call('inspect_map',{mapPath})).graphs.map(g=>({id:g.id,name:g.name,type:g.type,nodeCount:g.nodeCount}));report.done=true;report.dry=true;save();await client.close();process.exit(0);}
   // The log window lets at most 10 graphs be ticked: a graph entry with log: false is left out (one that prints nothing).

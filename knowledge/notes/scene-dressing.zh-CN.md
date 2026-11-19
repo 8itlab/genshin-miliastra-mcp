@@ -2,7 +2,7 @@
 
 这一页是我们自己的总结，不是官方文档。来历：王国样例的景第一版交上去，创作者的评价是“景不够好看，没搭好，要带入审美”；第一次盲测里另一个 AI 只靠工具做出来的景是“一片平草地，房子、树、帐篷在后面排成一排”。两次的毛病一样：把东西摆齐了，没有把画面摆好。下面每一条都是在游戏里看过截图的。
 
-工具：`scene_search_assets`（找物件）、`scene_asset_images`（看长相，同名物件差别很大，必须看图）、`scene_build_blocks`（摆）、`scene_import_assets`（导入并拍总览）、`scene_set_camera`（镜头）、`scene_add_environment` / `scene_add_light`（天空和灯）、`scene_update_prefab`（看过之后改大小或换模型）。
+工具：`scene_set_terrain`（地面本身：崖、台地、水、路、台阶）、`scene_get_terrain`（读每格顶面高度）、`scene_search_assets`（找物件）、`scene_asset_images`（看长相，同名物件差别很大，必须看图）、`scene_build_blocks`（摆）、`scene_import_assets`（导入并拍总览）、`scene_set_camera`（镜头）、`scene_add_environment` / `scene_add_light`（天空和灯）、`scene_update_prefab`（看过之后改大小或换模型）。
 
 ## 一、先定镜头，再摆东西
 
@@ -80,3 +80,13 @@
 ## 九、一个能照着改的例子
 
 `read_knowledge {id:"example-kingdom6"}` 里名为 `Kingdom_V3_Scenery` 的那次 `scene_build_blocks` 调用就是王国的整个景：河、路、房屋、两层树、城外的灰岩和枯树，每一件的编号、位置、缩放都在里面（站点的道具在它前面那次调用里）。景是按上面第二节的表分层摆的。那张底图的地面在 y=7.6，新地图的地面在 y=0，照搬时用 `scene_build_blocks` 的 `offset` 整体挪下来。做侧视的景可以直接拿它改；做别的视角，照着它的分层和疏密来。
+
+## 地面先用地形做出起伏
+
+平草地是最常见的毛病。地形工具直接改地面本身，比拿方块垒崖好看，也不占实体：
+
+- 先用 `scene_set_terrain` 把地面做出来，再摆东西。一格 5 米、一层 2.5 米；后排抬高 2 到 4 层、用草地材质（侧面是自然岩壁）就是一道崖，挡住画面的远处。
+- 水池、小溪：实心 0 层加水 1 层，是和地面齐平的原生水面。运行时生成的水是黑的，别用。
+- 路：`path: true` 踩出土路，边缘是柔的，用来告诉玩家往哪走。
+- 高低之间放台阶（`slope`，方向见平台规则“地形”一节），角色走得上去。
+- 摆东西前用 `scene_get_terrain` 读一下格子的 `top`，物件放在那个 y 上，否则会埋进崖里或悬在半空。

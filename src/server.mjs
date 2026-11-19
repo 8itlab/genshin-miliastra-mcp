@@ -23,7 +23,7 @@ playtest_status gives the outcome.
 
 1. Look at what is there.
    list_maps, inspect_map (node graphs and their ids), scene_list_entities, scene_list_prefabs, scene_list_factions,
-   scene_get_level_settings, scene_list_cameras.
+   scene_get_level_settings, scene_list_cameras, scene_get_terrain.
    A brand-new map works too (verified on a blank map, scripts/dev/fresh_map_round.mjs): the creator makes the save
    in the game (我的奇域 → 新建存档), changes anything and saves once so that the file is written.
 
@@ -81,6 +81,9 @@ playtest_status gives the outcome.
      parts of a prefab this made and keeps its id. examples/paimon is Paimon in 39 shapes who greets the player and then
      flies along beside the character (read_knowledge {id:"example-paimon"}). scene_build_blocks takes the shapes
      and a color too, for scenery made of plain coloured geometry.
+   scene_set_terrain: the ground itself, 5 m cells raised in layers of 2.5 m, with a material (grass with rock sides
+     for cliffs, stone wall, sand, snow, tile), water, paths and ramps. Shape the ground before placing things on it,
+     and put them at the top of their cell (scene_get_terrain gives it). Natural water only comes this way.
    scene_set_faction_hostility: usually [[1,3]], players and creatures fight and objects are left alone. With the default
      relations the player's allies attack every object a graph creates.
    scene_set_level_settings {aggroMode:"custom"}: needed when the graph decides whom creatures go for

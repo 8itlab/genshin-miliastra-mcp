@@ -536,7 +536,7 @@ class Run:
         click again a few times before giving up."""
         self.focus('game')
         for attempt in range(6):
-            text, _ = self.wait_text('game', '试玩', exact=True, timeout=1 if attempt == 0 else 5, required=False)
+            text, _ = self.wait_text('game', '试玩', exact=True, region=self.MENU_TILES, scale=1, timeout=1 if attempt == 0 else 5, required=False)
             if text:
                 return
             # The menu can be open with its list scrolled down: the tiles at its top (试玩 among them) are then out of
@@ -561,10 +561,14 @@ class Run:
                 continue
             self.click_fraction('game', GRID_ICON)
             time.sleep(0.8)
-        text, _ = self.wait_text('game', '试玩', exact=True, timeout=10, required=False)
+        text, _ = self.wait_text('game', '试玩', exact=True, region=self.MENU_TILES, scale=1, timeout=10, required=False)
         if not text:
             self.shot('game', 'no-level-menu')
             raise Failed('在编辑器里没能打开左上角的关卡菜单（菜单里找不到“试玩”，已截图）。编辑器里可能开着别的面板或弹窗：关掉它，或者手动退出编辑器回到存档列表，再调一次。')
+
+    # The tiles at the top of the level menu carry small labels: 试玩 is lost when the whole 1920-wide window is read at
+    # half size (seen 2026-11-18, three rounds in a row), so that corner is read at full size.
+    MENU_TILES = (0, 0, 0.25, 0.35)
 
     LEVEL_SETTINGS_MINIMISE = (1231 / 1600, 224 / 900)  # the icon at the top right of the 关卡设置 panel
 
@@ -1213,7 +1217,7 @@ class Run:
         events.sort(key=lambda e: e[0])
         known_logs = self.logs()
         self.open_level_menu()
-        self.click_text('game', '试玩', exact=True, timeout=10)
+        self.click_text('game', '试玩', exact=True, region=self.MENU_TILES, scale=1, timeout=10)
         # The editor checks the level before a playtest and lists what is wrong in a 校验失败 dialog (too many nodes in a
         # graph, a creature without combat attributes, ...). Pass its lines on: they are the answer to why nothing started.
         text, hit = self.wait_text('game', ['直接上传', '开始游戏', '校验失败'], timeout=30)

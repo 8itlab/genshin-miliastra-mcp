@@ -108,9 +108,9 @@ The AI's work goes into a copy of the save; a playtest imports that copy as a ne
 
 ## Tools, in the order a level is made
 
-1. **Look at the map**: `list_maps`, `inspect_map`, `scene_list_*`, `scene_get_level_settings`.
+1. **Look at the map**: `list_maps`, `inspect_map`, `scene_list_*`, `scene_get_level_settings`, `scene_get_terrain`.
 2. **Scene**: `scene_search_assets`, `scene_asset_images`, `scene_build_blocks`, `editor_open_map`, `scene_import_assets`, `scene_remove_entities`.
-3. **Settings**: `scene_set_camera` (with a locked view), `scene_set_spawn`, `scene_add_preset_point`, `scene_set_class`, `scene_set_faction_hostility`, `scene_set_level_settings`, `scene_add_respawn_point`, `scene_set_revive`, `scene_set_player_count`.
+3. **Settings**: `scene_set_camera` (with a locked view), `scene_set_spawn`, `scene_add_preset_point`, `scene_set_class`, `scene_set_faction_hostility`, `scene_set_level_settings`, `scene_set_terrain` (cliffs, water, paths and steps in the ground itself), `scene_add_respawn_point`, `scene_set_revive`, `scene_set_player_count`.
 4. **Things and what they can do**: `scene_add_prefab`, `scene_update_prefab`, `scene_add_shape_prefab` with `scene_preview_shapes`, `scene_add_components`, `scene_add_graph`.
 5. **Platform systems**: `scene_add_signal`, `scene_add_global_timer`, `scene_add_skill`, `scene_add_creature_skill`, `scene_set_creature_logic`, `scene_add_currency`, `scene_add_item`, `scene_add_shop`, `scene_add_unit_status`, `scene_add_environment`, `scene_add_light`.
 6. **On screen**: `scene_add_progress_bar`, `scene_add_image`, `image_catalog`, `scene_add_timer_display`, `scene_add_button`, `scene_add_card_selector`; client interfaces in Lua with `scene_set_client_script`, `scene_add_client_ui`, `scene_get_client_ui`, `scene_add_client_template`, `scene_check_client`, `scene_remove_client`, `editor_preview_interface` and `scene_import_simulator`.

@@ -562,6 +562,110 @@ export function setLevelSettings({mapPath,aggroMode,loadTier,outputName},workspa
   return {...getLevelSettings({mapPath:out}),source:file,before:describeLevel(state.basics),next:'Use mapPath in later calls. The official save was not changed.'};
 }
 
+// Terrain (地形) is section 7 of a save: a list {1: terrain} of terrains {1: id, 2: {1: name}, 3: {1: {x, y, z}} the
+// centre of grid cell 0, 4: cell...}. A cell is {1: key, 2: solid layers, 3: material, 4: water layers, 5: path,
+// 6: slope}, a field left out when it is 0, the key being (z index << 16) | x index, and the cells kept in order of
+// x index, then z index. A new map has one terrain, 地形01, at (-547.5, -2.5, -547.5) with the 400 cells of indices
+// 100..119 one layer high: the ground the player stands on, its top at y 0. Read from saves the editor wrote with
+// cells painted by hand and checked in play (CN 7.2, 2026-11-18): a cell is 5 m square, a layer 2.5 m; material is
+// the number of the editor's brush less one. Slopes, read from one playtest of the tool's own output: 16..19 cut steps
+// down towards +z, +x, -z, -x; 32..35 are corner stairs meeting at the -x-z, -x+z, +x+z, +x-z corner. The tools only
+// change cells that are there already.
+const CELL_METRES=5,LAYER_METRES=2.5,MAX_LAYERS=20;
+export const TERRAIN_MATERIALS={grass:0,tile:1,sand:2,stoneWall:4,snow:5};
+const MATERIAL_NAMES=Object.fromEntries(Object.entries(TERRAIN_MATERIALS).map(([k,v])=>[v,k]));
+const CELL_FIELDS={layers:2,material:3,water:4,path:5,slope:6};
+function terrainList(root){
+  const sections=fields(root).filter(f=>f.id===7&&f.wire===2);
+  if(sections.length!==1)fail('UNSUPPORTED_SAVE','The save has no terrain section.');
+  return {section:sections[0].data,entries:fields(sections[0].data)};
+}
+function readTerrain(data){
+  const parts=fields(data),cells=new Map();
+  let name='';try{name=one(one(data,2),1).toString('utf8');}catch{}
+  let origin=[0,0,0];try{const at=one(one(data,3),1);origin=[float(at,1),float(at,2),float(at,3)];}catch{}
+  for(const f of parts)if(f.id===4&&f.wire===2){
+    const c={raw:f.data,extra:[]};
+    for(const x of fields(f.data)){
+      if(x.wire===0&&x.id>=1&&x.id<=6)c[x.id]=Number(x.value);else c.extra.push(x);
+    }
+    if(c[1]===undefined)fail('UNSUPPORTED_SAVE','A terrain cell has no key.');
+    cells.set(c[1],c);
+  }
+  const xs=[...cells.keys()].map(k=>k&0xffff),zs=[...cells.keys()].map(k=>k>>>16);
+  return {id:varintOf(data,1),name,origin,parts,cells,grid:cells.size?{x:[Math.min(...xs),Math.max(...xs)],z:[Math.min(...zs),Math.max(...zs)]}:null};
+}
+function pickTerrain(root,terrain){
+  const all=terrainList(root).entries.filter(f=>f.id===1&&f.wire===2).map((f,index)=>({index,...readTerrain(f.data)}));
+  if(!all.length)fail('UNSUPPORTED_SAVE','The save has no terrain.');
+  const picked=terrain===undefined?all:all.filter(t=>typeof terrain==='number'?t.id===terrain:t.name===terrain);
+  if(picked.length!==1)fail('TERRAIN_NOT_FOUND',terrain===undefined?'The save has several terrains: give terrain (its name or id).':'No terrain with this name or id in the save.',{terrain,terrains:all.map(t=>({id:t.id,name:t.name}))});
+  return {all,t:picked[0]};
+}
+const cellX=(t,x)=>Math.round((t.origin[0]+CELL_METRES*x)*1000)/1000,cellZ=(t,z)=>Math.round((t.origin[2]+CELL_METRES*z)*1000)/1000;
+function describeCell(t,key,c){
+  const x=key&0xffff,z=key>>>16,out={cell:[x,z],centre:[cellX(t,x),cellZ(t,z)],top:Math.round((t.origin[1]+LAYER_METRES*(c[2]||0))*1000)/1000,layers:c[2]||0};
+  if(c[3])out.material=MATERIAL_NAMES[c[3]]??c[3];
+  if(c[4])out.water=c[4];if(c[5])out.path=true;if(c[6])out.slope=c[6];
+  return out;
+}
+const isPlain=c=>c[2]===1&&!c[3]&&!c[4]&&!c[5]&&!c[6]&&!c.extra.length;
+function describeTerrain(t){
+  const changed=[...t.cells].filter(([,c])=>!isPlain(c)).sort((a,b)=>(a[0]&0xffff)-(b[0]&0xffff)||(a[0]>>>16)-(b[0]>>>16));
+  return {id:t.id,name:t.name,origin:t.origin,cellMetres:CELL_METRES,layerMetres:LAYER_METRES,grid:t.grid,cellCount:t.cells.size,
+    worldExtent:t.grid&&{x:[cellX(t,t.grid.x[0])-CELL_METRES/2,cellX(t,t.grid.x[1])+CELL_METRES/2],z:[cellZ(t,t.grid.z[0])-CELL_METRES/2,cellZ(t,t.grid.z[1])+CELL_METRES/2]},
+    plainCells:t.cells.size-changed.length,cells:changed.map(([k,c])=>describeCell(t,k,c))};
+}
+const terrainNote='A cell is 5 m square; cell [x, z] has its centre at origin + 5·index in x and z, and the top of its ground at origin y + 2.5·layers (1 layer: y 0 on a new map). Only cells that differ from plain grass one layer high are listed. Place things on a cell at y = top.';
+export function getTerrain({mapPath,terrain}){
+  const file=resolve(mapPath),root=container(fs.readFileSync(file)),{all,t}=pickTerrain(root,terrain);
+  return {mapPath:file,terrains:all.map(x=>({id:x.id,name:x.name})),terrain:describeTerrain(t),note:terrainNote};
+}
+function encodeCell(key,c){
+  const parts=[{id:1,raw:field(1,0,key)}];
+  for(const id of [2,3,4,5,6])if(c[id])parts.push({id,raw:field(id,0,c[id])});
+  // Fields the tools do not know stay as they were, in numeric order with the rest.
+  for(const x of c.extra)parts.push({id:x.id,raw:x.raw});
+  return Buffer.concat(parts.map((f,i)=>({f,i})).sort((a,b)=>a.f.id-b.f.id||a.i-b.i).map(e=>e.f.raw));
+}
+// The terrain written back: its own fields in place, the cells where the first cell was, in the editor's order.
+export function encodeTerrain(t){
+  const keys=[...t.cells.keys()].sort((a,b)=>(a&0xffff)-(b&0xffff)||(a>>>16)-(b>>>16));
+  const cells=keys.map(k=>field(4,2,t.cells.get(k).changed?encodeCell(k,t.cells.get(k)):t.cells.get(k).raw));
+  const out=[];let placed=false;
+  for(const f of t.parts){if(f.id===4&&f.wire===2){if(!placed){out.push(...cells);placed=true;}}else out.push(f.raw);}
+  if(!placed)out.push(...cells);
+  return Buffer.concat(out);
+}
+function cellIndex(t,at){
+  const x=Math.round((at[0]-t.origin[0])/CELL_METRES),z=Math.round((at[1]-t.origin[2])/CELL_METRES);
+  return [x,z];
+}
+export function setTerrain({mapPath,terrain,cells,outputName},workspace){
+  const file=resolve(mapPath),bytes=fs.readFileSync(file),root=container(bytes),{t}=pickTerrain(root,terrain);
+  if(!cells?.length)fail('NOTHING_TO_CHANGE','Give cells: a list of cells or rectangles and what to set on them.');
+  const before=describeTerrain(t);let touched=0;
+  for(const [n,e] of cells.entries()){
+    if((e.cell===undefined)===(e.at===undefined))fail('INVALID_CELL','Each entry needs cell [x index, z index] or at [world x, world z], one of the two.',{entry:n});
+    const from=e.cell??cellIndex(t,e.at),to=e.to??(e.toAt?cellIndex(t,e.toAt):from);
+    if(e.to&&e.at||e.toAt&&e.cell)fail('INVALID_CELL','Give a rectangle as cell + to (indices) or at + toAt (world metres), not mixed.',{entry:n});
+    const values={};
+    if(typeof e.material==='string'&&TERRAIN_MATERIALS[e.material]===undefined)fail('INVALID_CELL','Unknown material name.',{entry:n,material:e.material,names:TERRAIN_MATERIALS});
+    for(const [name,id] of Object.entries(CELL_FIELDS))if(e[name]!==undefined)values[id]=name==='path'?(e.path?1:0):name==='material'?(typeof e.material==='string'?TERRAIN_MATERIALS[e.material]:e.material):e[name];
+    if(!e.reset&&!Object.keys(values).length)fail('NOTHING_TO_CHANGE','This entry sets nothing: give layers, material, water, path, slope or reset.',{entry:n});
+    for(let x=Math.min(from[0],to[0]);x<=Math.max(from[0],to[0]);x++)for(let z=Math.min(from[1],to[1]);z<=Math.max(from[1],to[1]);z++){
+      const key=z*65536+x,c=t.cells.get(key);
+      if(x<0||z<0||x>0xffff||z>0xffff||!c)fail('CELL_OUTSIDE_TERRAIN','This cell is not part of the terrain. Cells run over the grid that scene_get_terrain reports.',{entry:n,cell:[x,z],centre:[cellX(t,x),cellZ(t,z)],grid:t.grid});
+      if(e.reset){for(const id of [3,4,5,6])delete c[id];c[2]=1;}
+      Object.assign(c,values);c.changed=true;touched++;
+    }
+  }
+  const out=output(workspace,file,outputName,'-terrain');let k=0;
+  const list=Buffer.concat(terrainList(root).entries.map(f=>f.id===1&&f.wire===2&&k++===t.index?field(1,2,encodeTerrain(t)):f.raw));
+  fs.writeFileSync(out,wrap(bytes,replace(root,7,2,list)));
+  return {...getTerrain({mapPath:out,terrain:t.id}),source:file,cellsSet:touched,plainCellsBefore:before.plainCells,next:'Use mapPath in later calls. The official save was not changed.'};
+}
+
 // Node graphs live in section 10 as groups {1: graph}, a graph being {1: {1: 10000, 2: 20000, 3: 21001, 5: graph id},
 // 2: name, 3: nodes...} for a server entity graph. The editor's library lists it in the tab of kind 4 as
 // {1: 800, 2: graph id}, and it runs on the entity whose component 3 names it:
